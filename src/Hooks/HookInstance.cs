@@ -126,12 +126,18 @@ namespace UnityExplorer.Hooks
                     evaluatorOutput.Clear();
 
                     if (ScriptEvaluator._reportPrinter.ErrorsCount > 0)
+                    {
                         ExplorerCore.LogWarning($"Unable to compile the code. Evaluator's last output was:\r\n{output}");
+                    }
                     else
+                    {
                         ExplorerCore.LogWarning($"Exception generating patch source code: {ex}");
+                    }
                 }
                 else
+                {
                     ExplorerCore.LogWarning($"Exception generating patch source code: {ex}");
+                }
 
                 // ExplorerCore.Log(codeBuilder.ToString());
 

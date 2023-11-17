@@ -16,6 +16,7 @@ namespace UnityExplorer.Hooks
         public Text MethodNameLabel;
         public ButtonRef EditPatchButton;
         public ButtonRef ToggleActiveButton;
+        public ButtonRef DeleteButtonTmp;
         public ButtonRef DeleteButton;
 
         public int CurrentDisplayedIndex;
@@ -25,9 +26,15 @@ namespace UnityExplorer.Hooks
             HookList.EnableOrDisableHookClicked(CurrentDisplayedIndex);
         }
 
+        private void OnDeleteTmpClicked()
+        {
+            HookList.DeleteHookClicked(CurrentDisplayedIndex, false);
+            HookCreator.AddHooksScrollPool.Refresh(true, false);
+        }
+        
         private void OnDeleteClicked()
         {
-            HookList.DeleteHookClicked(CurrentDisplayedIndex);
+            HookList.DeleteHookClicked(CurrentDisplayedIndex, true);
             HookCreator.AddHooksScrollPool.Refresh(true, false);
         }
 
@@ -55,7 +62,11 @@ namespace UnityExplorer.Hooks
             UIFactory.SetLayoutElement(EditPatchButton.Component.gameObject, minHeight: 25, minWidth: 35);
             EditPatchButton.OnClick += OnEditPatchClicked;
 
-            DeleteButton = UIFactory.CreateButton(UIRoot, "DeleteButton", "X", new Color(0.2f, 0.15f, 0.15f));
+            this.DeleteButtonTmp = UIFactory.CreateButton(UIRoot, "DeleteButton", "X", new Color(0.2f, 0.15f, 0.15f));
+            UIFactory.SetLayoutElement(this.DeleteButtonTmp.Component.gameObject, minHeight: 25, minWidth: 35);
+            this.DeleteButtonTmp.OnClick += this.OnDeleteTmpClicked;
+            
+            DeleteButton = UIFactory.CreateButton(UIRoot, "DeleteButton", "X!", new Color(0.2f, 0.15f, 0.15f));
             UIFactory.SetLayoutElement(DeleteButton.Component.gameObject, minHeight: 25, minWidth: 35);
             DeleteButton.OnClick += OnDeleteClicked;
 

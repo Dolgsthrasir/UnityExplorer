@@ -101,6 +101,7 @@ namespace UnityExplorer.UI
             // Call some initialize methods
             Notification.Init();
             ConsoleController.Init();
+            HookManagerPanel.hookCreator.LoadSavedHooks();
 
             // Failsafe fix, in some games all dropdowns displayed values are blank on startup for some reason.
             foreach (Dropdown dropdown in UIRoot.GetComponentsInChildren<Dropdown>(true))

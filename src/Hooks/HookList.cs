@@ -24,18 +24,44 @@ namespace UnityExplorer.Hooks
             HooksScrollPool.Refresh(true, false);
         }
 
-        public static void DeleteHookClicked(int index)
+        public static void DeleteHookClicked(int index, bool deleteFile)
         {
             HookInstance hook = (HookInstance)currentHooks[index];
 
             if (HookCreator.CurrentEditedHook == hook)
                 HookCreator.EditorInputCancel();
 
+            if (deleteFile)
+            {
+                RemoveSavedHook(hook);
+            }
             hook.Unpatch();
             currentHooks.RemoveAt(index);
             hookedSignatures.Remove(hook.TargetMethod.FullDescription());
 
             HooksScrollPool.Refresh(true, false);
+        }
+        
+        private static void RemoveSavedHook(HookInstance hook)
+        {
+            HookCreator.HookData data = new HookCreator.HookData();
+            data.Description = hook.TargetMethod.FullDescription();
+            data.ReflectedType = hook.TargetMethod.ReflectedType.ToString();
+            data.SourceCode = hook.PatchSourceCode;
+            string filename = data.Description.GetHashCode().ToString("X8") + ".txt";
+            string folderpath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "UnityExplorerHarmonyHooks");
+            Directory.CreateDirectory(folderpath);
+            string fpath = Path.Combine(folderpath, filename);
+            if (File.Exists(fpath))
+            {
+                File.Delete(fpath);
+                ExplorerCore.Log($"File {filename} deleted successfully.");
+            }
+            else
+            {
+                ExplorerCore.Log($"file: {filename} not found to delete");
+            }
+            
         }
 
         public static void EditPatchClicked(int index)

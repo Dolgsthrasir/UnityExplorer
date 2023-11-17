@@ -140,7 +140,7 @@ namespace UnityExplorer.Hooks
             HookManagerPanel.Instance.SetPage(HookManagerPanel.Pages.ClassMethodSelector);
         }
 
-        public static void AddHook(MethodInfo method)
+        public static HookInstance AddHook(MethodInfo method)
         {
             HookManagerPanel.Instance.SetPage(HookManagerPanel.Pages.ClassMethodSelector);
 
@@ -148,7 +148,7 @@ namespace UnityExplorer.Hooks
             if (HookList.hookedSignatures.Contains(sig))
             {
                 ExplorerCore.LogWarning($"Method is already hooked!");
-                return;
+                return null;
             }
 
             HookInstance hook = new(method);
@@ -157,6 +157,7 @@ namespace UnityExplorer.Hooks
 
             AddHooksScrollPool.Refresh(true, false);
             HookList.HooksScrollPool.Refresh(true, false);
+            return hook;
         }
 
         public void OnAddHookFilterInputChanged(string input)
@@ -216,8 +217,18 @@ namespace UnityExplorer.Hooks
             CurrentEditedHook = null;
             HookManagerPanel.Instance.SetPage(HookManagerPanel.Pages.ClassMethodSelector);
         }
-
+        
         internal static void EditorInputSave()
+        {
+            InternalSave(false);
+        }
+
+        internal static void EditorInputSaveTmp()
+        {
+            InternalSave(true);
+        }
+
+        private static void InternalSave(bool temp)
         {
             string input = EditorInput.Text;
             bool wasEnabled = CurrentEditedHook.Enabled;
@@ -227,7 +238,10 @@ namespace UnityExplorer.Hooks
                     CurrentEditedHook.Patch();
 
                 CurrentEditedHook.PatchSourceCode = input;
-                SaveHooks(CurrentEditedHook);
+                if (!temp)
+                {
+                    SaveHooks(CurrentEditedHook);
+                }
                 CurrentEditedHook = null;
                 HookManagerPanel.Instance.SetPage(HookManagerPanel.Pages.ClassMethodSelector);
             }
@@ -279,24 +293,44 @@ namespace UnityExplorer.Hooks
                     hookData = (HookData)xs.Deserialize(fileStream);
                     ExplorerCore.Log("+> Hook: " + hookData.Description);
                     Type type = ReflectionUtility.GetTypeByName(hookData.ReflectedType);
-                    IEnumerable<MethodInfo> ms = type.GetMethods().Where(
+                    IEnumerable<MethodInfo> ms = type.GetMethods(ReflectionUtility.FLAGS).Where(
                         mi => mi.FullDescription() == hookData.Description
                      );
                     
                     MethodInfo method = ms.First();
                     HookManagerPanel.Instance.SetPage(HookManagerPanel.Pages.ClassMethodSelector);
-
-                    if (HookList.hookedSignatures.Contains(hookData.Description))
+                    if (!method.IsGenericMethod && HookList.hookedSignatures.Contains(method.FullDescription()))
                     {
-                        ExplorerCore.LogWarning($"Method is already hooked!");
+                        ExplorerCore.Log($"Non-generic methods can only be hooked once.");
+                        return;
+                    }
+                    else if (method.IsGenericMethod)
+                    {
+                        pendingGenericMethod = method;
+                        HookManagerPanel.genericArgsHandler.Show(OnGenericMethodChosen, OnGenericMethodCancel, method);
+                        HookManagerPanel.Instance.SetPage(HookManagerPanel.Pages.GenericArgsSelector);
                         return;
                     }
 
-                    HookInstance hook = new(method, hookData.SourceCode);
-                    HookList.hookedSignatures.Add(hookData.Description);
-                    HookList.currentHooks.Add(hookData.Description, hook);
+                    var hook = AddHook(method);
+                    if (hook != null)
+                    {
+                        if (hook.CompileAndGenerateProcessor(hookData.SourceCode))
+                        { 
+                            hook.Patch();
+                            hook.PatchSourceCode = hookData.SourceCode;
+                            HookManagerPanel.Instance.SetPage(HookManagerPanel.Pages.ClassMethodSelector);
+                        }
+                        else
+                        {
+                            ExplorerCore.LogWarning($"compile failed!");
+                        }
+                    }
+                    else
+                    {
+                        ExplorerCore.LogWarning($"hook was null");
+                    }
 
-                    AddHooksScrollPool.Refresh(true, false);
                     HookList.HooksScrollPool.Refresh(true, false);
                 }
                 catch (Exception ex)
@@ -376,9 +410,13 @@ namespace UnityExplorer.Hooks
             GameObject editorButtonRow = UIFactory.CreateHorizontalGroup(EditorRoot, "ButtonRow", false, false, true, true, 5);
             UIFactory.SetLayoutElement(editorButtonRow, minHeight: 25, flexibleWidth: 9999);
 
-            ButtonRef editorSaveButton = UIFactory.CreateButton(editorButtonRow, "DoneButton", "Save and Return", new Color(0.2f, 0.3f, 0.2f));
+            ButtonRef editorSaveButton = UIFactory.CreateButton(editorButtonRow, "DoneButton", "Save", new Color(0.2f, 0.2f, 0.3f));
             UIFactory.SetLayoutElement(editorSaveButton.Component.gameObject, minHeight: 25, flexibleWidth: 9999);
             editorSaveButton.OnClick += EditorInputSave;
+            
+            ButtonRef editorSaveTmpButton = UIFactory.CreateButton(editorButtonRow, "DoneButton", "Save Temp", new Color(0.2f, 0.3f, 0.2f));
+            UIFactory.SetLayoutElement(editorSaveTmpButton.Component.gameObject, minHeight: 25, flexibleWidth: 9999);
+            editorSaveTmpButton.OnClick += EditorInputSaveTmp;
 
             ButtonRef editorDoneButton = UIFactory.CreateButton(editorButtonRow, "DoneButton", "Cancel and Return", new Color(0.2f, 0.2f, 0.2f));
             UIFactory.SetLayoutElement(editorDoneButton.Component.gameObject, minHeight: 25, flexibleWidth: 9999);
