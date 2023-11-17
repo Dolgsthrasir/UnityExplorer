@@ -140,7 +140,7 @@ namespace UnityExplorer.Hooks
             HookManagerPanel.Instance.SetPage(HookManagerPanel.Pages.ClassMethodSelector);
         }
 
-        public static HookInstance AddHook(MethodInfo method)
+        public static HookInstance AddHook(MethodInfo method, bool enabled = true)
         {
             HookManagerPanel.Instance.SetPage(HookManagerPanel.Pages.ClassMethodSelector);
 
@@ -152,6 +152,7 @@ namespace UnityExplorer.Hooks
             }
 
             HookInstance hook = new(method);
+            hook.Enabled = enabled;
             HookList.hookedSignatures.Add(sig);
             HookList.currentHooks.Add(sig, hook);
 
@@ -312,19 +313,10 @@ namespace UnityExplorer.Hooks
                         return;
                     }
 
-                    var hook = AddHook(method);
+                    var hook = AddHook(method, false);
                     if (hook != null)
                     {
-                        if (hook.CompileAndGenerateProcessor(hookData.SourceCode))
-                        { 
-                            hook.Patch();
-                            hook.PatchSourceCode = hookData.SourceCode;
-                            HookManagerPanel.Instance.SetPage(HookManagerPanel.Pages.ClassMethodSelector);
-                        }
-                        else
-                        {
-                            ExplorerCore.LogWarning($"compile failed!");
-                        }
+                        hook.CompileAndGenerateProcessor(hookData.SourceCode);
                     }
                     else
                     {
