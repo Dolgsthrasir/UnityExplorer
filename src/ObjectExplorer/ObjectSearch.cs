@@ -50,6 +50,10 @@ namespace UnityExplorer.ObjectExplorer
                 this.currentResults = SearchProvider.InstanceSearch(this.desiredTypeInput).ToList();
             else if (this.context == SearchContext.Class)
                 this.currentResults = SearchProvider.ClassSearch(this.desiredTypeInput);
+            else if (this.context == SearchContext.Method)
+            {
+                this.currentResults = SearchProvider.MethodSearch(this.desiredTypeInput);
+            }
             else
                 this.currentResults = SearchProvider.UnityObjectSearch(this.nameInputField.Text, this.desiredTypeInput, this.childFilter, this.sceneFilter);
 

@@ -23,6 +23,7 @@ namespace UnityExplorer.Config
         public static ConfigElement<string> DnSpy_Path;
         public static ConfigElement<bool> Log_Unity_Debug;
         public static ConfigElement<UIManager.VerticalAnchor> Main_Navbar_Anchor;
+        public static ConfigElement<UIManager.VerticalAnchor> Sub_Navbar_Anchor;
         public static ConfigElement<KeyCode> World_MouseInspect_Keybind;
         public static ConfigElement<KeyCode> UI_MouseInspect_Keybind;
         public static ConfigElement<string> CSConsole_Assembly_Blacklist;
@@ -113,6 +114,10 @@ namespace UnityExplorer.Config
                 @"C:/Program Files/dnspy/dnSpy.exe");
 
             Main_Navbar_Anchor = new("Main Navbar Anchor",
+                "The vertical anchor of the main UnityExplorer Navbar, in case you want to move it.",
+                UIManager.VerticalAnchor.Top);
+            
+            Sub_Navbar_Anchor = new("Sub Navbar Anchor",
                 "The vertical anchor of the main UnityExplorer Navbar, in case you want to move it.",
                 UIManager.VerticalAnchor.Top);
 

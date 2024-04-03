@@ -22,7 +22,8 @@ namespace UnityExplorer.UI
             UIInspectorResults,
             HookManager,
             Clipboard,
-            Freecam
+            Freecam,
+            Custom
         }
 
         public enum VerticalAnchor
@@ -44,6 +45,7 @@ namespace UnityExplorer.UI
 
         public static RectTransform NavBarRect;
         public static GameObject NavbarTabButtonHolder;
+        // public static GameObject SubNavbarTabButtonHolder;
         private static readonly Vector2 NAVBAR_DIMENSIONS = new(1020f, 35f);
 
         private static ButtonRef closeBtn;
@@ -82,6 +84,7 @@ namespace UnityExplorer.UI
 
             // Create UI.
             CreateTopNavBar();
+            // CreateSubNavBar();
             // This could be automated with Assembly.GetTypes(),
             // but the order is important and I'd have to write something to handle the order.
             UIPanels.Add(Panels.AutoCompleter, new AutoCompleteModal(UiBase));
@@ -89,10 +92,11 @@ namespace UnityExplorer.UI
             UIPanels.Add(Panels.Inspector, new InspectorPanel(UiBase));
             UIPanels.Add(Panels.CSConsole, new CSConsolePanel(UiBase));
             UIPanels.Add(Panels.HookManager, new HookManagerPanel(UiBase));
-            UIPanels.Add(Panels.Freecam, new FreeCamPanel(UiBase));
+            // UIPanels.Add(Panels.Freecam, new FreeCamPanel(UiBase));
             UIPanels.Add(Panels.Clipboard, new ClipboardPanel(UiBase));
             UIPanels.Add(Panels.ConsoleLog, new LogPanel(UiBase));
             UIPanels.Add(Panels.Options, new OptionsPanel(UiBase));
+            UIPanels.Add(Panels.Custom, new CustomButtonsPanel(UiBase));
             UIPanels.Add(Panels.UIInspectorResults, new MouseInspectorResultsPanel(UiBase));
 
             MouseInspector.inspectorUIBase = UniversalUI.RegisterUI(MouseInspector.UIBaseGUID, null);
@@ -101,6 +105,7 @@ namespace UnityExplorer.UI
             // Call some initialize methods
             Notification.Init();
             ConsoleController.Init();
+            CustomButtonController.Init();
             HookManagerPanel.hookCreator.LoadSavedHooks();
 
             // Failsafe fix, in some games all dropdowns displayed values are blank on startup for some reason.
@@ -183,6 +188,26 @@ namespace UnityExplorer.UI
                     break;
             }
         }
+        
+        public static void SetSubNavBarAnchor()
+        {
+            switch (NavbarAnchor)
+            {
+                case VerticalAnchor.Top:
+                    NavBarRect.anchorMin = new Vector2(0.5f, 1f);
+                    NavBarRect.anchorMax = new Vector2(0.5f, 1f);
+                    NavBarRect.anchoredPosition = new Vector2(NavBarRect.anchoredPosition.x, 35);
+                    NavBarRect.sizeDelta = NAVBAR_DIMENSIONS;
+                    break;
+
+                case VerticalAnchor.Bottom:
+                    NavBarRect.anchorMin = new Vector2(0.5f, 0f);
+                    NavBarRect.anchorMax = new Vector2(0.5f, 0f);
+                    NavBarRect.anchoredPosition = new Vector2(NavBarRect.anchoredPosition.x, 35);
+                    NavBarRect.sizeDelta = NAVBAR_DIMENSIONS;
+                    break;
+            }
+        }
 
         // listeners
 
@@ -241,6 +266,52 @@ namespace UnityExplorer.UI
             NavbarTabButtonHolder = UIFactory.CreateUIObject("NavTabButtonHolder", navbarPanel);
             UIFactory.SetLayoutElement(NavbarTabButtonHolder, minHeight: 25, flexibleHeight: 999, flexibleWidth: 999);
             UIFactory.SetLayoutGroup<HorizontalLayoutGroup>(NavbarTabButtonHolder, false, true, true, true, 4, 2, 2, 2, 2);
+
+            // Time scale widget
+            timeScaleWidget = new(navbarPanel);
+
+            //spacer
+            GameObject spacer = UIFactory.CreateUIObject("Spacer", navbarPanel);
+            UIFactory.SetLayoutElement(spacer, minWidth: 15);
+
+            // Hide menu button
+
+            closeBtn = UIFactory.CreateButton(navbarPanel, "CloseButton", ConfigManager.Master_Toggle.Value.ToString());
+            UIFactory.SetLayoutElement(closeBtn.Component.gameObject, minHeight: 25, minWidth: 60, flexibleWidth: 0);
+            RuntimeHelper.SetColorBlock(closeBtn.Component, new Color(0.63f, 0.32f, 0.31f),
+                new Color(0.81f, 0.25f, 0.2f), new Color(0.6f, 0.18f, 0.16f));
+
+            ConfigManager.Master_Toggle.OnValueChanged += Master_Toggle_OnValueChanged;
+            closeBtn.OnClick += OnCloseButtonClicked;
+        }
+        
+        private static void CreateSubNavBar()
+        {
+            GameObject navbarPanel = UIFactory.CreateUIObject("SubNavbar", UIRoot);
+            UIFactory.SetLayoutGroup<HorizontalLayoutGroup>(navbarPanel, false, false, true, true, 5, 4, 4, 4, 4, TextAnchor.MiddleCenter);
+            navbarPanel.AddComponent<Image>().color = new Color(0.1f, 0.1f, 0.1f);
+            NavBarRect = navbarPanel.GetComponent<RectTransform>();
+            NavBarRect.pivot = new Vector2(0.5f, 1f);
+
+            NavbarAnchor = ConfigManager.Sub_Navbar_Anchor.Value;
+            SetSubNavBarAnchor();
+            ConfigManager.Sub_Navbar_Anchor.OnValueChanged += (VerticalAnchor val) =>
+            {
+                NavbarAnchor = val;
+                SetSubNavBarAnchor();
+            };
+
+            // UnityExplorer title
+
+            string titleTxt = $"UE <i><color=grey>{ExplorerCore.VERSION}</color></i>";
+            Text title = UIFactory.CreateLabel(navbarPanel, "Title", titleTxt, TextAnchor.MiddleCenter, default, true, 14);
+            UIFactory.SetLayoutElement(title.gameObject, minWidth: 75, flexibleWidth: 0);
+
+            // panel tabs
+
+            // SubNavbarTabButtonHolder = UIFactory.CreateUIObject("SubNavTabButtonHolder", navbarPanel);
+            // UIFactory.SetLayoutElement(SubNavbarTabButtonHolder, minHeight: 25, flexibleHeight: 999, flexibleWidth: 999);
+            // UIFactory.SetLayoutGroup<HorizontalLayoutGroup>(SubNavbarTabButtonHolder, false, true, true, true, 4, 2, 2, 2, 2);
 
             // Time scale widget
             timeScaleWidget = new(navbarPanel);

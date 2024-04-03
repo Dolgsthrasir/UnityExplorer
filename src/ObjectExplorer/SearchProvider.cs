@@ -6,7 +6,8 @@ namespace UnityExplorer.ObjectExplorer
     {
         UnityObject,
         Singleton,
-        Class
+        Class,
+        Method
     }
 
     public enum ChildFilter
@@ -132,6 +133,37 @@ namespace UnityExplorer.ObjectExplorer
                 {
                     if (!string.IsNullOrEmpty(nameFilter) && !type.FullName.ContainsIgnoreCase(nameFilter))
                         continue;
+                    list.Add(type);
+                }
+            }
+
+            return list;
+        }
+        
+        internal static List<object> MethodSearch(string methodName)
+        {
+            List<MethodInfo> methods = new();
+            List<object> list = new();
+
+            string nameFilter = "";
+            if (!string.IsNullOrEmpty(methodName))
+                nameFilter = methodName;
+
+            foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                foreach (Type type in asm.GetTypes())
+                {
+                    if (!string.IsNullOrEmpty(nameFilter))
+                    {
+                        if (!type.GetMethods(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
+                                .Any(method => method.Name.ContainsIgnoreCase(nameFilter)))
+                        {
+                            continue;
+                        }
+                    }
+
+                    // Add methods with the specified name
+                    // methods.AddRange(type.GetMethods().Where(method => method.Name.ContainsIgnoreCase(nameFilter)));
                     list.Add(type);
                 }
             }
