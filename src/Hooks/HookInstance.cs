@@ -24,6 +24,7 @@ namespace UnityExplorer.Hooks
         // Instance
 
         public bool Enabled;
+        public bool StartUp;
 
         public MethodInfo TargetMethod;
         public string PatchSourceCode;
@@ -39,24 +40,23 @@ namespace UnityExplorer.Hooks
         public HookInstance(MethodInfo targetMethod)
         {
             this.TargetMethod = targetMethod;
-            this.signature = TargetMethod.FullDescription();
+            this.signature = this.TargetMethod.FullDescription();
 
-            GenerateDefaultPatchSourceCode(targetMethod);
+            this.GenerateDefaultPatchSourceCode(targetMethod);
 
-            if (CompileAndGenerateProcessor(PatchSourceCode))
-                Patch();
+            if (this.CompileAndGenerateProcessor(this.PatchSourceCode)) this.Patch();
         }
         
         public HookInstance(MethodInfo targetMethod, string code)
         {
             this.TargetMethod = targetMethod;
-            this.signature = TargetMethod.FullDescription();
+            this.signature = this.TargetMethod.FullDescription();
 
-            PatchSourceCode = code;
+            this.PatchSourceCode = code;
 
-            if (CompileAndGenerateProcessor(PatchSourceCode))
+            if (this.CompileAndGenerateProcessor(this.PatchSourceCode))
             {
-                Patch();
+                this.Patch();
             }
         }
 
@@ -67,13 +67,13 @@ namespace UnityExplorer.Hooks
 
         public bool CompileAndGenerateProcessor(string patchSource)
         {
-            Unpatch();
+            this.Unpatch();
 
             StringBuilder codeBuilder = new();
 
             try
             {
-                patchProcessor = ExplorerCore.Harmony.CreateProcessor(TargetMethod);
+                this.patchProcessor = ExplorerCore.Harmony.CreateProcessor(this.TargetMethod);
 
                 // Dynamically compile the patch method
 
@@ -97,21 +97,17 @@ namespace UnityExplorer.Hooks
 
                 // Create the harmony patches as defined
 
-                postfix = patchClass.GetMethod("Postfix", ReflectionUtility.FLAGS);
-                if (postfix != null)
-                    patchProcessor.AddPostfix(new HarmonyMethod(postfix));
+                this.postfix = patchClass.GetMethod("Postfix", ReflectionUtility.FLAGS);
+                if (this.postfix != null) this.patchProcessor.AddPostfix(new HarmonyMethod(this.postfix));
 
-                prefix = patchClass.GetMethod("Prefix", ReflectionUtility.FLAGS);
-                if (prefix != null)
-                    patchProcessor.AddPrefix(new HarmonyMethod(prefix));
+                this.prefix = patchClass.GetMethod("Prefix", ReflectionUtility.FLAGS);
+                if (this.prefix != null) this.patchProcessor.AddPrefix(new HarmonyMethod(this.prefix));
 
-                finalizer = patchClass.GetMethod("Finalizer", ReflectionUtility.FLAGS);
-                if (finalizer != null)
-                    patchProcessor.AddFinalizer(new HarmonyMethod(finalizer));
+                this.finalizer = patchClass.GetMethod("Finalizer", ReflectionUtility.FLAGS);
+                if (this.finalizer != null) this.patchProcessor.AddFinalizer(new HarmonyMethod(this.finalizer));
 
-                transpiler = patchClass.GetMethod("Transpiler", ReflectionUtility.FLAGS);
-                if (transpiler != null)
-                    patchProcessor.AddTranspiler(new HarmonyMethod(transpiler));
+                this.transpiler = patchClass.GetMethod("Transpiler", ReflectionUtility.FLAGS);
+                if (this.transpiler != null) this.patchProcessor.AddTranspiler(new HarmonyMethod(this.transpiler));
 
                 return true;
             }
@@ -188,7 +184,7 @@ namespace UnityExplorer.Hooks
             codeBuilder.AppendLine("    try {");
             codeBuilder.AppendLine("       StringBuilder sb = new StringBuilder();");
             codeBuilder.AppendLine($"       sb.AppendLine(\"--------------------\");");
-            codeBuilder.AppendLine($"       sb.AppendLine(\"{signature}\");");
+            codeBuilder.AppendLine($"       sb.AppendLine(\"{this.signature}\");");
 
             if (!targetMethod.IsStatic)
                 codeBuilder.AppendLine($"       sb.Append(\"- __instance: \").AppendLine(__instance.ToString());");
@@ -220,29 +216,63 @@ namespace UnityExplorer.Hooks
             codeBuilder.AppendLine($"       UnityExplorer.ExplorerCore.Log(sb.ToString());");
             codeBuilder.AppendLine("    }");
             codeBuilder.AppendLine("    catch (System.Exception ex) {");
-            codeBuilder.AppendLine($"        UnityExplorer.ExplorerCore.LogWarning($\"Exception in patch of {signature}:\\n{{ex}}\");");
+            codeBuilder.AppendLine($"        UnityExplorer.ExplorerCore.LogWarning($\"Exception in patch of {this.signature}:\\n{{ex}}\");");
             codeBuilder.AppendLine("    }");
 
             codeBuilder.AppendLine("}");
 
-            return PatchSourceCode = codeBuilder.ToString();
+            return this.PatchSourceCode = codeBuilder.ToString();
         }
 
         public void TogglePatch()
         {
-            if (!Enabled)
-                Patch();
+            if (!this.Enabled)
+                this.Patch();
             else
-                Unpatch();
+                this.Unpatch();
+        }
+        
+        public void Startup()
+        {
+            if (!this.Enabled)
+                this.EnableStartup();
+            else
+                this.DisableStartup();
+        }
+        
+        public void EnableStartup()
+        {
+            try
+            {
+                HookCreator.SaveStartup(this, true);
+                this.StartUp = true;
+            }
+            catch (Exception ex)
+            {
+                ExplorerCore.LogWarning($"Exception hooking method!\r\n{ex}");
+            }
+        }
+
+        public void DisableStartup()
+        {
+            try
+            {
+                HookCreator.SaveStartup(this, false);
+                this.StartUp = false;
+            }
+            catch (Exception ex)
+            {
+                ExplorerCore.LogWarning($"Exception unpatching method: {ex}");
+            }
         }
 
         public void Patch()
         {
             try
             {
-                patchProcessor.Patch();
+                this.patchProcessor.Patch();
 
-                Enabled = true;
+                this.Enabled = true;
             }
             catch (Exception ex)
             {
@@ -254,16 +284,12 @@ namespace UnityExplorer.Hooks
         {
             try
             {
-                if (prefix != null)
-                    patchProcessor.Unpatch(prefix);
-                if (postfix != null)
-                    patchProcessor.Unpatch(postfix);
-                if (finalizer != null)
-                    patchProcessor.Unpatch(finalizer);
-                if (transpiler != null)
-                    patchProcessor.Unpatch(transpiler);
+                if (this.prefix != null) this.patchProcessor.Unpatch(this.prefix);
+                if (this.postfix != null) this.patchProcessor.Unpatch(this.postfix);
+                if (this.finalizer != null) this.patchProcessor.Unpatch(this.finalizer);
+                if (this.transpiler != null) this.patchProcessor.Unpatch(this.transpiler);
 
-                Enabled = false;
+                this.Enabled = false;
             }
             catch (Exception ex)
             {

@@ -25,36 +25,36 @@ namespace UnityExplorer.Inspectors
             this.Target = target;
             this.TargetType = target is Type type ? type : target.GetActualType();
 
-            Tab = Pool<InspectorTab>.Borrow();
-            Tab.UIRoot.transform.SetParent(InspectorPanel.Instance.NavbarHolder.transform, false);
+            this.Tab = Pool<InspectorTab>.Borrow();
+            this.Tab.UIRoot.transform.SetParent(InspectorPanel.Instance.NavbarHolder.transform, false);
 
-            Tab.TabButton.OnClick += OnTabButtonClicked;
-            Tab.CloseButton.OnClick += CloseInspector;
+            this.Tab.TabButton.OnClick += this.OnTabButtonClicked;
+            this.Tab.CloseButton.OnClick += this.CloseInspector;
         }
 
         public virtual void OnReturnToPool()
         {
-            Pool<InspectorTab>.Return(Tab);
+            Pool<InspectorTab>.Return(this.Tab);
 
             this.Target = null;
 
-            Tab.TabButton.OnClick -= OnTabButtonClicked;
-            Tab.CloseButton.OnClick -= CloseInspector;
+            this.Tab.TabButton.OnClick -= this.OnTabButtonClicked;
+            this.Tab.CloseButton.OnClick -= this.CloseInspector;
         }
 
         public virtual void OnSetActive()
         {
-            Tab.SetTabColor(true);
-            UIRoot.SetActive(true);
-            IsActive = true;
-            LayoutRebuilder.ForceRebuildLayoutImmediate(UIRoot.GetComponent<RectTransform>());
+            this.Tab.SetTabColor(true);
+            this.UIRoot.SetActive(true);
+            this.IsActive = true;
+            LayoutRebuilder.ForceRebuildLayoutImmediate(this.UIRoot.GetComponent<RectTransform>());
         }
 
         public virtual void OnSetInactive()
         {
-            Tab.SetTabColor(false);
-            UIRoot.SetActive(false);
-            IsActive = false;
+            this.Tab.SetTabColor(false);
+            this.UIRoot.SetActive(false);
+            this.IsActive = false;
         }
 
         private void OnTabButtonClicked()

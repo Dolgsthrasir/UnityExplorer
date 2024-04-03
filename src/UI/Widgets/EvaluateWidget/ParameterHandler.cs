@@ -25,46 +25,45 @@ namespace UnityExplorer.UI.Widgets
             this.paramInfo = paramInfo;
 
             this.paramType = paramInfo.ParameterType;
-            if (paramType.IsByRef)
-                paramType = paramType.GetElementType();
+            if (this.paramType.IsByRef) this.paramType = this.paramType.GetElementType();
 
             this.argNameLabel.text =
-                $"{SignatureHighlighter.Parse(paramType, false)} <color={SignatureHighlighter.LOCAL_ARG}>{paramInfo.Name}</color>";
+                $"{SignatureHighlighter.Parse(this.paramType, false)} <color={SignatureHighlighter.LOCAL_ARG}>{paramInfo.Name}</color>";
 
-            if (ParseUtility.CanParse(paramType) || typeof(Type).IsAssignableFrom(paramType))
+            if (ParseUtility.CanParse(this.paramType) || typeof(Type).IsAssignableFrom(this.paramType))
             {
-                usingBasicLabel = false;
+                this.usingBasicLabel = false;
 
                 this.inputField.Component.gameObject.SetActive(true);
                 this.basicLabelHolder.SetActive(false);
-                this.typeCompleter.Enabled = typeof(Type).IsAssignableFrom(paramType);
-                this.enumCompleter.Enabled = paramType.IsEnum;
-                this.enumHelperButton.Component.gameObject.SetActive(paramType.IsEnum);
+                this.typeCompleter.Enabled = typeof(Type).IsAssignableFrom(this.paramType);
+                this.enumCompleter.Enabled = this.paramType.IsEnum;
+                this.enumHelperButton.Component.gameObject.SetActive(this.paramType.IsEnum);
 
-                if (!typeCompleter.Enabled)
+                if (!this.typeCompleter.Enabled)
                 {
-                    if (paramType == typeof(string))
-                        inputField.PlaceholderText.text = "...";
+                    if (this.paramType == typeof(string))
+                        this.inputField.PlaceholderText.text = "...";
                     else
-                        inputField.PlaceholderText.text = $"eg. {ParseUtility.GetExampleInput(paramType)}";
+                        this.inputField.PlaceholderText.text = $"eg. {ParseUtility.GetExampleInput(this.paramType)}";
                 }
                 else
                 {
-                    inputField.PlaceholderText.text = "Enter a Type name...";
+                    this.inputField.PlaceholderText.text = "Enter a Type name...";
                     this.typeCompleter.BaseType = typeof(object);
                     this.typeCompleter.CacheTypes();
                 }
 
-                if (enumCompleter.Enabled)
+                if (this.enumCompleter.Enabled)
                 {
-                    enumCompleter.EnumType = paramType;
-                    enumCompleter.CacheEnumValues();
+                    this.enumCompleter.EnumType = this.paramType;
+                    this.enumCompleter.CacheEnumValues();
                 }
             }
             else
             {
                 // non-parsable, and not a Type
-                usingBasicLabel = true;
+                this.usingBasicLabel = true;
 
                 this.inputField.Component.gameObject.SetActive(false);
                 this.basicLabelHolder.SetActive(true);
@@ -72,7 +71,7 @@ namespace UnityExplorer.UI.Widgets
                 this.enumCompleter.Enabled = false;
                 this.enumHelperButton.Component.gameObject.SetActive(false);
 
-                SetDisplayedValueFromPaste();
+                this.SetDisplayedValueFromPaste();
             }
         }
 
@@ -91,28 +90,28 @@ namespace UnityExplorer.UI.Widgets
 
         public object Evaluate()
         {
-            if (usingBasicLabel)
-                return basicValue;
+            if (this.usingBasicLabel)
+                return this.basicValue;
 
             string input = this.inputField.Text;
 
-            if (typeof(Type).IsAssignableFrom(paramType))
+            if (typeof(Type).IsAssignableFrom(this.paramType))
                 return ReflectionUtility.GetTypeByName(input);
 
-            if (paramType == typeof(string))
+            if (this.paramType == typeof(string))
                 return input;
 
             if (string.IsNullOrEmpty(input))
             {
-                if (paramInfo.IsOptional)
-                    return paramInfo.DefaultValue;
+                if (this.paramInfo.IsOptional)
+                    return this.paramInfo.DefaultValue;
                 else
                     return null;
             }
 
-            if (!ParseUtility.TryParse(input, paramType, out object parsed, out Exception ex))
+            if (!ParseUtility.TryParse(input, this.paramType, out object parsed, out Exception ex))
             {
-                ExplorerCore.LogWarning($"Cannot parse argument '{paramInfo.Name}' ({paramInfo.ParameterType.Name})" +
+                ExplorerCore.LogWarning($"Cannot parse argument '{this.paramInfo.Name}' ({this.paramInfo.ParameterType.Name})" +
                     $"{(ex == null ? "" : $", {ex.GetType().Name}: {ex.Message}")}");
                 return null;
             }
@@ -124,45 +123,45 @@ namespace UnityExplorer.UI.Widgets
         {
             if (ClipboardPanel.TryPaste(this.paramType, out object paste))
             {
-                basicValue = paste;
-                SetDisplayedValueFromPaste();
+                this.basicValue = paste;
+                this.SetDisplayedValueFromPaste();
             }
         }
 
         private void SetDisplayedValueFromPaste()
         {
-            if (usingBasicLabel)
-                basicLabel.text = ToStringUtility.ToStringWithType(basicValue, paramType, false);
+            if (this.usingBasicLabel)
+                this.basicLabel.text = ToStringUtility.ToStringWithType(this.basicValue, this.paramType, false);
             else
             {
-                if (typeof(Type).IsAssignableFrom(paramType))
-                    inputField.Text = (basicValue as Type).FullDescription();
+                if (typeof(Type).IsAssignableFrom(this.paramType))
+                    this.inputField.Text = (this.basicValue as Type).FullDescription();
                 else
-                    inputField.Text = ParseUtility.ToStringForInput(basicValue, paramType);
+                    this.inputField.Text = ParseUtility.ToStringForInput(this.basicValue, this.paramType);
             }
         }
 
         public override void CreateSpecialContent()
         {
-            enumCompleter = new(paramType, this.inputField)
+            this.enumCompleter = new(this.paramType, this.inputField)
             {
                 Enabled = false
             };
 
-            enumHelperButton = UIFactory.CreateButton(UIRoot, "EnumHelper", "▼");
-            UIFactory.SetLayoutElement(enumHelperButton.Component.gameObject, minWidth: 25, minHeight: 25, flexibleWidth: 0, flexibleHeight: 0);
-            enumHelperButton.OnClick += enumCompleter.HelperButtonClicked;
+            this.enumHelperButton = UIFactory.CreateButton(this.UIRoot, "EnumHelper", "▼");
+            UIFactory.SetLayoutElement(this.enumHelperButton.Component.gameObject, minWidth: 25, minHeight: 25, flexibleWidth: 0, flexibleHeight: 0);
+            this.enumHelperButton.OnClick += this.enumCompleter.HelperButtonClicked;
 
-            basicLabelHolder = UIFactory.CreateHorizontalGroup(UIRoot, "BasicLabelHolder", true, true, true, true, bgColor: new(0.1f, 0.1f, 0.1f));
-            UIFactory.SetLayoutElement(basicLabelHolder, minHeight: 25, flexibleHeight: 50, minWidth: 100, flexibleWidth: 1000);
-            basicLabel = UIFactory.CreateLabel(basicLabelHolder, "BasicLabel", "null", TextAnchor.MiddleLeft);
-            basicLabel.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            this.basicLabelHolder = UIFactory.CreateHorizontalGroup(this.UIRoot, "BasicLabelHolder", true, true, true, true, bgColor: new(0.1f, 0.1f, 0.1f));
+            UIFactory.SetLayoutElement(this.basicLabelHolder, minHeight: 25, flexibleHeight: 50, minWidth: 100, flexibleWidth: 1000);
+            this.basicLabel = UIFactory.CreateLabel(this.basicLabelHolder, "BasicLabel", "null", TextAnchor.MiddleLeft);
+            this.basicLabel.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
-            pasteButton = UIFactory.CreateButton(UIRoot, "PasteButton", "Paste", new Color(0.13f, 0.13f, 0.13f, 1f));
-            UIFactory.SetLayoutElement(pasteButton.Component.gameObject, minHeight: 25, minWidth: 28, flexibleWidth: 0);
-            pasteButton.ButtonText.color = Color.green;
-            pasteButton.ButtonText.fontSize = 10;
-            pasteButton.OnClick += OnPasteClicked;
+            this.pasteButton = UIFactory.CreateButton(this.UIRoot, "PasteButton", "Paste", new Color(0.13f, 0.13f, 0.13f, 1f));
+            UIFactory.SetLayoutElement(this.pasteButton.Component.gameObject, minHeight: 25, minWidth: 28, flexibleWidth: 0);
+            this.pasteButton.ButtonText.color = Color.green;
+            this.pasteButton.ButtonText.fontSize = 10;
+            this.pasteButton.OnClick += this.OnPasteClicked;
         }
     }
 }

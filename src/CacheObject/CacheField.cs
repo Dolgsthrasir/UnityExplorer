@@ -5,9 +5,9 @@ namespace UnityExplorer.CacheObject
     public class CacheField : CacheMember
     {
         public FieldInfo FieldInfo { get; internal set; }
-        public override Type DeclaringType => FieldInfo.DeclaringType;
-        public override bool IsStatic => FieldInfo.IsStatic;
-        public override bool CanWrite => m_canWrite ?? (bool)(m_canWrite = !(FieldInfo.IsLiteral && !FieldInfo.IsInitOnly));
+        public override Type DeclaringType => this.FieldInfo.DeclaringType;
+        public override bool IsStatic => this.FieldInfo.IsStatic;
+        public override bool CanWrite => this.m_canWrite ?? (bool)(this.m_canWrite = !(this.FieldInfo.IsLiteral && !this.FieldInfo.IsInitOnly));
         private bool? m_canWrite;
 
         public override bool ShouldAutoEvaluate => true;
@@ -26,13 +26,13 @@ namespace UnityExplorer.CacheObject
         {
             try
             {
-                object ret = FieldInfo.GetValue(DeclaringInstance);
-                LastException = null;
+                object ret = this.FieldInfo.GetValue(this.DeclaringInstance);
+                this.LastException = null;
                 return ret;
             }
             catch (Exception ex)
             {
-                LastException = ex;
+                this.LastException = ex;
                 return null;
             }
         }
@@ -41,7 +41,7 @@ namespace UnityExplorer.CacheObject
         {
             try
             {
-                FieldInfo.SetValue(DeclaringInstance, value);
+                this.FieldInfo.SetValue(this.DeclaringInstance, value);
             }
             catch (Exception ex)
             {

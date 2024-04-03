@@ -9,15 +9,15 @@ namespace UnityExplorer.CacheObject
     {
         public abstract Type DeclaringType { get; }
         public string NameForFiltering { get; protected set; }
-        public object DeclaringInstance => IsStatic ? null : (m_declaringInstance ??= Owner.Target.TryCast(DeclaringType));
+        public object DeclaringInstance => this.IsStatic ? null : (this.m_declaringInstance ??= this.Owner.Target.TryCast(this.DeclaringType));
         private object m_declaringInstance;
 
         public abstract bool IsStatic { get; }
-        public override bool HasArguments => Arguments?.Length > 0 || GenericArguments.Length > 0;
+        public override bool HasArguments => this.Arguments?.Length > 0 || this.GenericArguments.Length > 0;
         public ParameterInfo[] Arguments { get; protected set; } = new ParameterInfo[0];
         public Type[] GenericArguments { get; protected set; } = ArgumentUtility.EmptyTypes;
         public EvaluateWidget Evaluator { get; protected set; }
-        public bool Evaluating => Evaluator != null && Evaluator.UIRoot.activeSelf;
+        public bool Evaluating => this.Evaluator != null && this.Evaluator.UIRoot.activeSelf;
 
         public virtual void SetInspectorOwner(ReflectionInspector inspector, MemberInfo member)
         {
@@ -29,8 +29,8 @@ namespace UnityExplorer.CacheObject
                 _ => SignatureHighlighter.Parse(member.DeclaringType, false, member),
             };
 
-            this.NameForFiltering = SignatureHighlighter.RemoveHighlighting(NameLabelText);
-            this.NameLabelTextRaw = NameForFiltering;
+            this.NameForFiltering = SignatureHighlighter.RemoveHighlighting(this.NameLabelText);
+            this.NameLabelTextRaw = this.NameForFiltering;
         }
 
         public override void ReleasePooledObjects()
@@ -62,7 +62,7 @@ namespace UnityExplorer.CacheObject
         /// </summary>
         public void Evaluate()
         {
-            SetValueFromSource(TryEvaluate());
+            this.SetValueFromSource(this.TryEvaluate());
         }
 
         /// <summary>
@@ -70,15 +70,14 @@ namespace UnityExplorer.CacheObject
         /// </summary>
         public void EvaluateAndSetCell()
         {
-            Evaluate();
-            if (CellView != null)
-                SetDataToCell(CellView);
+            this.Evaluate();
+            if (this.CellView != null) this.SetDataToCell(this.CellView);
         }
 
         public override void TrySetUserValue(object value)
         {
-            TrySetValue(value);
-            Evaluate();
+            this.TrySetValue(value);
+            this.Evaluate();
         }
 
         protected override void SetValueState(CacheObjectCell cell, ValueStateArgs args)
@@ -93,65 +92,64 @@ namespace UnityExplorer.CacheObject
         {
             CacheMemberCell cell = objectcell as CacheMemberCell;
 
-            cell.EvaluateHolder.SetActive(!ShouldAutoEvaluate);
-            if (!ShouldAutoEvaluate)
+            cell.EvaluateHolder.SetActive(!this.ShouldAutoEvaluate);
+            if (!this.ShouldAutoEvaluate)
             {
                 cell.EvaluateButton.Component.gameObject.SetActive(true);
-                if (HasArguments)
+                if (this.HasArguments)
                 {
-                    if (!Evaluating)
-                        cell.EvaluateButton.ButtonText.text = $"Evaluate ({Arguments.Length + GenericArguments.Length})";
+                    if (!this.Evaluating)
+                        cell.EvaluateButton.ButtonText.text = $"Evaluate ({this.Arguments.Length + this.GenericArguments.Length})";
                     else
                     {
                         cell.EvaluateButton.ButtonText.text = "Hide";
-                        Evaluator.UIRoot.transform.SetParent(cell.EvaluateHolder.transform, false);
+                        this.Evaluator.UIRoot.transform.SetParent(cell.EvaluateHolder.transform, false);
                         RuntimeHelper.SetColorBlock(cell.EvaluateButton.Component, evalEnabledColor, evalEnabledColor * 1.3f);
                     }
                 }
                 else
                     cell.EvaluateButton.ButtonText.text = "Evaluate";
 
-                if (!Evaluating)
+                if (!this.Evaluating)
                     RuntimeHelper.SetColorBlock(cell.EvaluateButton.Component, evalDisabledColor, evalDisabledColor * 1.3f);
             }
 
-            if (State == ValueState.NotEvaluated && !ShouldAutoEvaluate)
+            if (this.State == ValueState.NotEvaluated && !this.ShouldAutoEvaluate)
             {
-                SetValueState(cell, ValueStateArgs.Default);
+                this.SetValueState(cell, ValueStateArgs.Default);
                 cell.RefreshSubcontentButton();
 
                 return false;
             }
 
-            if (State == ValueState.NotEvaluated)
-                Evaluate();
+            if (this.State == ValueState.NotEvaluated) this.Evaluate();
 
             return true;
         }
 
         public void OnEvaluateClicked()
         {
-            if (!HasArguments)
+            if (!this.HasArguments)
             {
-                EvaluateAndSetCell();
+                this.EvaluateAndSetCell();
             }
             else
             {
-                if (Evaluator == null)
+                if (this.Evaluator == null)
                 {
                     this.Evaluator = Pool<EvaluateWidget>.Borrow();
-                    Evaluator.OnBorrowedFromPool(this);
-                    Evaluator.UIRoot.transform.SetParent((CellView as CacheMemberCell).EvaluateHolder.transform, false);
-                    TryAutoEvaluateIfUnitialized(CellView);
+                    this.Evaluator.OnBorrowedFromPool(this);
+                    this.Evaluator.UIRoot.transform.SetParent((this.CellView as CacheMemberCell).EvaluateHolder.transform, false);
+                    this.TryAutoEvaluateIfUnitialized(this.CellView);
                 }
                 else
                 {
-                    if (Evaluator.UIRoot.activeSelf)
-                        Evaluator.UIRoot.SetActive(false);
+                    if (this.Evaluator.UIRoot.activeSelf)
+                        this.Evaluator.UIRoot.SetActive(false);
                     else
-                        Evaluator.UIRoot.SetActive(true);
+                        this.Evaluator.UIRoot.SetActive(true);
 
-                    TryAutoEvaluateIfUnitialized(CellView);
+                    this.TryAutoEvaluateIfUnitialized(this.CellView);
                 }
             }
         }

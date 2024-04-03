@@ -24,7 +24,8 @@ namespace UnityExplorer
 
         public ManualLogSource LogSource
 #if MONO
-            => Logger;
+            =>
+                this.Logger;
 #else
             => Log;
 #endif
@@ -37,7 +38,7 @@ namespace UnityExplorer
             ;
         public string UnhollowedModulesFolder => Path.Combine(Paths.BepInExRootPath, IL2CPP_LIBS_FOLDER);
 
-        public ConfigHandler ConfigHandler => _configHandler;
+        public ConfigHandler ConfigHandler => this._configHandler;
         private BepInExConfigHandler _configHandler;
 
         public Harmony HarmonyInstance => s_harmony;
@@ -46,21 +47,21 @@ namespace UnityExplorer
         public string ExplorerFolderName => ExplorerCore.DEFAULT_EXPLORER_FOLDER_NAME;
         public string ExplorerFolderDestination => Paths.PluginPath;
 
-        public Action<object> OnLogMessage => LogSource.LogMessage;
-        public Action<object> OnLogWarning => LogSource.LogWarning;
-        public Action<object> OnLogError => LogSource.LogError;
+        public Action<object> OnLogMessage => this.LogSource.LogMessage;
+        public Action<object> OnLogWarning => this.LogSource.LogWarning;
+        public Action<object> OnLogError => this.LogSource.LogError;
 
         private void Init()
         {
             Instance = this;
-            _configHandler = new BepInExConfigHandler();
+            this._configHandler = new BepInExConfigHandler();
             ExplorerCore.Init(this);
         }
 
 #if MONO // Mono
         internal void Awake()
         {
-            Init();
+            this.Init();
         }
 
 #else   // Il2Cpp

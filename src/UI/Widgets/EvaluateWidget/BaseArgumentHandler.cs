@@ -19,28 +19,28 @@ namespace UnityExplorer.UI.Widgets
 
         public GameObject CreateContent(GameObject parent)
         {
-            UIRoot = UIFactory.CreateUIObject("ArgRow", parent);
-            UIFactory.SetLayoutElement(UIRoot, minHeight: 25, flexibleHeight: 50, minWidth: 50, flexibleWidth: 9999);
-            UIFactory.SetLayoutGroup<HorizontalLayoutGroup>(UIRoot, false, false, true, true, 5);
-            UIRoot.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            this.UIRoot = UIFactory.CreateUIObject("ArgRow", parent);
+            UIFactory.SetLayoutElement(this.UIRoot, minHeight: 25, flexibleHeight: 50, minWidth: 50, flexibleWidth: 9999);
+            UIFactory.SetLayoutGroup<HorizontalLayoutGroup>(this.UIRoot, false, false, true, true, 5);
+            this.UIRoot.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
-            argNameLabel = UIFactory.CreateLabel(UIRoot, "ArgLabel", "not set", TextAnchor.MiddleLeft);
-            UIFactory.SetLayoutElement(argNameLabel.gameObject, minWidth: 40, flexibleWidth: 90, minHeight: 25, flexibleHeight: 50);
-            argNameLabel.horizontalOverflow = HorizontalWrapMode.Wrap;
+            this.argNameLabel = UIFactory.CreateLabel(this.UIRoot, "ArgLabel", "not set", TextAnchor.MiddleLeft);
+            UIFactory.SetLayoutElement(this.argNameLabel.gameObject, minWidth: 40, flexibleWidth: 90, minHeight: 25, flexibleHeight: 50);
+            this.argNameLabel.horizontalOverflow = HorizontalWrapMode.Wrap;
 
-            inputField = UIFactory.CreateInputField(UIRoot, "InputField", "...");
-            UIFactory.SetLayoutElement(inputField.UIRoot, minHeight: 25, flexibleHeight: 50, minWidth: 100, flexibleWidth: 1000);
-            inputField.Component.lineType = InputField.LineType.MultiLineNewline;
-            inputField.UIRoot.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            this.inputField = UIFactory.CreateInputField(this.UIRoot, "InputField", "...");
+            UIFactory.SetLayoutElement(this.inputField.UIRoot, minHeight: 25, flexibleHeight: 50, minWidth: 100, flexibleWidth: 1000);
+            this.inputField.Component.lineType = InputField.LineType.MultiLineNewline;
+            this.inputField.UIRoot.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
-            typeCompleter = new TypeCompleter(typeof(object), this.inputField)
+            this.typeCompleter = new TypeCompleter(typeof(object), this.inputField)
             {
                 Enabled = false
             };
 
-            CreateSpecialContent();
+            this.CreateSpecialContent();
 
-            return UIRoot;
+            return this.UIRoot;
         }
     }
 }

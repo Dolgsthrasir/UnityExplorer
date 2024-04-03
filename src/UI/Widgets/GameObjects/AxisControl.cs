@@ -21,17 +21,17 @@ namespace UnityExplorer.UI.Widgets
 
         void OnVectorSliderChanged(float value)
         {
-            parent.Owner.CurrentSlidingAxisControl = value == 0f ? null : this;
+            this.parent.Owner.CurrentSlidingAxisControl = value == 0f ? null : this;
         }
 
         void OnVectorMinusClicked()
         {
-            parent.Owner.AxisControlOperation(-this.parent.Increment, this.parent, this.axis);
+            this.parent.Owner.AxisControlOperation(-this.parent.Increment, this.parent, this.axis);
         }
 
         void OnVectorPlusClicked()
         {
-            parent.Owner.AxisControlOperation(this.parent.Increment, this.parent, this.axis);
+            this.parent.Owner.AxisControlOperation(this.parent.Increment, this.parent, this.axis);
         }
 
         public static AxisControl Create(GameObject parent, string title, int axis, Vector3Control owner)

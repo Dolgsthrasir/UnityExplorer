@@ -6,7 +6,7 @@
 
         protected abstract Color HighlightColor { get; }
 
-        public string ColorTag => colorTag ?? (colorTag = "<color=#" + HighlightColor.ToHex() + ">");
+        public string ColorTag => this.colorTag ?? (this.colorTag = "<color=#" + this.HighlightColor.ToHex() + ">");
         private string colorTag;
 
         public abstract bool TryMatchCurrent(LexerBuilder lexer);

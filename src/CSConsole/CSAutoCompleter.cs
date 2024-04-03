@@ -42,23 +42,24 @@ namespace UnityExplorer.CSConsole
 
         public void CheckAutocompletes()
         {
-            if (string.IsNullOrEmpty(InputField.Text))
+            if (string.IsNullOrEmpty(this.InputField.Text))
             {
                 AutoCompleteModal.Instance.ReleaseOwnership(this);
                 return;
             }
 
-            suggestions.Clear();
+            this.suggestions.Clear();
 
-            int caret = Math.Max(0, Math.Min(InputField.Text.Length - 1, InputField.Component.caretPosition - 1));
+            int caret = Math.Max(0, Math.Min(this.InputField.Text.Length - 1, this.InputField.Component.caretPosition - 1));
             int startIdx = caret;
 
             // If the character at the caret index is whitespace or delimiter,
             // or if the next character (if it exists) is not whitespace,
             // then we don't want to provide suggestions.
-            if (char.IsWhiteSpace(InputField.Text[caret])
-                || delimiters.Contains(InputField.Text[caret])
-                || (InputField.Text.Length > caret + 1 && !char.IsWhiteSpace(InputField.Text[caret + 1])))
+            if (char.IsWhiteSpace(this.InputField.Text[caret])
+                ||
+                this.delimiters.Contains(this.InputField.Text[caret])
+                || (this.InputField.Text.Length > caret + 1 && !char.IsWhiteSpace(this.InputField.Text[caret + 1])))
             {
                 AutoCompleteModal.Instance.ReleaseOwnership(this);
                 return;
@@ -68,14 +69,14 @@ namespace UnityExplorer.CSConsole
             while (startIdx > 0)
             {
                 startIdx--;
-                char c = InputField.Text[startIdx];
-                if (delimiters.Contains(c) || char.IsWhiteSpace(c))
+                char c = this.InputField.Text[startIdx];
+                if (this.delimiters.Contains(c) || char.IsWhiteSpace(c))
                 {
                     startIdx++;
                     break;
                 }
             }
-            string input = InputField.Text.Substring(startIdx, caret - startIdx + 1);
+            string input = this.InputField.Text.Substring(startIdx, caret - startIdx + 1);
 
             // Get MCS completions
 
@@ -83,8 +84,8 @@ namespace UnityExplorer.CSConsole
 
             if (evaluatorCompletions != null && evaluatorCompletions.Any())
             {
-                suggestions.AddRange(from completion in evaluatorCompletions
-                                     select new Suggestion(GetHighlightString(prefix, completion), completion));
+                this.suggestions.AddRange(from completion in evaluatorCompletions
+                                     select new Suggestion(this.GetHighlightString(prefix, completion), completion));
             }
 
             // Get manual namespace completions
@@ -93,11 +94,10 @@ namespace UnityExplorer.CSConsole
             {
                 if (ns.StartsWith(input))
                 {
-                    if (!namespaceHighlights.ContainsKey(ns))
-                        namespaceHighlights.Add(ns, $"<color=#CCCCCC>{ns}</color>");
+                    if (!this.namespaceHighlights.ContainsKey(ns)) this.namespaceHighlights.Add(ns, $"<color=#CCCCCC>{ns}</color>");
 
                     string completion = ns.Substring(input.Length, ns.Length - input.Length);
-                    suggestions.Add(new Suggestion(namespaceHighlights[ns], completion));
+                    this.suggestions.Add(new Suggestion(this.namespaceHighlights[ns], completion));
                 }
             }
 
@@ -107,18 +107,17 @@ namespace UnityExplorer.CSConsole
             {
                 if (kw.StartsWith(input))// && kw.Length > input.Length)
                 {
-                    if (!keywordHighlights.ContainsKey(kw))
-                        keywordHighlights.Add(kw, $"<color=#{SignatureHighlighter.keywordBlueHex}>{kw}</color>");
+                    if (!this.keywordHighlights.ContainsKey(kw)) this.keywordHighlights.Add(kw, $"<color=#{SignatureHighlighter.keywordBlueHex}>{kw}</color>");
 
                     string completion = kw.Substring(input.Length, kw.Length - input.Length);
-                    suggestions.Add(new Suggestion(keywordHighlights[kw], completion));
+                    this.suggestions.Add(new Suggestion(this.keywordHighlights[kw], completion));
                 }
             }
 
-            if (suggestions.Any())
+            if (this.suggestions.Any())
             {
                 AutoCompleteModal.TakeOwnership(this);
-                AutoCompleteModal.Instance.SetSuggestions(suggestions);
+                AutoCompleteModal.Instance.SetSuggestions(this.suggestions);
             }
             else
             {
@@ -136,12 +135,12 @@ namespace UnityExplorer.CSConsole
 
         private string GetHighlightString(string prefix, string completion)
         {
-            highlightBuilder.Clear();
-            highlightBuilder.Append(OPEN_HIGHLIGHT);
-            highlightBuilder.Append(prefix);
-            highlightBuilder.Append(SignatureHighlighter.CLOSE_COLOR);
-            highlightBuilder.Append(completion);
-            return highlightBuilder.ToString();
+            this.highlightBuilder.Clear();
+            this.highlightBuilder.Append(OPEN_HIGHLIGHT);
+            this.highlightBuilder.Append(prefix);
+            this.highlightBuilder.Append(SignatureHighlighter.CLOSE_COLOR);
+            this.highlightBuilder.Append(completion);
+            return this.highlightBuilder.ToString();
         }
     }
 }

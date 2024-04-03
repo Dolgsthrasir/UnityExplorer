@@ -22,7 +22,7 @@ namespace UnityExplorer.CacheObject
 
         public override bool ShouldAutoEvaluate => true;
         public override bool HasArguments => false;
-        public override bool CanWrite => Owner.CanWrite;
+        public override bool CanWrite => this.Owner.CanWrite;
 
         public void SetDictOwner(InteractiveDictionary dict, int index)
         {
@@ -35,18 +35,18 @@ namespace UnityExplorer.CacheObject
             this.DictKey = key;
             this.DisplayedKey = key.TryCast();
 
-            Type type = DisplayedKey.GetType();
+            Type type = this.DisplayedKey.GetType();
             if (ParseUtility.CanParse(type))
             {
-                KeyInputWanted = true;
-                KeyInputText = ParseUtility.ToStringForInput(DisplayedKey, type);
-                KeyInputTypeText = SignatureHighlighter.Parse(type, false);
+                this.KeyInputWanted = true;
+                this.KeyInputText = ParseUtility.ToStringForInput(this.DisplayedKey, type);
+                this.KeyInputTypeText = SignatureHighlighter.Parse(type, false);
             }
             else
             {
-                KeyInputWanted = false;
-                InspectWanted = type != typeof(bool) && !type.IsEnum;
-                KeyLabelText = ToStringUtility.ToStringWithType(DisplayedKey, type, true);
+                this.KeyInputWanted = false;
+                this.InspectWanted = type != typeof(bool) && !type.IsEnum;
+                this.KeyLabelText = ToStringUtility.ToStringWithType(this.DisplayedKey, type, true);
             }
         }
 
@@ -56,34 +56,34 @@ namespace UnityExplorer.CacheObject
 
             CacheKeyValuePairCell kvpCell = cell as CacheKeyValuePairCell;
 
-            kvpCell.NameLabel.text = $"{DictIndex}:";
+            kvpCell.NameLabel.text = $"{this.DictIndex}:";
             kvpCell.HiddenNameLabel.Text = "";
-            kvpCell.Image.color = DictIndex % 2 == 0 ? CacheListEntryCell.EvenColor : CacheListEntryCell.OddColor;
+            kvpCell.Image.color = this.DictIndex % 2 == 0 ? CacheListEntryCell.EvenColor : CacheListEntryCell.OddColor;
 
-            if (KeyInputWanted)
+            if (this.KeyInputWanted)
             {
                 kvpCell.KeyInputField.UIRoot.SetActive(true);
                 kvpCell.KeyInputTypeLabel.gameObject.SetActive(true);
                 kvpCell.KeyLabel.gameObject.SetActive(false);
                 kvpCell.KeyInspectButton.Component.gameObject.SetActive(false);
 
-                kvpCell.KeyInputField.Text = KeyInputText;
-                kvpCell.KeyInputTypeLabel.text = KeyInputTypeText;
+                kvpCell.KeyInputField.Text = this.KeyInputText;
+                kvpCell.KeyInputTypeLabel.text = this.KeyInputTypeText;
             }
             else
             {
                 kvpCell.KeyInputField.UIRoot.SetActive(false);
                 kvpCell.KeyInputTypeLabel.gameObject.SetActive(false);
                 kvpCell.KeyLabel.gameObject.SetActive(true);
-                kvpCell.KeyInspectButton.Component.gameObject.SetActive(InspectWanted);
+                kvpCell.KeyInspectButton.Component.gameObject.SetActive(this.InspectWanted);
 
-                kvpCell.KeyLabel.text = KeyLabelText;
+                kvpCell.KeyLabel.text = this.KeyLabelText;
             }
         }
 
         public override void TrySetUserValue(object value)
         {
-            (Owner as InteractiveDictionary).TrySetValueToKey(DictKey, value, DictIndex);
+            (this.Owner as InteractiveDictionary).TrySetValueToKey(this.DictKey, value, this.DictIndex);
         }
 
 

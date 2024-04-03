@@ -73,8 +73,8 @@ namespace UnityExplorer.UI.Panels
         {
             base.SetDefaultSizeAndPosition();
 
-            this.Rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, MinWidth);
-            this.Rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, MinHeight);
+            this.Rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, this.MinWidth);
+            this.Rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, this.MinHeight);
         }
 
         protected override void ConstructPanelContent()
@@ -83,7 +83,7 @@ namespace UnityExplorer.UI.Panels
 
             // Actual panel content
 
-            GameObject firstRow = UIFactory.CreateHorizontalGroup(ContentRoot, "FirstRow", false, false, true, true, 5, new(2, 2, 2, 2), new(1, 1, 1, 0));
+            GameObject firstRow = UIFactory.CreateHorizontalGroup(this.ContentRoot, "FirstRow", false, false, true, true, 5, new(2, 2, 2, 2), new(1, 1, 1, 0));
             UIFactory.SetLayoutElement(firstRow, minHeight: 25, flexibleWidth: 999);
 
             // Title for "Current Paste:"
@@ -96,7 +96,7 @@ namespace UnityExplorer.UI.Panels
             clearButton.OnClick += () => Copy(null);
 
             // Current Paste info row
-            GameObject currentPasteHolder = UIFactory.CreateHorizontalGroup(ContentRoot, "SecondRow", false, false, true, true, 0,
+            GameObject currentPasteHolder = UIFactory.CreateHorizontalGroup(this.ContentRoot, "SecondRow", false, false, true, true, 0,
                 new(2, 2, 2, 2), childAlignment: TextAnchor.UpperCenter);
 
             // Actual current paste info label

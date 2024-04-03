@@ -17,7 +17,7 @@ namespace UnityExplorer.UI.Panels
         public override Vector2 DefaultAnchorMax => new(0.85f, 0.925f);
 
         public InputFieldScroller InputScroller { get; private set; }
-        public InputFieldRef Input => InputScroller.InputField;
+        public InputFieldRef Input => this.InputScroller.InputField;
         public Text InputText { get; private set; }
         public Text HighlightText { get; private set; }
         public Text LineNumberText { get; private set; }
@@ -43,7 +43,7 @@ namespace UnityExplorer.UI.Panels
             if (value.Length == UniversalUI.MAX_INPUTFIELD_CHARS)
                 ExplorerCore.LogWarning($"Reached maximum InputField character length! ({UniversalUI.MAX_INPUTFIELD_CHARS})");
 
-            OnInputChanged?.Invoke(value);
+            this.OnInputChanged?.Invoke(value);
         }
 
         public override void Update()
@@ -57,7 +57,7 @@ namespace UnityExplorer.UI.Panels
 
         public override void OnFinishResize()
         {
-            OnPanelResized?.Invoke();
+            this.OnPanelResized?.Invoke();
         }
 
         protected override void ConstructPanelContent()
@@ -73,19 +73,19 @@ namespace UnityExplorer.UI.Panels
             ButtonRef compileButton = UIFactory.CreateButton(toolsRow, "CompileButton", "Compile", new Color(0.33f, 0.5f, 0.33f));
             UIFactory.SetLayoutElement(compileButton.Component.gameObject, minHeight: 28, minWidth: 130, flexibleHeight: 0);
             compileButton.ButtonText.fontSize = 15;
-            compileButton.OnClick += () => { OnCompileClicked?.Invoke(); };
+            compileButton.OnClick += () => { this.OnCompileClicked?.Invoke(); };
 
             ButtonRef resetButton = UIFactory.CreateButton(toolsRow, "ResetButton", "Reset", new Color(0.33f, 0.33f, 0.33f));
             UIFactory.SetLayoutElement(resetButton.Component.gameObject, minHeight: 28, minWidth: 80, flexibleHeight: 0);
             resetButton.ButtonText.fontSize = 15;
-            resetButton.OnClick += () => { OnResetClicked?.Invoke(); };
+            resetButton.OnClick += () => { this.OnResetClicked?.Invoke(); };
 
             // Help dropdown
 
             GameObject helpDrop = UIFactory.CreateDropdown(toolsRow, "HelpDropdown", out Dropdown dropdown, "Help", 14, null);
             UIFactory.SetLayoutElement(helpDrop, minHeight: 25, minWidth: 100);
-            HelpDropdown = dropdown;
-            HelpDropdown.onValueChanged.AddListener((int val) => { this.OnHelpDropdownChanged?.Invoke(val); });
+            this.HelpDropdown = dropdown;
+            this.HelpDropdown.onValueChanged.AddListener((int val) => { this.OnHelpDropdownChanged?.Invoke(val); });
 
             // Enable Ctrl+R toggle
 
@@ -93,7 +93,7 @@ namespace UnityExplorer.UI.Panels
             UIFactory.SetLayoutElement(ctrlRToggleObj, minWidth: 150, flexibleWidth: 0, minHeight: 25);
             ctrlRToggleText.alignment = TextAnchor.UpperLeft;
             ctrlRToggleText.text = "Compile on Ctrl+R";
-            CtrlRToggle.onValueChanged.AddListener((bool val) => { OnCtrlRToggled?.Invoke(val); });
+            CtrlRToggle.onValueChanged.AddListener((bool val) => { this.OnCtrlRToggled?.Invoke(val); });
 
             // Enable Suggestions toggle
 
@@ -101,7 +101,7 @@ namespace UnityExplorer.UI.Panels
             UIFactory.SetLayoutElement(suggestToggleObj, minWidth: 120, flexibleWidth: 0, minHeight: 25);
             suggestToggleText.alignment = TextAnchor.UpperLeft;
             suggestToggleText.text = "Suggestions";
-            SuggestionsToggle.onValueChanged.AddListener((bool val) => { OnSuggestionsToggled?.Invoke(val); });
+            SuggestionsToggle.onValueChanged.AddListener((bool val) => { this.OnSuggestionsToggled?.Invoke(val); });
 
             // Enable Auto-indent toggle
 
@@ -109,11 +109,11 @@ namespace UnityExplorer.UI.Panels
             UIFactory.SetLayoutElement(autoIndentToggleObj, minWidth: 120, flexibleWidth: 0, minHeight: 25);
             autoIndentToggleText.alignment = TextAnchor.UpperLeft;
             autoIndentToggleText.text = "Auto-indent";
-            AutoIndentToggle.onValueChanged.AddListener((bool val) => { OnAutoIndentToggled?.Invoke(val); });
+            AutoIndentToggle.onValueChanged.AddListener((bool val) => { this.OnAutoIndentToggled?.Invoke(val); });
 
             // Console Input
 
-            GameObject inputArea = UIFactory.CreateUIObject("InputGroup", ContentRoot);
+            GameObject inputArea = UIFactory.CreateUIObject("InputGroup", this.ContentRoot);
             UIFactory.SetLayoutElement(inputArea, flexibleWidth: 9999, flexibleHeight: 9999);
             UIFactory.SetLayoutGroup<HorizontalLayoutGroup>(inputArea, false, true, true, true);
             inputArea.AddComponent<Image>().color = Color.white;
@@ -131,8 +131,8 @@ namespace UnityExplorer.UI.Panels
             linesHolder.AddComponent<Image>().color = new Color(0.05f, 0.05f, 0.05f);
             UIFactory.SetLayoutGroup<VerticalLayoutGroup>(linesHolder, true, true, true, true);
 
-            LineNumberText = UIFactory.CreateLabel(linesHolder, "LineNumbers", "1", TextAnchor.UpperCenter, Color.grey, fontSize: 16);
-            LineNumberText.font = UniversalUI.ConsoleFont;
+            this.LineNumberText = UIFactory.CreateLabel(linesHolder, "LineNumbers", "1", TextAnchor.UpperCenter, Color.grey, fontSize: 16);
+            this.LineNumberText.font = UniversalUI.ConsoleFont;
 
             // input field
 
@@ -140,9 +140,9 @@ namespace UnityExplorer.UI.Panels
 
             GameObject inputObj = UIFactory.CreateScrollInputField(inputArea, "ConsoleInput", ConsoleController.STARTUP_TEXT,
                 out InputFieldScroller inputScroller, fontSize);
-            InputScroller = inputScroller;
-            ConsoleController.DefaultInputFieldAlpha = Input.Component.selectionColor.a;
-            Input.OnValueChanged += InvokeOnValueChanged;
+            this.InputScroller = inputScroller;
+            ConsoleController.DefaultInputFieldAlpha = this.Input.Component.selectionColor.a;
+            this.Input.OnValueChanged += this.InvokeOnValueChanged;
 
             // move line number text with input field
             linesRect.transform.SetParent(inputObj.transform.Find("Viewport"), false);
@@ -154,15 +154,15 @@ namespace UnityExplorer.UI.Panels
                 //SetInputLayout();
             }
 
-            InputText = Input.Component.textComponent;
-            InputText.supportRichText = false;
-            InputText.color = Color.clear;
-            Input.Component.customCaretColor = true;
-            Input.Component.caretColor = Color.white;
-            Input.PlaceholderText.fontSize = fontSize;
+            this.InputText = this.Input.Component.textComponent;
+            this.InputText.supportRichText = false;
+            this.InputText.color = Color.clear;
+            this.Input.Component.customCaretColor = true;
+            this.Input.Component.caretColor = Color.white;
+            this.Input.PlaceholderText.fontSize = fontSize;
 
             // Lexer highlight text overlay
-            GameObject highlightTextObj = UIFactory.CreateUIObject("HighlightText", InputText.gameObject);
+            GameObject highlightTextObj = UIFactory.CreateUIObject("HighlightText", this.InputText.gameObject);
             RectTransform highlightTextRect = highlightTextObj.GetComponent<RectTransform>();
             highlightTextRect.pivot = new Vector2(0, 1);
             highlightTextRect.anchorMin = Vector2.zero;
@@ -170,29 +170,29 @@ namespace UnityExplorer.UI.Panels
             highlightTextRect.offsetMin = Vector2.zero;
             highlightTextRect.offsetMax = Vector2.zero;
 
-            HighlightText = highlightTextObj.AddComponent<Text>();
-            HighlightText.color = Color.white;
-            HighlightText.supportRichText = true;
-            HighlightText.fontSize = fontSize;
+            this.HighlightText = highlightTextObj.AddComponent<Text>();
+            this.HighlightText.color = Color.white;
+            this.HighlightText.supportRichText = true;
+            this.HighlightText.fontSize = fontSize;
 
             // Set fonts
-            InputText.font = UniversalUI.ConsoleFont;
-            Input.PlaceholderText.font = UniversalUI.ConsoleFont;
-            HighlightText.font = UniversalUI.ConsoleFont;
+            this.InputText.font = UniversalUI.ConsoleFont;
+            this.Input.PlaceholderText.font = UniversalUI.ConsoleFont;
+            this.HighlightText.font = UniversalUI.ConsoleFont;
 
-            RuntimeHelper.StartCoroutine(DelayedLayoutSetup());
+            RuntimeHelper.StartCoroutine(this.DelayedLayoutSetup());
         }
 
         private IEnumerator DelayedLayoutSetup()
         {
             yield return null;
-            SetInputLayout();
+            this.SetInputLayout();
         }
 
         public void SetInputLayout()
         {
-            Input.Transform.offsetMin = new Vector2(52, Input.Transform.offsetMin.y);
-            Input.Transform.offsetMax = new Vector2(2, Input.Transform.offsetMax.y);
+            this.Input.Transform.offsetMin = new Vector2(52, this.Input.Transform.offsetMin.y);
+            this.Input.Transform.offsetMax = new Vector2(2, this.Input.Transform.offsetMax.y);
         }
     }
 }

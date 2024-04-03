@@ -25,13 +25,13 @@ namespace UnityExplorer.UI.Panels
         public override void OnFinishDrag()
         {
             base.OnFinishDrag();
-            SaveInternalData();
+            this.SaveInternalData();
         }
 
         public override void OnFinishResize()
         {
             base.OnFinishResize();
-            SaveInternalData();
+            this.SaveInternalData();
         }
 
         public override void SetActive(bool active)
@@ -40,19 +40,18 @@ namespace UnityExplorer.UI.Panels
             {
                 base.SetActive(active);
 
-                if (!ApplyingSaveData)
-                    SaveInternalData();
+                if (!this.ApplyingSaveData) this.SaveInternalData();
 
-                if (NavButtonWanted && NavButton != null)
+                if (this.NavButtonWanted && this.NavButton != null)
                 {
                     Color color = active ? UniversalUI.EnabledButtonColor : UniversalUI.DisabledButtonColor;
-                    RuntimeHelper.SetColorBlock(NavButton.Component, color, color * 1.2f);
+                    RuntimeHelper.SetColorBlock(this.NavButton.Component, color, color * 1.2f);
                 }
             }
 
             if (!active)
             {
-                if (Dragger != null)
+                if (this.Dragger != null)
                     this.Dragger.WasDragging = false;
             }
             else
@@ -68,9 +67,9 @@ namespace UnityExplorer.UI.Panels
 
         public override void SetDefaultSizeAndPosition()
         {
-            if (setDefault)
+            if (this.setDefault)
                 return;
-            setDefault = true;
+            this.setDefault = true;
 
             base.SetDefaultSizeAndPosition();
         }
@@ -79,10 +78,10 @@ namespace UnityExplorer.UI.Panels
 
         public void SaveInternalData()
         {
-            if (UIManager.Initializing || ApplyingSaveData)
+            if (UIManager.Initializing || this.ApplyingSaveData)
                 return;
 
-            SetSaveDataToConfigValue();
+            this.SetSaveDataToConfigValue();
         }
 
         private void SetSaveDataToConfigValue() 
@@ -94,9 +93,7 @@ namespace UnityExplorer.UI.Panels
             {
                 return string.Join("|", new string[]
                 {
-                        $"{ShouldSaveActiveState && Enabled}",
-                        Rect.RectAnchorsToString(),
-                        Rect.RectPositionToString()
+                        $"{this.ShouldSaveActiveState && this.Enabled}", this.Rect.RectAnchorsToString(), this.Rect.RectPositionToString()
                 });
             }
             catch (Exception ex)
@@ -109,7 +106,7 @@ namespace UnityExplorer.UI.Panels
         public virtual void ApplySaveData()
         {
             string data = ConfigManager.GetPanelSaveData(this.PanelType).Value;
-            ApplySaveData(data);
+            this.ApplySaveData(data);
         }
 
         protected virtual void ApplySaveData(string data)
@@ -121,8 +118,8 @@ namespace UnityExplorer.UI.Panels
 
             try
             {
-                Rect.SetAnchorsFromString(split[1]);
-                Rect.SetPositionFromString(split[2]);
+                this.Rect.SetAnchorsFromString(split[1]);
+                this.Rect.SetPositionFromString(split[2]);
                 this.EnsureValidSize();
                 this.EnsureValidPosition();
                 this.SetActive(bool.Parse(split[0]));
@@ -130,8 +127,8 @@ namespace UnityExplorer.UI.Panels
             catch
             {
                 ExplorerCore.LogWarning("Invalid or corrupt panel save data! Restoring to default.");
-                SetDefaultSizeAndPosition();
-                SetSaveDataToConfigValue();
+                this.SetDefaultSizeAndPosition();
+                this.SetSaveDataToConfigValue();
             }
         }
 
@@ -139,18 +136,18 @@ namespace UnityExplorer.UI.Panels
         {
             base.ConstructUI();
 
-            if (NavButtonWanted)
+            if (this.NavButtonWanted)
             {
                 // create navbar button
 
-                NavButton = UIFactory.CreateButton(UIManager.NavbarTabButtonHolder, $"Button_{PanelType}", Name);
-                GameObject navBtn = NavButton.Component.gameObject;
+                this.NavButton = UIFactory.CreateButton(UIManager.NavbarTabButtonHolder, $"Button_{this.PanelType}", this.Name);
+                GameObject navBtn = this.NavButton.Component.gameObject;
                 navBtn.AddComponent<ContentSizeFitter>().horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
                 UIFactory.SetLayoutGroup<HorizontalLayoutGroup>(navBtn, false, true, true, true, 0, 0, 0, 5, 5, TextAnchor.MiddleCenter);
                 UIFactory.SetLayoutElement(navBtn, minWidth: 80);
 
-                RuntimeHelper.SetColorBlock(NavButton.Component, UniversalUI.DisabledButtonColor, UniversalUI.DisabledButtonColor * 1.2f);
-                NavButton.OnClick += () => { UIManager.TogglePanel(PanelType); };
+                RuntimeHelper.SetColorBlock(this.NavButton.Component, UniversalUI.DisabledButtonColor, UniversalUI.DisabledButtonColor * 1.2f);
+                this.NavButton.OnClick += () => { UIManager.TogglePanel(this.PanelType); };
 
                 GameObject txtObj = navBtn.transform.Find("Text").gameObject;
                 txtObj.AddComponent<ContentSizeFitter>().horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
@@ -158,35 +155,35 @@ namespace UnityExplorer.UI.Panels
 
             this.SetActive(true);
             this.SetActive(false);
-            this.SetActive(ShowByDefault);
+            this.SetActive(this.ShowByDefault);
         }
 
         protected override void LateConstructUI()
         {
-            ApplyingSaveData = true;
+            this.ApplyingSaveData = true;
 
             base.LateConstructUI();
 
             // apply panel save data or revert to default
             try
             {
-                ApplySaveData();
+                this.ApplySaveData();
             }
             catch (Exception ex)
             {
                 ExplorerCore.Log($"Exception loading panel save data: {ex}");
-                SetDefaultSizeAndPosition();
+                this.SetDefaultSizeAndPosition();
             }
 
             // simple listener for saving enabled state
             this.OnToggleEnabled += (bool val) =>
             {
-                SaveInternalData();
+                this.SaveInternalData();
             };
 
-            ApplyingSaveData = false;
+            this.ApplyingSaveData = false;
 
-            Dragger.OnEndResize();
+            this.Dragger.OnEndResize();
         }
     }
 

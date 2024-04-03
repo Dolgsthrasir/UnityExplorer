@@ -24,85 +24,85 @@ namespace UnityExplorer.UI.Widgets
         {
             this.Owner = owner;
 
-            parameters = owner.Arguments;
-            paramHandlers = new ParameterHandler[parameters.Length];
+            this.parameters = owner.Arguments;
+            this.paramHandlers = new ParameterHandler[this.parameters.Length];
 
-            genericArguments = owner.GenericArguments;
-            genericHandlers = new GenericArgumentHandler[genericArguments.Length];
+            this.genericArguments = owner.GenericArguments;
+            this.genericHandlers = new GenericArgumentHandler[this.genericArguments.Length];
 
-            SetArgRows();
+            this.SetArgRows();
 
             this.UIRoot.SetActive(true);
         }
 
         public void OnReturnToPool()
         {
-            foreach (ParameterHandler widget in paramHandlers)
+            foreach (ParameterHandler widget in this.paramHandlers)
             {
                 widget.OnReturned();
                 Pool<ParameterHandler>.Return(widget);
             }
-            paramHandlers = null;
+            this.paramHandlers = null;
 
-            foreach (GenericArgumentHandler widget in genericHandlers)
+            foreach (GenericArgumentHandler widget in this.genericHandlers)
             {
                 widget.OnReturned();
                 Pool<GenericArgumentHandler>.Return(widget);
             }
-            genericHandlers = null;
+            this.genericHandlers = null;
 
             this.Owner = null;
         }
 
         public Type[] TryParseGenericArguments()
         {
-            Type[] outArgs = new Type[genericArguments.Length];
+            Type[] outArgs = new Type[this.genericArguments.Length];
 
-            for (int i = 0; i < genericArguments.Length; i++)
-                outArgs[i] = genericHandlers[i].Evaluate();
+            for (int i = 0; i < this.genericArguments.Length; i++)
+                outArgs[i] = this.genericHandlers[i].Evaluate();
 
             return outArgs;
         }
 
         public object[] TryParseArguments()
         {
-            if (!parameters.Any())
+            if (!this.parameters.Any())
                 return ArgumentUtility.EmptyArgs;
 
-            object[] outArgs = new object[parameters.Length];
+            object[] outArgs = new object[this.parameters.Length];
 
-            for (int i = 0; i < parameters.Length; i++)
-                outArgs[i] = paramHandlers[i].Evaluate();
+            for (int i = 0; i < this.parameters.Length; i++)
+                outArgs[i] = this.paramHandlers[i].Evaluate();
 
             return outArgs;
         }
 
         private void SetArgRows()
         {
-            if (genericArguments.Any())
+            if (this.genericArguments.Any())
             {
-                genericArgumentsHolder.SetActive(true);
-                SetGenericRows();
+                this.genericArgumentsHolder.SetActive(true);
+                this.SetGenericRows();
             }
             else
-                genericArgumentsHolder.SetActive(false);
+                this.genericArgumentsHolder.SetActive(false);
 
-            if (parameters.Any())
+            if (this.parameters.Any())
             {
-                parametersHolder.SetActive(true);
-                SetNormalArgRows();
+                this.parametersHolder.SetActive(true);
+                this.SetNormalArgRows();
             }
             else
-                parametersHolder.SetActive(false);
+                this.parametersHolder.SetActive(false);
         }
 
         private void SetGenericRows()
         {
-            for (int i = 0; i < genericArguments.Length; i++)
+            for (int i = 0; i < this.genericArguments.Length; i++)
             {
-                Type type = genericArguments[i];
+                Type type = this.genericArguments[i];
 
-                GenericArgumentHandler holder = genericHandlers[i] = Pool<GenericArgumentHandler>.Borrow();
+                GenericArgumentHandler holder = this.genericHandlers[i] = Pool<GenericArgumentHandler>.Borrow();
                 holder.UIRoot.transform.SetParent(this.genericArgumentsHolder.transform, false);
                 holder.OnBorrowed(type);
             }
@@ -110,11 +110,11 @@ namespace UnityExplorer.UI.Widgets
 
         private void SetNormalArgRows()
         {
-            for (int i = 0; i < parameters.Length; i++)
+            for (int i = 0; i < this.parameters.Length; i++)
             {
-                ParameterInfo param = parameters[i];
+                ParameterInfo param = this.parameters[i];
 
-                ParameterHandler holder = paramHandlers[i] = Pool<ParameterHandler>.Borrow();
+                ParameterHandler holder = this.paramHandlers[i] = Pool<ParameterHandler>.Borrow();
                 holder.UIRoot.transform.SetParent(this.parametersHolder.transform, false);
                 holder.OnBorrowed(param);
             }
@@ -123,38 +123,38 @@ namespace UnityExplorer.UI.Widgets
 
         public GameObject CreateContent(GameObject parent)
         {
-            UIRoot = UIFactory.CreateVerticalGroup(parent, "EvaluateWidget", false, false, true, true, 3, new Vector4(2, 2, 2, 2),
+            this.UIRoot = UIFactory.CreateVerticalGroup(parent, "EvaluateWidget", false, false, true, true, 3, new Vector4(2, 2, 2, 2),
                 new Color(0.15f, 0.15f, 0.15f));
-            UIFactory.SetLayoutElement(UIRoot, minWidth: 50, flexibleWidth: 9999, minHeight: 50, flexibleHeight: 800);
+            UIFactory.SetLayoutElement(this.UIRoot, minWidth: 50, flexibleWidth: 9999, minHeight: 50, flexibleHeight: 800);
             //UIRoot.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
             // generic args
-            this.genericArgumentsHolder = UIFactory.CreateUIObject("GenericHolder", UIRoot);
-            UIFactory.SetLayoutElement(genericArgumentsHolder, flexibleWidth: 1000);
-            Text genericsTitle = UIFactory.CreateLabel(genericArgumentsHolder, "GenericsTitle", "Generic Arguments", TextAnchor.MiddleLeft);
+            this.genericArgumentsHolder = UIFactory.CreateUIObject("GenericHolder", this.UIRoot);
+            UIFactory.SetLayoutElement(this.genericArgumentsHolder, flexibleWidth: 1000);
+            Text genericsTitle = UIFactory.CreateLabel(this.genericArgumentsHolder, "GenericsTitle", "Generic Arguments", TextAnchor.MiddleLeft);
             UIFactory.SetLayoutElement(genericsTitle.gameObject, minHeight: 25, flexibleWidth: 1000);
-            UIFactory.SetLayoutGroup<VerticalLayoutGroup>(genericArgumentsHolder, false, false, true, true, 3);
-            UIFactory.SetLayoutElement(genericArgumentsHolder, minHeight: 25, flexibleHeight: 750, minWidth: 50, flexibleWidth: 9999);
+            UIFactory.SetLayoutGroup<VerticalLayoutGroup>(this.genericArgumentsHolder, false, false, true, true, 3);
+            UIFactory.SetLayoutElement(this.genericArgumentsHolder, minHeight: 25, flexibleHeight: 750, minWidth: 50, flexibleWidth: 9999);
             //genericArgHolder.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
             // args
-            this.parametersHolder = UIFactory.CreateUIObject("ArgHolder", UIRoot);
-            UIFactory.SetLayoutElement(parametersHolder, flexibleWidth: 1000);
-            Text argsTitle = UIFactory.CreateLabel(parametersHolder, "ArgsTitle", "Arguments", TextAnchor.MiddleLeft);
+            this.parametersHolder = UIFactory.CreateUIObject("ArgHolder", this.UIRoot);
+            UIFactory.SetLayoutElement(this.parametersHolder, flexibleWidth: 1000);
+            Text argsTitle = UIFactory.CreateLabel(this.parametersHolder, "ArgsTitle", "Arguments", TextAnchor.MiddleLeft);
             UIFactory.SetLayoutElement(argsTitle.gameObject, minHeight: 25, flexibleWidth: 1000);
-            UIFactory.SetLayoutGroup<VerticalLayoutGroup>(parametersHolder, false, false, true, true, 3);
-            UIFactory.SetLayoutElement(parametersHolder, minHeight: 25, flexibleHeight: 750, minWidth: 50, flexibleWidth: 9999);
+            UIFactory.SetLayoutGroup<VerticalLayoutGroup>(this.parametersHolder, false, false, true, true, 3);
+            UIFactory.SetLayoutElement(this.parametersHolder, minHeight: 25, flexibleHeight: 750, minWidth: 50, flexibleWidth: 9999);
             //argHolder.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
             // evaluate button
-            ButtonRef evalButton = UIFactory.CreateButton(UIRoot, "EvaluateButton", "Evaluate", new Color(0.2f, 0.2f, 0.2f));
+            ButtonRef evalButton = UIFactory.CreateButton(this.UIRoot, "EvaluateButton", "Evaluate", new Color(0.2f, 0.2f, 0.2f));
             UIFactory.SetLayoutElement(evalButton.Component.gameObject, minHeight: 25, minWidth: 150, flexibleWidth: 0);
             evalButton.OnClick += () =>
             {
-                Owner.EvaluateAndSetCell();
+                this.Owner.EvaluateAndSetCell();
             };
 
-            return UIRoot;
+            return this.UIRoot;
         }
     }
 }

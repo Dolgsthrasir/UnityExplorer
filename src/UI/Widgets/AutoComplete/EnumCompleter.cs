@@ -9,11 +9,11 @@ namespace UnityExplorer.UI.Widgets.AutoComplete
     {
         public bool Enabled
         {
-            get => _enabled;
+            get => this._enabled;
             set
             {
-                _enabled = value;
-                if (!_enabled)
+                this._enabled = value;
+                if (!this._enabled)
                     AutoCompleteModal.Instance.ReleaseOwnership(this);
             }
         }
@@ -37,18 +37,17 @@ namespace UnityExplorer.UI.Widgets.AutoComplete
 
         public EnumCompleter(Type enumType, InputFieldRef inputField)
         {
-            EnumType = enumType;
-            InputField = inputField;
+            this.EnumType = enumType;
+            this.InputField = inputField;
 
-            inputField.OnValueChanged += OnInputFieldChanged;
+            inputField.OnValueChanged += this.OnInputFieldChanged;
 
-            if (EnumType != null)
-                CacheEnumValues();
+            if (this.EnumType != null) this.CacheEnumValues();
         }
 
         public void CacheEnumValues()
         {
-            enumValues = InteractiveEnum.GetEnumValues(EnumType);
+            this.enumValues = InteractiveEnum.GetEnumValues(this.EnumType);
         }
 
         private string GetLastSplitInput(string fullInput)
@@ -70,74 +69,73 @@ namespace UnityExplorer.UI.Widgets.AutoComplete
 
         public void OnSuggestionClicked(Suggestion suggestion)
         {
-            chosenSuggestion = suggestion.UnderlyingValue;
+            this.chosenSuggestion = suggestion.UnderlyingValue;
 
-            string lastInput = GetLastSplitInput(InputField.Text);
+            string lastInput = this.GetLastSplitInput(this.InputField.Text);
 
             if (lastInput != suggestion.UnderlyingValue)
             {
-                string valueToSet = InputField.Text;
+                string valueToSet = this.InputField.Text;
 
                 if (valueToSet.Length > 0)
-                    valueToSet = valueToSet.Substring(0, InputField.Text.Length - lastInput.Length);
+                    valueToSet = valueToSet.Substring(0, this.InputField.Text.Length - lastInput.Length);
 
                 valueToSet += suggestion.UnderlyingValue;
 
-                InputField.Text = valueToSet;
+                this.InputField.Text = valueToSet;
 
                 //InputField.Text += suggestion.UnderlyingValue.Substring(lastInput.Length);
             }
 
-            SuggestionClicked?.Invoke(suggestion);
+            this.SuggestionClicked?.Invoke(suggestion);
 
-            suggestions.Clear();
-            AutoCompleteModal.Instance.SetSuggestions(suggestions);
+            this.suggestions.Clear();
+            AutoCompleteModal.Instance.SetSuggestions(this.suggestions);
         }
 
         public void HelperButtonClicked()
         {
-            GetSuggestions("");
+            this.GetSuggestions("");
             AutoCompleteModal.TakeOwnership(this);
-            AutoCompleteModal.Instance.SetSuggestions(suggestions);
+            AutoCompleteModal.Instance.SetSuggestions(this.suggestions);
         }
 
         private void OnInputFieldChanged(string value)
         {
-            if (!Enabled)
+            if (!this.Enabled)
                 return;
 
-            if (string.IsNullOrEmpty(value) || GetLastSplitInput(value) == chosenSuggestion)
+            if (string.IsNullOrEmpty(value) || this.GetLastSplitInput(value) == this.chosenSuggestion)
             {
-                chosenSuggestion = null;
+                this.chosenSuggestion = null;
                 AutoCompleteModal.Instance.ReleaseOwnership(this);
             }
             else
             {
-                GetSuggestions(value);
+                this.GetSuggestions(value);
 
                 AutoCompleteModal.TakeOwnership(this);
-                AutoCompleteModal.Instance.SetSuggestions(suggestions);
+                AutoCompleteModal.Instance.SetSuggestions(this.suggestions);
             }
         }
 
         private void GetSuggestions(string value)
         {
-            suggestions.Clear();
-            suggestedValues.Clear();
+            this.suggestions.Clear();
+            this.suggestedValues.Clear();
 
-            if (EnumType == null)
+            if (this.EnumType == null)
             {
                 ExplorerCore.LogWarning("Autocompleter Base enum type is null!");
                 return;
             }
 
-            value = GetLastSplitInput(value);
+            value = this.GetLastSplitInput(value);
 
             for (int i = 0; i < this.enumValues.Count; i++)
             {
-                CachedEnumValue enumValue = (CachedEnumValue)enumValues[i];
-                if (enumValue.Name.ContainsIgnoreCase(value))
-                    AddSuggestion(enumValue.Name);
+                CachedEnumValue enumValue = (CachedEnumValue)this.enumValues[i];
+                if (enumValue.Name.ContainsIgnoreCase(value)) this.AddSuggestion(enumValue.Name);
             }
         }
 
@@ -145,14 +143,14 @@ namespace UnityExplorer.UI.Widgets.AutoComplete
 
         void AddSuggestion(string value)
         {
-            if (suggestedValues.Contains(value))
+            if (this.suggestedValues.Contains(value))
                 return;
-            suggestedValues.Add(value);
+            this.suggestedValues.Add(value);
 
             if (!sharedValueToLabel.ContainsKey(value))
                 sharedValueToLabel.Add(value, $"<color={SignatureHighlighter.CONST}>{value}</color>");
 
-            suggestions.Add(new Suggestion(sharedValueToLabel[value], value));
+            this.suggestions.Add(new Suggestion(sharedValueToLabel[value], value));
         }
     }
 }

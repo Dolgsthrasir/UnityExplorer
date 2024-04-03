@@ -1,13 +1,14 @@
 ﻿using UnityExplorer.UI.Panels;
 using UniverseLib.UI;
 using UniverseLib.UI.Models;
+using Object = UnityEngine.Object;
 
 namespace UnityExplorer.UI.Widgets
 {
     public class GameObjectInfoPanel
     {
         public GameObjectControls Owner { get; }
-        GameObject Target => Owner.Target;
+        GameObject Target => this.Owner.Target;
 
         string lastGoName;
         string lastPath;
@@ -36,82 +37,82 @@ namespace UnityExplorer.UI.Widgets
         public GameObjectInfoPanel(GameObjectControls owner)
         {
             this.Owner = owner;
-            Create();
+            this.Create();
         }
 
         public void UpdateGameObjectInfo(bool firstUpdate, bool force)
         {
             if (firstUpdate)
             {
-                InstanceIDInput.Text = Target.GetInstanceID().ToString();
+                this.InstanceIDInput.Text = this.Target.GetInstanceID().ToString();
             }
 
-            if (force || (!NameInput.Component.isFocused && Target.name != lastGoName))
+            if (force || (!this.NameInput.Component.isFocused && this.Target.name != this.lastGoName))
             {
-                lastGoName = Target.name;
-                Owner.Parent.Tab.TabText.text = $"[G] {Target.name}";
-                NameInput.Text = Target.name;
+                this.lastGoName = this.Target.name;
+                this.Owner.Parent.Tab.TabText.text = $"[G] {this.Target.name}";
+                this.NameInput.Text = this.Target.name;
             }
 
-            if (force || !PathInput.Component.isFocused)
+            if (force || !this.PathInput.Component.isFocused)
             {
-                string path = Target.transform.GetTransformPath();
-                if (path != lastPath)
+                string path = this.Target.transform.GetTransformPath();
+                if (path != this.lastPath)
                 {
-                    lastPath = path;
-                    PathInput.Text = path;
+                    this.lastPath = path;
+                    this.PathInput.Text = path;
                 }
             }
 
-            if (force || Target.transform.parent != lastParentState)
+            if (force || this.Target.transform.parent != this.lastParentState)
             {
-                lastParentState = Target.transform.parent;
-                ViewParentButton.Component.interactable = lastParentState;
-                if (lastParentState)
+                this.lastParentState = this.Target.transform.parent;
+                this.ViewParentButton.Component.interactable = this.lastParentState;
+                if (this.lastParentState)
                 {
-                    ViewParentButton.ButtonText.color = Color.white;
-                    ViewParentButton.ButtonText.text = "◄ View Parent";
+                    this.ViewParentButton.ButtonText.color = Color.white;
+                    this.ViewParentButton.ButtonText.text = "◄ View Parent";
                 }
                 else
                 {
-                    ViewParentButton.ButtonText.color = Color.grey;
-                    ViewParentButton.ButtonText.text = "No parent";
+                    this.ViewParentButton.ButtonText.color = Color.grey;
+                    this.ViewParentButton.ButtonText.text = "No parent";
                 }
             }
 
-            if (force || Target.activeSelf != ActiveSelfToggle.isOn)
+            if (force || this.Target.activeSelf != this.ActiveSelfToggle.isOn)
             {
-                ActiveSelfToggle.Set(Target.activeSelf, false);
-                ActiveSelfText.color = ActiveSelfToggle.isOn ? Color.green : Color.red;
+                this.ActiveSelfToggle.Set(this.Target.activeSelf, false);
+                this.ActiveSelfText.color = this.ActiveSelfToggle.isOn ? Color.green : Color.red;
             }
 
-            if (force || Target.isStatic != IsStaticToggle.isOn)
+            if (force || this.Target.isStatic != this.IsStaticToggle.isOn)
             {
-                IsStaticToggle.Set(Target.isStatic, false);
+                this.IsStaticToggle.Set(this.Target.isStatic, false);
             }
 
-            if (force || Target.scene.handle != lastSceneHandle)
+            if (force || this.Target.scene.handle != this.lastSceneHandle)
             {
-                lastSceneHandle = Target.scene.handle;
-                SceneButton.ButtonText.text = Target.scene.IsValid() ? Target.scene.name : "None (Asset/Resource)";
+                this.lastSceneHandle = this.Target.scene.handle;
+                this.SceneButton.ButtonText.text = this.Target.scene.IsValid() ? this.Target.scene.name : "None (Asset/Resource)";
             }
 
-            if (force || (!TagInput.Component.isFocused && Target.tag != lastTag))
+            if (force || (!this.TagInput.Component.isFocused && this.Target.tag != this.lastTag))
             {
-                lastTag = Target.tag;
-                TagInput.Text = lastTag;
+                this.lastTag = this.Target.tag;
+                this.TagInput.Text = this.lastTag;
             }
 
-            if (force || (Target.layer != lastLayer))
+            if (force || (this.Target.layer != this.lastLayer))
             {
-                lastLayer = Target.layer;
-                LayerDropdown.value = Target.layer;
+                this.lastLayer = this.Target.layer;
+                this.LayerDropdown.value = this.Target.layer;
             }
 
-            if (force || ((int)Target.hideFlags != lastFlags))
+            if (force || ((int)this.Target.hideFlags != this.lastFlags))
             {
-                lastFlags = (int)Target.hideFlags;
-                FlagsDropdown.captionText.text = Target.hideFlags.ToString();
+                this.lastFlags = (int)this.Target.hideFlags;
+                this.FlagsDropdown.captionText.text = this.Target.hideFlags.ToString();
             }
         }
 
@@ -119,14 +120,14 @@ namespace UnityExplorer.UI.Widgets
         {
             ExplorerCore.Log($"Setting target's transform parent to: {(transform == null ? "null" : $"'{transform.name}'")}");
 
-            if (Target.GetComponent<RectTransform>())
-                Target.transform.SetParent(transform, false);
+            if (this.Target.GetComponent<RectTransform>())
+                this.Target.transform.SetParent(transform, false);
             else
-                Target.transform.parent = transform;
+                this.Target.transform.parent = transform;
 
-            UpdateGameObjectInfo(false, false);
+            this.UpdateGameObjectInfo(false, false);
 
-            Owner.TransformControl.UpdateTransformControlValues(false);
+            this.Owner.TransformControl.UpdateTransformControlValues(false);
         }
 
 
@@ -136,17 +137,17 @@ namespace UnityExplorer.UI.Widgets
         {
             if (this.Target && this.Target.transform.parent)
             {
-                Owner.Parent.OnTransformCellClicked(this.Target.transform.parent.gameObject);
+                this.Owner.Parent.OnTransformCellClicked(this.Target.transform.parent.gameObject);
             }
         }
 
         void OnPathEndEdit(string input)
         {
-            lastPath = input;
+            this.lastPath = input;
 
             if (string.IsNullOrEmpty(input))
             {
-                DoSetParent(null);
+                this.DoSetParent(null);
             }
             else
             {
@@ -182,11 +183,11 @@ namespace UnityExplorer.UI.Widgets
                 }
 
                 if (parentToSet)
-                    DoSetParent(parentToSet);
+                    this.DoSetParent(parentToSet);
                 else
                 {
                     ExplorerCore.LogWarning($"Could not find any GameObject name or path '{input}'!");
-                    UpdateGameObjectInfo(false, true);
+                    this.UpdateGameObjectInfo(false, true);
                 }
             }
 
@@ -194,8 +195,8 @@ namespace UnityExplorer.UI.Widgets
 
         void OnNameEndEdit(string value)
         {
-            Target.name = value;
-            UpdateGameObjectInfo(false, true);
+            this.Target.name = value;
+            this.UpdateGameObjectInfo(false, true);
         }
 
         void OnCopyClicked()
@@ -205,16 +206,16 @@ namespace UnityExplorer.UI.Widgets
 
         void OnActiveSelfToggled(bool value)
         {
-            Target.SetActive(value);
-            UpdateGameObjectInfo(false, true);
+            this.Target.SetActive(value);
+            this.UpdateGameObjectInfo(false, true);
         }
 
         void OnTagEndEdit(string value)
         {
             try
             {
-                Target.tag = value;
-                UpdateGameObjectInfo(false, true);
+                this.Target.tag = value;
+                this.UpdateGameObjectInfo(false, true);
             }
             catch (Exception ex)
             {
@@ -224,7 +225,7 @@ namespace UnityExplorer.UI.Widgets
         
         void OnSceneButtonClicked()
         {
-            InspectorManager.Inspect(Target.scene);
+            InspectorManager.Inspect(this.Target.scene);
         }
 
         void OnExploreButtonClicked()
@@ -235,18 +236,18 @@ namespace UnityExplorer.UI.Widgets
 
         void OnLayerDropdownChanged(int value)
         {
-            Target.layer = value;
-            UpdateGameObjectInfo(false, true);
+            this.Target.layer = value;
+            this.UpdateGameObjectInfo(false, true);
         }
 
         void OnFlagsDropdownChanged(int value)
         {
             try
             {
-                HideFlags enumVal = hideFlagsValues[FlagsDropdown.options[value].text];
-                Target.hideFlags = enumVal;
+                HideFlags enumVal = hideFlagsValues[this.FlagsDropdown.options[value].text];
+                this.Target.hideFlags = enumVal;
 
-                UpdateGameObjectInfo(false, true);
+                this.UpdateGameObjectInfo(false, true);
             }
             catch (Exception ex)
             {
@@ -256,13 +257,13 @@ namespace UnityExplorer.UI.Widgets
 
         void OnDestroyClicked()
         {
-            GameObject.Destroy(this.Target);
-            InspectorManager.ReleaseInspector(Owner.Parent);
+            Object.Destroy(this.Target);
+            InspectorManager.ReleaseInspector(this.Owner.Parent);
         }
 
         void OnInstantiateClicked()
         {
-            GameObject clone = GameObject.Instantiate(this.Target);
+            GameObject clone = Object.Instantiate(this.Target);
             InspectorManager.Inspect(clone);
         }
 
@@ -273,7 +274,7 @@ namespace UnityExplorer.UI.Widgets
 
         public void Create()
         {
-            GameObject topInfoHolder = UIFactory.CreateVerticalGroup(Owner.Parent.Content, "TopInfoHolder", false, false, true, true, 3,
+            GameObject topInfoHolder = UIFactory.CreateVerticalGroup(this.Owner.Parent.Content, "TopInfoHolder", false, false, true, true, 3,
                 new Vector4(3, 3, 3, 3), new Color(0.1f, 0.1f, 0.1f), TextAnchor.MiddleLeft);
             UIFactory.SetLayoutElement(topInfoHolder, minHeight: 100, flexibleWidth: 9999);
             topInfoHolder.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
@@ -284,23 +285,23 @@ namespace UnityExplorer.UI.Widgets
             UIFactory.SetLayoutGroup<HorizontalLayoutGroup>(firstRow, false, false, true, true, 5, 0, 0, 0, 0, default);
             UIFactory.SetLayoutElement(firstRow, minHeight: 25, flexibleWidth: 9999);
 
-            ViewParentButton = UIFactory.CreateButton(firstRow, "ViewParentButton", "◄ View Parent", new Color(0.2f, 0.2f, 0.2f));
-            ViewParentButton.ButtonText.fontSize = 13;
-            UIFactory.SetLayoutElement(ViewParentButton.Component.gameObject, minHeight: 25, minWidth: 100);
-            ViewParentButton.OnClick += OnViewParentClicked;
+            this.ViewParentButton = UIFactory.CreateButton(firstRow, "ViewParentButton", "◄ View Parent", new Color(0.2f, 0.2f, 0.2f));
+            this.ViewParentButton.ButtonText.fontSize = 13;
+            UIFactory.SetLayoutElement(this.ViewParentButton.Component.gameObject, minHeight: 25, minWidth: 100);
+            this.ViewParentButton.OnClick += this.OnViewParentClicked;
 
             this.PathInput = UIFactory.CreateInputField(firstRow, "PathInput", "...");
-            PathInput.Component.textComponent.color = Color.grey;
-            PathInput.Component.textComponent.fontSize = 14;
-            UIFactory.SetLayoutElement(PathInput.UIRoot, minHeight: 25, minWidth: 100, flexibleWidth: 9999);
-            PathInput.Component.lineType = InputField.LineType.MultiLineSubmit;
+            this.PathInput.Component.textComponent.color = Color.grey;
+            this.PathInput.Component.textComponent.fontSize = 14;
+            UIFactory.SetLayoutElement(this.PathInput.UIRoot, minHeight: 25, minWidth: 100, flexibleWidth: 9999);
+            this.PathInput.Component.lineType = InputField.LineType.MultiLineSubmit;
 
             ButtonRef copyButton = UIFactory.CreateButton(firstRow, "CopyButton", "Copy to Clipboard", new Color(0.2f, 0.2f, 0.2f, 1));
             copyButton.ButtonText.color = Color.yellow;
             UIFactory.SetLayoutElement(copyButton.Component.gameObject, minHeight: 25, minWidth: 120);
-            copyButton.OnClick += OnCopyClicked;
+            copyButton.OnClick += this.OnCopyClicked;
 
-            PathInput.Component.GetOnEndEdit().AddListener((string val) => { OnPathEndEdit(val); });
+            this.PathInput.Component.GetOnEndEdit().AddListener((string val) => { this.OnPathEndEdit(val); });
 
             // Title and update row
 
@@ -313,10 +314,10 @@ namespace UnityExplorer.UI.Widgets
 
             // name
 
-            NameInput = UIFactory.CreateInputField(titleRow, "NameInput", "untitled");
-            UIFactory.SetLayoutElement(NameInput.Component.gameObject, minHeight: 30, minWidth: 100, flexibleWidth: 9999);
-            NameInput.Component.textComponent.fontSize = 15;
-            NameInput.Component.GetOnEndEdit().AddListener((string val) => { OnNameEndEdit(val); });
+            this.NameInput = UIFactory.CreateInputField(titleRow, "NameInput", "untitled");
+            UIFactory.SetLayoutElement(this.NameInput.Component.gameObject, minHeight: 30, minWidth: 100, flexibleWidth: 9999);
+            this.NameInput.Component.textComponent.fontSize = 15;
+            this.NameInput.Component.GetOnEndEdit().AddListener((string val) => { this.OnNameEndEdit(val); });
 
             // second row (toggles, instanceID, tag, buttons)
 
@@ -325,45 +326,45 @@ namespace UnityExplorer.UI.Widgets
             UIFactory.SetLayoutElement(secondRow, minHeight: 25, flexibleWidth: 9999);
 
             // activeSelf
-            GameObject activeToggleObj = UIFactory.CreateToggle(secondRow, "ActiveSelf", out ActiveSelfToggle, out ActiveSelfText);
+            GameObject activeToggleObj = UIFactory.CreateToggle(secondRow, "ActiveSelf", out this.ActiveSelfToggle, out this.ActiveSelfText);
             UIFactory.SetLayoutElement(activeToggleObj, minHeight: 25, minWidth: 100);
-            ActiveSelfText.text = "ActiveSelf";
-            ActiveSelfToggle.onValueChanged.AddListener(OnActiveSelfToggled);
+            this.ActiveSelfText.text = "ActiveSelf";
+            this.ActiveSelfToggle.onValueChanged.AddListener(this.OnActiveSelfToggled);
 
             // isStatic
-            GameObject isStaticObj = UIFactory.CreateToggle(secondRow, "IsStatic", out IsStaticToggle, out Text staticText);
+            GameObject isStaticObj = UIFactory.CreateToggle(secondRow, "IsStatic", out this.IsStaticToggle, out Text staticText);
             UIFactory.SetLayoutElement(isStaticObj, minHeight: 25, minWidth: 80);
             staticText.text = "IsStatic";
             staticText.color = Color.grey;
-            IsStaticToggle.interactable = false;
+            this.IsStaticToggle.interactable = false;
 
             // InstanceID
             Text instanceIdLabel = UIFactory.CreateLabel(secondRow, "InstanceIDLabel", "Instance ID:", TextAnchor.MiddleRight, Color.grey);
             UIFactory.SetLayoutElement(instanceIdLabel.gameObject, minHeight: 25, minWidth: 90);
 
-            InstanceIDInput = UIFactory.CreateInputField(secondRow, "InstanceIDInput", "error");
-            UIFactory.SetLayoutElement(InstanceIDInput.Component.gameObject, minHeight: 25, minWidth: 110);
-            InstanceIDInput.Component.textComponent.color = Color.grey;
-            InstanceIDInput.Component.readOnly = true;
+            this.InstanceIDInput = UIFactory.CreateInputField(secondRow, "InstanceIDInput", "error");
+            UIFactory.SetLayoutElement(this.InstanceIDInput.Component.gameObject, minHeight: 25, minWidth: 110);
+            this.InstanceIDInput.Component.textComponent.color = Color.grey;
+            this.InstanceIDInput.Component.readOnly = true;
 
             //Tag
             Text tagLabel = UIFactory.CreateLabel(secondRow, "TagLabel", "Tag:", TextAnchor.MiddleRight, Color.grey);
             UIFactory.SetLayoutElement(tagLabel.gameObject, minHeight: 25, minWidth: 40);
 
-            TagInput = UIFactory.CreateInputField(secondRow, "TagInput", "none");
-            UIFactory.SetLayoutElement(TagInput.Component.gameObject, minHeight: 25, minWidth: 100, flexibleWidth: 999);
-            TagInput.Component.textComponent.color = Color.white;
-            TagInput.Component.GetOnEndEdit().AddListener((string val) => { OnTagEndEdit(val); });
+            this.TagInput = UIFactory.CreateInputField(secondRow, "TagInput", "none");
+            UIFactory.SetLayoutElement(this.TagInput.Component.gameObject, minHeight: 25, minWidth: 100, flexibleWidth: 999);
+            this.TagInput.Component.textComponent.color = Color.white;
+            this.TagInput.Component.GetOnEndEdit().AddListener((string val) => { this.OnTagEndEdit(val); });
 
             // Instantiate
             ButtonRef instantiateBtn = UIFactory.CreateButton(secondRow, "InstantiateBtn", "Instantiate", new Color(0.2f, 0.2f, 0.2f));
             UIFactory.SetLayoutElement(instantiateBtn.Component.gameObject, minHeight: 25, minWidth: 120);
-            instantiateBtn.OnClick += OnInstantiateClicked;
+            instantiateBtn.OnClick += this.OnInstantiateClicked;
 
             // Destroy
             ButtonRef destroyBtn = UIFactory.CreateButton(secondRow, "DestroyBtn", "Destroy", new Color(0.3f, 0.2f, 0.2f));
             UIFactory.SetLayoutElement(destroyBtn.Component.gameObject, minHeight: 25, minWidth: 80);
-            destroyBtn.OnClick += OnDestroyClicked;
+            destroyBtn.OnClick += this.OnDestroyClicked;
 
             // third row (scene, layer, flags)
 
@@ -375,43 +376,41 @@ namespace UnityExplorer.UI.Widgets
             ButtonRef explorerBtn = UIFactory.CreateButton(thirdrow, "ExploreBtn", "Show in Explorer", new Color(0.15f, 0.15f, 0.15f));
             UIFactory.SetLayoutElement(explorerBtn.Component.gameObject, minHeight: 25, minWidth: 100);
             explorerBtn.ButtonText.fontSize = 12;
-            explorerBtn.OnClick += OnExploreButtonClicked;
+            explorerBtn.OnClick += this.OnExploreButtonClicked;
 
             // Scene
             Text sceneLabel = UIFactory.CreateLabel(thirdrow, "SceneLabel", "Scene:", TextAnchor.MiddleLeft, Color.grey);
             UIFactory.SetLayoutElement(sceneLabel.gameObject, minHeight: 25, minWidth: 50);
 
-            SceneButton = UIFactory.CreateButton(thirdrow, "SceneButton", "untitled");
-            UIFactory.SetLayoutElement(SceneButton.Component.gameObject, minHeight: 25, minWidth: 120, flexibleWidth: 999);
-            SceneButton.OnClick += OnSceneButtonClicked;
+            this.SceneButton = UIFactory.CreateButton(thirdrow, "SceneButton", "untitled");
+            UIFactory.SetLayoutElement(this.SceneButton.Component.gameObject, minHeight: 25, minWidth: 120, flexibleWidth: 999);
+            this.SceneButton.OnClick += this.OnSceneButtonClicked;
 
             // Layer
             Text layerLabel = UIFactory.CreateLabel(thirdrow, "LayerLabel", "Layer:", TextAnchor.MiddleLeft, Color.grey);
             UIFactory.SetLayoutElement(layerLabel.gameObject, minHeight: 25, minWidth: 50);
 
-            GameObject layerDrop = UIFactory.CreateDropdown(thirdrow, "LayerDropdown", out LayerDropdown, "0", 14, OnLayerDropdownChanged);
+            GameObject layerDrop = UIFactory.CreateDropdown(thirdrow, "LayerDropdown", out this.LayerDropdown, "0", 14, this.OnLayerDropdownChanged);
             UIFactory.SetLayoutElement(layerDrop, minHeight: 25, minWidth: 110, flexibleWidth: 999);
-            LayerDropdown.captionText.color = SignatureHighlighter.EnumGreen;
+            this.LayerDropdown.captionText.color = SignatureHighlighter.EnumGreen;
             if (layerToNames == null)
                 GetLayerNames();
-            foreach (string name in layerToNames)
-                LayerDropdown.options.Add(new Dropdown.OptionData(name));
-            LayerDropdown.value = 0;
-            LayerDropdown.RefreshShownValue();
+            foreach (string name in layerToNames) this.LayerDropdown.options.Add(new Dropdown.OptionData(name));
+            this.LayerDropdown.value = 0;
+            this.LayerDropdown.RefreshShownValue();
 
             // Flags
             Text flagsLabel = UIFactory.CreateLabel(thirdrow, "FlagsLabel", "Flags:", TextAnchor.MiddleRight, Color.grey);
             UIFactory.SetLayoutElement(flagsLabel.gameObject, minHeight: 25, minWidth: 50);
 
-            GameObject flagsDrop = UIFactory.CreateDropdown(thirdrow, "FlagsDropdown", out FlagsDropdown, "None", 14, OnFlagsDropdownChanged);
-            FlagsDropdown.captionText.color = SignatureHighlighter.EnumGreen;
+            GameObject flagsDrop = UIFactory.CreateDropdown(thirdrow, "FlagsDropdown", out this.FlagsDropdown, "None", 14, this.OnFlagsDropdownChanged);
+            this.FlagsDropdown.captionText.color = SignatureHighlighter.EnumGreen;
             UIFactory.SetLayoutElement(flagsDrop, minHeight: 25, minWidth: 135, flexibleWidth: 999);
             if (hideFlagsValues == null)
                 GetHideFlagNames();
-            foreach (string name in hideFlagsValues.Keys)
-                FlagsDropdown.options.Add(new Dropdown.OptionData(name));
-            FlagsDropdown.value = 0;
-            FlagsDropdown.RefreshShownValue();
+            foreach (string name in hideFlagsValues.Keys) this.FlagsDropdown.options.Add(new Dropdown.OptionData(name));
+            this.FlagsDropdown.value = 0;
+            this.FlagsDropdown.RefreshShownValue();
         }
 
         private static List<string> layerToNames;

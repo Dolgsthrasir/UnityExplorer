@@ -39,7 +39,7 @@ namespace UnityExplorer.UI.Panels
             base.OnFinishResize();
 
             InspectorManager.PanelWidth = this.Rect.rect.width;
-            InspectorManager.OnPanelResized(Rect.rect.width);
+            InspectorManager.OnPanelResized(this.Rect.rect.width);
         }
 
         protected override void ConstructPanelContent()
@@ -48,12 +48,12 @@ namespace UnityExplorer.UI.Panels
 
             // Inspect under mouse dropdown on title bar
 
-            GameObject mouseDropdown = UIFactory.CreateDropdown(closeHolder, "MouseInspectDropdown", out MouseInspectDropdown, "Mouse Inspect", 14,
+            GameObject mouseDropdown = UIFactory.CreateDropdown(closeHolder, "MouseInspectDropdown", out this.MouseInspectDropdown, "Mouse Inspect", 14,
                 MouseInspector.OnDropdownSelect);
             UIFactory.SetLayoutElement(mouseDropdown, minHeight: 25, minWidth: 140);
-            MouseInspectDropdown.options.Add(new Dropdown.OptionData("Mouse Inspect"));
-            MouseInspectDropdown.options.Add(new Dropdown.OptionData("World"));
-            MouseInspectDropdown.options.Add(new Dropdown.OptionData("UI"));
+            this.MouseInspectDropdown.options.Add(new Dropdown.OptionData("Mouse Inspect"));
+            this.MouseInspectDropdown.options.Add(new Dropdown.OptionData("World"));
+            this.MouseInspectDropdown.options.Add(new Dropdown.OptionData("UI"));
             mouseDropdown.transform.SetSiblingIndex(0);
 
             // add close all button to titlebar
@@ -71,12 +71,12 @@ namespace UnityExplorer.UI.Panels
             this.NavbarHolder = UIFactory.CreateGridGroup(this.ContentRoot, "Navbar", new Vector2(200, 22), new Vector2(4, 4),
                 new Color(0.05f, 0.05f, 0.05f));
             //UIFactory.SetLayoutElement(NavbarHolder, flexibleWidth: 9999, minHeight: 0, preferredHeight: 0, flexibleHeight: 9999);
-            NavbarHolder.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            this.NavbarHolder.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
             this.ContentHolder = UIFactory.CreateVerticalGroup(this.ContentRoot, "ContentHolder", true, true, true, true, 0, default,
                 new Color(0.1f, 0.1f, 0.1f));
-            UIFactory.SetLayoutElement(ContentHolder, flexibleHeight: 9999);
-            ContentRect = ContentHolder.GetComponent<RectTransform>();
+            UIFactory.SetLayoutElement(this.ContentHolder, flexibleHeight: 9999);
+            this.ContentRect = this.ContentHolder.GetComponent<RectTransform>();
 
             this.SetActive(false);
         }

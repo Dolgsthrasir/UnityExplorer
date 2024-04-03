@@ -9,7 +9,7 @@ namespace UnityExplorer.CacheObject
 
         public override bool ShouldAutoEvaluate => true;
         public override bool HasArguments => false;
-        public override bool CanWrite => Owner?.CanWrite ?? false;
+        public override bool CanWrite => this.Owner?.CanWrite ?? false;
 
         public void SetListOwner(InteractiveList list, int listIndex)
         {
@@ -23,14 +23,14 @@ namespace UnityExplorer.CacheObject
 
             CacheListEntryCell listCell = cell as CacheListEntryCell;
 
-            listCell.NameLabel.text = $"{ListIndex}:";
+            listCell.NameLabel.text = $"{this.ListIndex}:";
             listCell.HiddenNameLabel.Text = "";
-            listCell.Image.color = ListIndex % 2 == 0 ? CacheListEntryCell.EvenColor : CacheListEntryCell.OddColor;
+            listCell.Image.color = this.ListIndex % 2 == 0 ? CacheListEntryCell.EvenColor : CacheListEntryCell.OddColor;
         }
 
         public override void TrySetUserValue(object value)
         {
-            (Owner as InteractiveList).TrySetValueToIndex(value, this.ListIndex);
+            (this.Owner as InteractiveList).TrySetValueToIndex(value, this.ListIndex);
         }
 
         protected override bool TryAutoEvaluateIfUnitialized(CacheObjectCell cell) => true;

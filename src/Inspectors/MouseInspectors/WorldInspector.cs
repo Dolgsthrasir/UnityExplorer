@@ -41,7 +41,7 @@
             Physics.Raycast(ray, out RaycastHit hit, 1000f);
 
             if (hit.transform)
-                OnHitGameObject(hit.transform.gameObject);
+                this.OnHitGameObject(hit.transform.gameObject);
             else if (lastHitObject)
                 MouseInspector.Instance.ClearHitData();
         }

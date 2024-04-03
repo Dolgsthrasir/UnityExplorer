@@ -33,10 +33,10 @@ namespace UnityExplorer.Inspectors
 
             base.Target = target as GameObject;
 
-            Controls.UpdateGameObjectInfo(true, true);
-            Controls.TransformControl.UpdateTransformControlValues(true);
+            this.Controls.UpdateGameObjectInfo(true, true);
+            this.Controls.TransformControl.UpdateTransformControlValues(true);
 
-            RuntimeHelper.StartCoroutine(InitCoroutine());
+            RuntimeHelper.StartCoroutine(this.InitCoroutine());
         }
 
         private IEnumerator InitCoroutine()
@@ -45,21 +45,21 @@ namespace UnityExplorer.Inspectors
 
             LayoutRebuilder.ForceRebuildLayoutImmediate(InspectorPanel.Instance.ContentRect);
 
-            TransformTree.Rebuild();
+            this.TransformTree.Rebuild();
 
-            ComponentList.ScrollPool.Refresh(true, true);
-            UpdateComponents();
+            this.ComponentList.ScrollPool.Refresh(true, true);
+            this.UpdateComponents();
         }
 
         public override void OnReturnToPool()
         {
             base.OnReturnToPool();
 
-            addChildInput.Text = "";
-            addCompInput.Text = "";
+            this.addChildInput.Text = "";
+            this.addCompInput.Text = "";
 
-            TransformTree.Clear();
-            UpdateComponents();
+            this.TransformTree.Clear();
+            this.UpdateComponents();
         }
 
         public override void CloseInspector()
@@ -70,10 +70,10 @@ namespace UnityExplorer.Inspectors
         public void OnTransformCellClicked(GameObject newTarget)
         {
             base.Target = newTarget;
-            Controls.UpdateGameObjectInfo(true, true);
-            Controls.TransformControl.UpdateTransformControlValues(true);
-            TransformTree.RefreshData(true, false, true, false);
-            UpdateComponents();
+            this.Controls.UpdateGameObjectInfo(true, true);
+            this.Controls.TransformControl.UpdateTransformControlValues(true);
+            this.TransformTree.RefreshData(true, false, true, false);
+            this.UpdateComponents();
         }
 
         private float timeOfLastUpdate;
@@ -89,18 +89,18 @@ namespace UnityExplorer.Inspectors
                 return;
             }
 
-            Controls.UpdateVectorSlider();
-            Controls.TransformControl.UpdateTransformControlValues(false);
+            this.Controls.UpdateVectorSlider();
+            this.Controls.TransformControl.UpdateTransformControlValues(false);
 
             // Slow update
-            if (timeOfLastUpdate.OccuredEarlierThan(1))
+            if (this.timeOfLastUpdate.OccuredEarlierThan(1))
             {
-                timeOfLastUpdate = Time.realtimeSinceStartup;
+                this.timeOfLastUpdate = Time.realtimeSinceStartup;
 
-                Controls.UpdateGameObjectInfo(false, false);
+                this.Controls.UpdateGameObjectInfo(false, false);
 
-                TransformTree.RefreshData(true, false, false, false);
-                UpdateComponents();
+                this.TransformTree.RefreshData(true, false, false, false);
+                this.UpdateComponents();
             }
         }
 
@@ -108,13 +108,12 @@ namespace UnityExplorer.Inspectors
 
         private IEnumerable<GameObject> GetTransformEntries()
         {
-            if (!Target)
+            if (!this.Target)
                 return Enumerable.Empty<GameObject>();
 
-            cachedChildren.Clear();
-            for (int i = 0; i < Target.transform.childCount; i++)
-                cachedChildren.Add(Target.transform.GetChild(i).gameObject);
-            return cachedChildren;
+            this.cachedChildren.Clear();
+            for (int i = 0; i < this.Target.transform.childCount; i++) this.cachedChildren.Add(this.Target.transform.GetChild(i).gameObject);
+            return this.cachedChildren;
         }
 
         private readonly List<Component> componentEntries = new();
@@ -123,24 +122,24 @@ namespace UnityExplorer.Inspectors
         private readonly List<bool> behaviourEnabledStates = new();
 
         // ComponentList.GetRootEntriesMethod
-        private List<Component> GetComponentEntries() => Target ? componentEntries : Enumerable.Empty<Component>().ToList();
+        private List<Component> GetComponentEntries() => this.Target ? this.componentEntries : Enumerable.Empty<Component>().ToList();
 
         public void UpdateComponents()
         {
-            if (!Target)
+            if (!this.Target)
             {
-                componentEntries.Clear();
-                compInstanceIDs.Clear();
-                behaviourEntries.Clear();
-                behaviourEnabledStates.Clear();
-                ComponentList.RefreshData();
-                ComponentList.ScrollPool.Refresh(true, true);
+                this.componentEntries.Clear();
+                this.compInstanceIDs.Clear();
+                this.behaviourEntries.Clear();
+                this.behaviourEnabledStates.Clear();
+                this.ComponentList.RefreshData();
+                this.ComponentList.ScrollPool.Refresh(true, true);
                 return;
             }
 
             // Check if we actually need to refresh the component cells or not.
-            IEnumerable<Component> comps = Target.GetComponents<Component>();
-            IEnumerable<Behaviour> behaviours = Target.GetComponents<Behaviour>();
+            IEnumerable<Component> comps = this.Target.GetComponents<Component>();
+            IEnumerable<Behaviour> behaviours = this.Target.GetComponents<Behaviour>();
 
             bool needRefresh = false;
 
@@ -150,7 +149,7 @@ namespace UnityExplorer.Inspectors
                 if (!comp)
                     continue;
                 count++;
-                if (!compInstanceIDs.Contains(comp.GetInstanceID()))
+                if (!this.compInstanceIDs.Contains(comp.GetInstanceID()))
                 {
                     needRefresh = true;
                     break;
@@ -158,7 +157,7 @@ namespace UnityExplorer.Inspectors
             }
             if (!needRefresh)
             {
-                if (count != componentEntries.Count)
+                if (count != this.componentEntries.Count)
                     needRefresh = true;
                 else
                 {
@@ -167,14 +166,14 @@ namespace UnityExplorer.Inspectors
                     {
                         if (!behaviour)
                             continue;
-                        if (count >= behaviourEnabledStates.Count || behaviour.enabled != behaviourEnabledStates[count])
+                        if (count >= this.behaviourEnabledStates.Count || behaviour.enabled != this.behaviourEnabledStates[count])
                         {
                             needRefresh = true;
                             break;
                         }
                         count++;
                     }
-                    if (!needRefresh && count != behaviourEntries.Count)
+                    if (!needRefresh && count != this.behaviourEntries.Count)
                         needRefresh = true;
                 }
             }
@@ -182,18 +181,18 @@ namespace UnityExplorer.Inspectors
             if (!needRefresh)
                 return;
 
-            componentEntries.Clear();
-            compInstanceIDs.Clear();
+            this.componentEntries.Clear();
+            this.compInstanceIDs.Clear();
             foreach (Component comp in comps)
             {
                 if (!comp) 
                     continue;
-                componentEntries.Add(comp);
-                compInstanceIDs.Add(comp.GetInstanceID());
+                this.componentEntries.Add(comp);
+                this.compInstanceIDs.Add(comp.GetInstanceID());
             }
 
-            behaviourEntries.Clear();
-            behaviourEnabledStates.Clear();
+            this.behaviourEntries.Clear();
+            this.behaviourEnabledStates.Clear();
             foreach (Behaviour behaviour in behaviours)
             {
                 if (!behaviour) 
@@ -206,27 +205,27 @@ namespace UnityExplorer.Inspectors
 
                 try
                 {
-                    behaviourEntries.Add(behaviour);
+                    this.behaviourEntries.Add(behaviour);
                 }
                 catch (Exception ex)
                 {
                     ExplorerCore.LogWarning(ex);
                 }
 
-                behaviourEnabledStates.Add(behaviour.enabled);
+                this.behaviourEnabledStates.Add(behaviour.enabled);
             }
 
-            ComponentList.RefreshData();
-            ComponentList.ScrollPool.Refresh(true);
+            this.ComponentList.RefreshData();
+            this.ComponentList.ScrollPool.Refresh(true);
         }
 
 
         private void OnAddChildClicked(string input)
         {
             GameObject newObject = new(input);
-            newObject.transform.parent = Target.transform;
+            newObject.transform.parent = this.Target.transform;
 
-            TransformTree.RefreshData(true, false, true, false);
+            this.TransformTree.RefreshData(true, false, true, false);
         }
 
         private void OnAddComponentClicked(string input)
@@ -235,8 +234,8 @@ namespace UnityExplorer.Inspectors
             {
                 try
                 {
-                    RuntimeHelper.AddComponent<Component>(Target, type);
-                    UpdateComponents();
+                    RuntimeHelper.AddComponent<Component>(this.Target, type);
+                    this.UpdateComponents();
                 }
                 catch (Exception ex)
                 {
@@ -253,28 +252,28 @@ namespace UnityExplorer.Inspectors
 
         public override GameObject CreateContent(GameObject parent)
         {
-            UIRoot = UIFactory.CreateVerticalGroup(parent, "GameObjectInspector", true, false, true, true, 5,
+            this.UIRoot = UIFactory.CreateVerticalGroup(parent, "GameObjectInspector", true, false, true, true, 5,
                 new Vector4(4, 4, 4, 4), new Color(0.065f, 0.065f, 0.065f));
 
-            GameObject scrollObj = UIFactory.CreateScrollView(UIRoot, "GameObjectInspector", out Content, out AutoSliderScrollbar scrollbar,
+            GameObject scrollObj = UIFactory.CreateScrollView(this.UIRoot, "GameObjectInspector", out this.Content, out AutoSliderScrollbar scrollbar,
                 new Color(0.065f, 0.065f, 0.065f));
             UIFactory.SetLayoutElement(scrollObj, minHeight: 250, preferredHeight: 300, flexibleHeight: 0, flexibleWidth: 9999);
 
-            UIFactory.SetLayoutGroup<VerticalLayoutGroup>(Content, spacing: 3, padTop: 2, padBottom: 2, padLeft: 2, padRight: 2);
+            UIFactory.SetLayoutGroup<VerticalLayoutGroup>(this.Content, spacing: 3, padTop: 2, padBottom: 2, padLeft: 2, padRight: 2);
 
             // Construct GO Controls
-            Controls = new GameObjectControls(this);
+            this.Controls = new GameObjectControls(this);
 
-            ConstructLists();
+            this.ConstructLists();
 
-            return UIRoot;
+            return this.UIRoot;
         }
 
         // Child and Comp Lists
 
         private void ConstructLists()
         {
-            GameObject listHolder = UIFactory.CreateUIObject("ListHolders", UIRoot);
+            GameObject listHolder = UIFactory.CreateUIObject("ListHolders", this.UIRoot);
             UIFactory.SetLayoutGroup<HorizontalLayoutGroup>(listHolder, false, true, true, true, 8, 2, 2, 2, 2);
             UIFactory.SetLayoutElement(listHolder, minHeight: 150, flexibleWidth: 9999, flexibleHeight: 9999);
 
@@ -291,19 +290,19 @@ namespace UnityExplorer.Inspectors
             GameObject addChildRow = UIFactory.CreateUIObject("AddChildRow", leftGroup);
             UIFactory.SetLayoutGroup<HorizontalLayoutGroup>(addChildRow, false, false, true, true, 2);
 
-            addChildInput = UIFactory.CreateInputField(addChildRow, "AddChildInput", "Enter a name...");
-            UIFactory.SetLayoutElement(addChildInput.Component.gameObject, minHeight: 25, preferredWidth: 9999);
+            this.addChildInput = UIFactory.CreateInputField(addChildRow, "AddChildInput", "Enter a name...");
+            UIFactory.SetLayoutElement(this.addChildInput.Component.gameObject, minHeight: 25, preferredWidth: 9999);
 
             ButtonRef addChildButton = UIFactory.CreateButton(addChildRow, "AddChildButton", "Add Child");
             UIFactory.SetLayoutElement(addChildButton.Component.gameObject, minHeight: 25, minWidth: 80);
-            addChildButton.OnClick += () => { OnAddChildClicked(addChildInput.Text); };
+            addChildButton.OnClick += () => { this.OnAddChildClicked(this.addChildInput.Text); };
 
             // TransformTree
 
-            transformScroll = UIFactory.CreateScrollPool<TransformCell>(leftGroup, "TransformTree", out GameObject transformObj,
+            this.transformScroll = UIFactory.CreateScrollPool<TransformCell>(leftGroup, "TransformTree", out GameObject transformObj,
                 out GameObject transformContent, new Color(0.11f, 0.11f, 0.11f));
 
-            TransformTree = new TransformTree(transformScroll, GetTransformEntries, OnTransformCellClicked);
+            this.TransformTree = new TransformTree(this.transformScroll, this.GetTransformEntries, this.OnTransformCellClicked);
 
             // Right group (Components)
 
@@ -318,28 +317,28 @@ namespace UnityExplorer.Inspectors
             GameObject addCompRow = UIFactory.CreateUIObject("AddCompRow", rightGroup);
             UIFactory.SetLayoutGroup<HorizontalLayoutGroup>(addCompRow, false, false, true, true, 2);
 
-            addCompInput = UIFactory.CreateInputField(addCompRow, "AddCompInput", "Enter a Component type...");
-            UIFactory.SetLayoutElement(addCompInput.Component.gameObject, minHeight: 25, preferredWidth: 9999);
+            this.addCompInput = UIFactory.CreateInputField(addCompRow, "AddCompInput", "Enter a Component type...");
+            UIFactory.SetLayoutElement(this.addCompInput.Component.gameObject, minHeight: 25, preferredWidth: 9999);
 
             ButtonRef addCompButton = UIFactory.CreateButton(addCompRow, "AddCompButton", "Add Comp");
             UIFactory.SetLayoutElement(addCompButton.Component.gameObject, minHeight: 25, minWidth: 80);
-            addCompButton.OnClick += () => { OnAddComponentClicked(addCompInput.Text); };
+            addCompButton.OnClick += () => { this.OnAddComponentClicked(this.addCompInput.Text); };
 
             // comp autocompleter
-            new TypeCompleter(typeof(Component), addCompInput, false, false, false);
+            new TypeCompleter(typeof(Component), this.addCompInput, false, false, false);
 
             // Component List
 
-            componentScroll = UIFactory.CreateScrollPool<ComponentCell>(rightGroup, "ComponentList", out GameObject compObj,
+            this.componentScroll = UIFactory.CreateScrollPool<ComponentCell>(rightGroup, "ComponentList", out GameObject compObj,
                 out GameObject compContent, new Color(0.11f, 0.11f, 0.11f));
             UIFactory.SetLayoutElement(compObj, flexibleHeight: 9999);
             UIFactory.SetLayoutElement(compContent, flexibleHeight: 9999);
 
-            ComponentList = new ComponentList(componentScroll, GetComponentEntries)
+            this.ComponentList = new ComponentList(this.componentScroll, this.GetComponentEntries)
             {
                 Parent = this
             };
-            componentScroll.Initialize(ComponentList);
+            this.componentScroll.Initialize(this.ComponentList);
         }
 
 

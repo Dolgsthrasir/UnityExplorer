@@ -7,8 +7,8 @@
 
         public Suggestion(string displayText, string underlyingValue)
         {
-            DisplayText = displayText;
-            UnderlyingValue = underlyingValue;
+            this.DisplayText = displayText;
+            this.UnderlyingValue = underlyingValue;
         }
     }
 }

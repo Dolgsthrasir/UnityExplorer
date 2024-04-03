@@ -1,6 +1,7 @@
 ﻿using UnityExplorer.Inspectors;
 using UniverseLib.UI.Widgets.ButtonList;
 using UniverseLib.UI.Widgets.ScrollView;
+using Object = UnityEngine.Object;
 
 namespace UnityExplorer.UI.Widgets
 {
@@ -11,15 +12,15 @@ namespace UnityExplorer.UI.Widgets
         public ComponentList(ScrollPool<ComponentCell> scrollPool, Func<List<Component>> getEntriesMethod)
             : base(scrollPool, getEntriesMethod, null, null, null)
         {
-            base.SetICell = SetComponentCell;
-            base.ShouldDisplay = CheckShouldDisplay;
-            base.OnCellClicked = OnComponentClicked;
+            this.SetICell = this.SetComponentCell;
+            this.ShouldDisplay = this.CheckShouldDisplay;
+            this.OnCellClicked = this.OnComponentClicked;
         }
 
         public void Clear()
         {
-            RefreshData();
-            ScrollPool.Refresh(true, true);
+            this.RefreshData();
+            this.ScrollPool.Refresh(true, true);
         }
 
         private bool CheckShouldDisplay(Component _, string __) => true;
@@ -28,8 +29,8 @@ namespace UnityExplorer.UI.Widgets
         {
             base.OnCellBorrowed(cell);
 
-            cell.OnBehaviourToggled += OnBehaviourToggled;
-            cell.OnDestroyClicked += OnDestroyClicked;
+            cell.OnBehaviourToggled += this.OnBehaviourToggled;
+            cell.OnDestroyClicked += this.OnDestroyClicked;
         }
 
         public override void SetCell(ComponentCell cell, int index)
@@ -39,7 +40,7 @@ namespace UnityExplorer.UI.Widgets
 
         private void OnComponentClicked(int index)
         {
-            List<Component> entries = GetEntries();
+            List<Component> entries = this.GetEntries();
 
             if (index < 0 || index >= entries.Count)
                 return;
@@ -53,7 +54,7 @@ namespace UnityExplorer.UI.Widgets
         {
             try
             {
-                List<Component> entries = GetEntries();
+                List<Component> entries = this.GetEntries();
                 Component comp = entries[index];
 
                 if (comp.TryCast<Behaviour>() is Behaviour behaviour)
@@ -69,12 +70,12 @@ namespace UnityExplorer.UI.Widgets
         {
             try
             {
-                List<Component> entries = GetEntries();
+                List<Component> entries = this.GetEntries();
                 Component comp = entries[index];
 
-                GameObject.DestroyImmediate(comp);
+                Object.DestroyImmediate(comp);
 
-                Parent.UpdateComponents();
+                this.Parent.UpdateComponents();
             }
             catch (Exception ex)
             {
@@ -87,7 +88,7 @@ namespace UnityExplorer.UI.Widgets
         // Called from ButtonListHandler.SetCell, will be valid
         private void SetComponentCell(ComponentCell cell, int index)
         {
-            List<Component> entries = GetEntries();
+            List<Component> entries = this.GetEntries();
             cell.Enable();
 
             Component comp = entries[index];

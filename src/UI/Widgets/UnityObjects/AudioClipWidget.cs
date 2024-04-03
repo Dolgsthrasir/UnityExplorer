@@ -45,33 +45,31 @@ namespace UnityExplorer.UI.Widgets
             this.audioPlayerRoot.transform.SetParent(inspector.UIRoot.transform);
             this.audioPlayerRoot.transform.SetSiblingIndex(inspector.UIRoot.transform.childCount - 2);
 
-            audioClip = target.TryCast<AudioClip>();
-            this.fullLengthText = GetLengthString(audioClip.length);
+            this.audioClip = target.TryCast<AudioClip>();
+            this.fullLengthText = GetLengthString(this.audioClip.length);
 
-            if (audioClip.loadType == AudioClipLoadType.DecompressOnLoad)
+            if (this.audioClip.loadType == AudioClipLoadType.DecompressOnLoad)
             {
-                cantSaveRow.SetActive(false);
-                saveObjectRow.SetActive(true);
-                SetDefaultSavePath();
+                this.cantSaveRow.SetActive(false);
+                this.saveObjectRow.SetActive(true);
+                this.SetDefaultSavePath();
             }
             else
             {
-                cantSaveRow.SetActive(true);
-                saveObjectRow.SetActive(false);
+                this.cantSaveRow.SetActive(true);
+                this.saveObjectRow.SetActive(false);
             }
 
-            ResetProgressLabel();
+            this.ResetProgressLabel();
         }
 
         public override void OnReturnToPool()
         {
-            audioClip = null;
+            this.audioClip = null;
 
-            if (audioPlayerWanted)
-                ToggleAudioWidget();
+            if (this.audioPlayerWanted) this.ToggleAudioWidget();
 
-            if (CurrentlyPlaying == this)
-                StopClip();
+            if (CurrentlyPlaying == this) this.StopClip();
 
             this.audioPlayerRoot.transform.SetParent(Pool<AudioClipWidget>.Instance.InactiveHolder.transform);
 
@@ -80,28 +78,28 @@ namespace UnityExplorer.UI.Widgets
 
         private void ToggleAudioWidget()
         {
-            if (audioPlayerWanted)
+            if (this.audioPlayerWanted)
             {
-                audioPlayerWanted = false;
+                this.audioPlayerWanted = false;
 
-                toggleButton.ButtonText.text = "Show Player";
-                audioPlayerRoot.SetActive(false);
+                this.toggleButton.ButtonText.text = "Show Player";
+                this.audioPlayerRoot.SetActive(false);
             }
             else
             {
-                audioPlayerWanted = true;
+                this.audioPlayerWanted = true;
 
-                toggleButton.ButtonText.text = "Hide Player";
-                audioPlayerRoot.SetActive(true);
+                this.toggleButton.ButtonText.text = "Hide Player";
+                this.audioPlayerRoot.SetActive(true);
             }
         }
 
         void SetDefaultSavePath()
         {
-            string name = audioClip.name;
+            string name = this.audioClip.name;
             if (string.IsNullOrEmpty(name))
                 name = "untitled";
-            savePathInput.Text = Path.Combine(ConfigManager.Default_Output_Path.Value, $"{name}.wav");
+            this.savePathInput.Text = Path.Combine(ConfigManager.Default_Output_Path.Value, $"{name}.wav");
         }
 
         static string GetLengthString(float seconds)
@@ -122,7 +120,7 @@ namespace UnityExplorer.UI.Widgets
 
         private void ResetProgressLabel()
         {
-            this.progressLabel.text = $"{zeroLengthString} / {fullLengthText}";
+            this.progressLabel.text = $"{zeroLengthString} / {this.fullLengthText}";
         }
 
         private void OnPlayStopClicked()
@@ -132,7 +130,7 @@ namespace UnityExplorer.UI.Widgets
             if (CurrentlyPlaying == this)
             {
                 // we are playing a clip. stop it.
-                StopClip();
+                this.StopClip();
             }
             else
             {
@@ -141,7 +139,7 @@ namespace UnityExplorer.UI.Widgets
                     CurrentlyPlaying.StopClip();
 
                 // we want to start playing a clip.
-                CurrentlyPlayingCoroutine = RuntimeHelper.StartCoroutine(PlayClipCoroutine());
+                CurrentlyPlayingCoroutine = RuntimeHelper.StartCoroutine(this.PlayClipCoroutine());
             }
         }
 
@@ -164,19 +162,19 @@ namespace UnityExplorer.UI.Widgets
 
         private IEnumerator PlayClipCoroutine()
         {
-            playStopButton.ButtonText.text = "Stop Clip";
+            this.playStopButton.ButtonText.text = "Stop Clip";
             CurrentlyPlaying = this;
             Source.clip = this.audioClip;
             Source.Play();
 
             while (Source.isPlaying)
             {
-                progressLabel.text = $"{GetLengthString(Source.time)} / {fullLengthText}";
+                this.progressLabel.text = $"{GetLengthString(Source.time)} / {this.fullLengthText}";
                 yield return null;
             }
 
             CurrentlyPlayingCoroutine = null;
-            StopClip();
+            this.StopClip();
         }
 
         private void StopClip()
@@ -187,26 +185,26 @@ namespace UnityExplorer.UI.Widgets
             Source.Stop();
             CurrentlyPlaying = null;
             CurrentlyPlayingCoroutine = null;
-            playStopButton.ButtonText.text = "Play Clip";
+            this.playStopButton.ButtonText.text = "Play Clip";
 
-            ResetProgressLabel();
+            this.ResetProgressLabel();
         }
 
         public void OnSaveClipClicked()
         {
-            if (!audioClip)
+            if (!this.audioClip)
             {
                 ExplorerCore.LogWarning("AudioClip is null, maybe it was destroyed?");
                 return;
             }
 
-            if (string.IsNullOrEmpty(savePathInput.Text))
+            if (string.IsNullOrEmpty(this.savePathInput.Text))
             {
                 ExplorerCore.LogWarning("Save path cannot be empty!");
                 return;
             }
 
-            string path = savePathInput.Text;
+            string path = this.savePathInput.Text;
             if (!path.EndsWith(".wav", StringComparison.InvariantCultureIgnoreCase))
                 path += ".wav";
 
@@ -215,7 +213,7 @@ namespace UnityExplorer.UI.Widgets
             if (File.Exists(path))
                 File.Delete(path);
 
-            SavWav.Save(audioClip, path);
+            SavWav.Save(this.audioClip, path);
         }
 
         public override GameObject CreateContent(GameObject uiRoot)
@@ -224,48 +222,47 @@ namespace UnityExplorer.UI.Widgets
 
             // Toggle Button
 
-            toggleButton = UIFactory.CreateButton(UIRoot, "AudioWidgetToggleButton", "Show Player", new Color(0.2f, 0.3f, 0.2f));
-            toggleButton.Transform.SetSiblingIndex(0);
-            UIFactory.SetLayoutElement(toggleButton.Component.gameObject, minHeight: 25, minWidth: 170);
-            toggleButton.OnClick += ToggleAudioWidget;
+            this.toggleButton = UIFactory.CreateButton(this.UIRoot, "AudioWidgetToggleButton", "Show Player", new Color(0.2f, 0.3f, 0.2f));
+            this.toggleButton.Transform.SetSiblingIndex(0);
+            UIFactory.SetLayoutElement(this.toggleButton.Component.gameObject, minHeight: 25, minWidth: 170);
+            this.toggleButton.OnClick += this.ToggleAudioWidget;
 
             // Actual widget
 
-            audioPlayerRoot = UIFactory.CreateVerticalGroup(uiRoot, "AudioWidget", false, false, true, true, spacing: 5);
-            UIFactory.SetLayoutElement(audioPlayerRoot, flexibleWidth: 9999, flexibleHeight: 50);
-            audioPlayerRoot.SetActive(false);
+            this.audioPlayerRoot = UIFactory.CreateVerticalGroup(uiRoot, "AudioWidget", false, false, true, true, spacing: 5);
+            UIFactory.SetLayoutElement(this.audioPlayerRoot, flexibleWidth: 9999, flexibleHeight: 50);
+            this.audioPlayerRoot.SetActive(false);
 
             // Player 
 
-            GameObject playerRow = UIFactory.CreateHorizontalGroup(audioPlayerRoot, "PlayerWidget", false, false, true, true,
+            GameObject playerRow = UIFactory.CreateHorizontalGroup(this.audioPlayerRoot, "PlayerWidget", false, false, true, true,
                 spacing: 5, padding: new() { x = 3f, w = 3f, y = 3f, z = 3f });
 
-            playStopButton = UIFactory.CreateButton(playerRow, "PlayerButton", "Play", normalColor: new(0.2f, 0.4f, 0.2f));
-            playStopButton.OnClick += OnPlayStopClicked;
-            UIFactory.SetLayoutElement(playStopButton.GameObject, minWidth: 60, minHeight: 25);
+            this.playStopButton = UIFactory.CreateButton(playerRow, "PlayerButton", "Play", normalColor: new(0.2f, 0.4f, 0.2f));
+            this.playStopButton.OnClick += this.OnPlayStopClicked;
+            UIFactory.SetLayoutElement(this.playStopButton.GameObject, minWidth: 60, minHeight: 25);
 
-            progressLabel = UIFactory.CreateLabel(playerRow, "ProgressLabel", "0 / 0");
-            UIFactory.SetLayoutElement(progressLabel.gameObject, flexibleWidth: 9999, minHeight: 25);
+            this.progressLabel = UIFactory.CreateLabel(playerRow, "ProgressLabel", "0 / 0");
+            UIFactory.SetLayoutElement(this.progressLabel.gameObject, flexibleWidth: 9999, minHeight: 25);
 
-            ResetProgressLabel();
+            this.ResetProgressLabel();
 
             // Save helper
 
-            saveObjectRow = UIFactory.CreateHorizontalGroup(audioPlayerRoot, "SaveRow", false, false, true, true, 2, new Vector4(2, 2, 2, 2),
+            this.saveObjectRow = UIFactory.CreateHorizontalGroup(this.audioPlayerRoot, "SaveRow", false, false, true, true, 2, new Vector4(2, 2, 2, 2),
                 new Color(0.1f, 0.1f, 0.1f));
 
-            ButtonRef saveBtn = UIFactory.CreateButton(saveObjectRow, "SaveButton", "Save .WAV", new Color(0.2f, 0.25f, 0.2f));
+            ButtonRef saveBtn = UIFactory.CreateButton(this.saveObjectRow, "SaveButton", "Save .WAV", new Color(0.2f, 0.25f, 0.2f));
             UIFactory.SetLayoutElement(saveBtn.Component.gameObject, minHeight: 25, minWidth: 100, flexibleWidth: 0);
-            saveBtn.OnClick += OnSaveClipClicked;
+            saveBtn.OnClick += this.OnSaveClipClicked;
 
-            savePathInput = UIFactory.CreateInputField(saveObjectRow, "SaveInput", "...");
-            UIFactory.SetLayoutElement(savePathInput.UIRoot, minHeight: 25, minWidth: 100, flexibleWidth: 9999);
+            this.savePathInput = UIFactory.CreateInputField(this.saveObjectRow, "SaveInput", "...");
+            UIFactory.SetLayoutElement(this.savePathInput.UIRoot, minHeight: 25, minWidth: 100, flexibleWidth: 9999);
 
             // cant save label
-            cantSaveRow = UIFactory.CreateHorizontalGroup(audioPlayerRoot, "CantSaveRow", true, true, true, true);
-            UIFactory.SetLayoutElement(cantSaveRow, minHeight: 25, flexibleWidth: 9999);
-            UIFactory.CreateLabel(
-                cantSaveRow,
+            this.cantSaveRow = UIFactory.CreateHorizontalGroup(this.audioPlayerRoot, "CantSaveRow", true, true, true, true);
+            UIFactory.SetLayoutElement(this.cantSaveRow, minHeight: 25, flexibleWidth: 9999);
+            UIFactory.CreateLabel(this.cantSaveRow,
                 "CantSaveLabel",
                 "Cannot save this AudioClip as the data is compressed or streamed. Try a tool such as AssetRipper to unpack it.",
                 color: Color.grey);

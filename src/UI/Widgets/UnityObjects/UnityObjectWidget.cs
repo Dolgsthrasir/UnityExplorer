@@ -47,32 +47,32 @@ namespace UnityExplorer.UI.Widgets
             this.owner = inspector;
 
             if (!this.UIRoot)
-                CreateContent(inspector.UIRoot);
+                this.CreateContent(inspector.UIRoot);
             else
                 this.UIRoot.transform.SetParent(inspector.UIRoot.transform);
 
             this.UIRoot.transform.SetSiblingIndex(inspector.UIRoot.transform.childCount - 2);
 
-            unityObject = target.TryCast<UnityEngine.Object>();
-            UIRoot.SetActive(true);
+            this.unityObject = target.TryCast<UnityEngine.Object>();
+            this.UIRoot.SetActive(true);
 
-            nameInput.Text = unityObject.name;
-            instanceIdInput.Text = unityObject.GetInstanceID().ToString();
+            this.nameInput.Text = this.unityObject.name;
+            this.instanceIdInput.Text = this.unityObject.GetInstanceID().ToString();
 
             if (typeof(Component).IsAssignableFrom(targetType))
             {
-                component = (Component)target.TryCast(typeof(Component));
-                gameObjectButton.Component.gameObject.SetActive(true);
+                this.component = (Component)target.TryCast(typeof(Component));
+                this.gameObjectButton.Component.gameObject.SetActive(true);
             }
             else
-                gameObjectButton.Component.gameObject.SetActive(false);
+                this.gameObjectButton.Component.gameObject.SetActive(false);
         }
 
         public virtual void OnReturnToPool()
         {
-            unityObject = null;
-            component = null;
-            owner = null;
+            this.unityObject = null;
+            this.component = null;
+            this.owner = null;
         }
 
         // Update
@@ -81,9 +81,9 @@ namespace UnityExplorer.UI.Widgets
         {
             if (this.unityObject)
             {
-                nameInput.Text = unityObject.name;
-                
-                owner.Tab.TabText.text = $"{owner.TabButtonText} \"{unityObject.name}\"";
+                this.nameInput.Text = this.unityObject.name;
+
+                this.owner.Tab.TabText.text = $"{this.owner.TabButtonText} \"{this.unityObject.name}\"";
             }
         }
 
@@ -91,44 +91,44 @@ namespace UnityExplorer.UI.Widgets
 
         private void OnGameObjectButtonClicked()
         {
-            if (!component)
+            if (!this.component)
             {
                 ExplorerCore.LogWarning("Component reference is null or destroyed!");
                 return;
             }
 
-            InspectorManager.Inspect(component.gameObject);
+            InspectorManager.Inspect(this.component.gameObject);
         }
 
         // UI construction
 
         public virtual GameObject CreateContent(GameObject uiRoot)
         {
-            UIRoot = UIFactory.CreateUIObject("UnityObjectRow", uiRoot);
-            UIFactory.SetLayoutGroup<HorizontalLayoutGroup>(UIRoot, false, false, true, true, 5);
-            UIFactory.SetLayoutElement(UIRoot, minHeight: 25, flexibleHeight: 0, flexibleWidth: 9999);
+            this.UIRoot = UIFactory.CreateUIObject("UnityObjectRow", uiRoot);
+            UIFactory.SetLayoutGroup<HorizontalLayoutGroup>(this.UIRoot, false, false, true, true, 5);
+            UIFactory.SetLayoutElement(this.UIRoot, minHeight: 25, flexibleHeight: 0, flexibleWidth: 9999);
 
-            Text nameLabel = UIFactory.CreateLabel(UIRoot, "NameLabel", "Name:", TextAnchor.MiddleLeft, Color.grey);
+            Text nameLabel = UIFactory.CreateLabel(this.UIRoot, "NameLabel", "Name:", TextAnchor.MiddleLeft, Color.grey);
             UIFactory.SetLayoutElement(nameLabel.gameObject, minHeight: 25, minWidth: 45, flexibleWidth: 0);
 
-            nameInput = UIFactory.CreateInputField(UIRoot, "NameInput", "untitled");
-            UIFactory.SetLayoutElement(nameInput.UIRoot, minHeight: 25, minWidth: 100, flexibleWidth: 1000);
-            nameInput.Component.readOnly = true;
+            this.nameInput = UIFactory.CreateInputField(this.UIRoot, "NameInput", "untitled");
+            UIFactory.SetLayoutElement(this.nameInput.UIRoot, minHeight: 25, minWidth: 100, flexibleWidth: 1000);
+            this.nameInput.Component.readOnly = true;
 
-            gameObjectButton = UIFactory.CreateButton(UIRoot, "GameObjectButton", "Inspect GameObject", new Color(0.2f, 0.2f, 0.2f));
-            UIFactory.SetLayoutElement(gameObjectButton.Component.gameObject, minHeight: 25, minWidth: 160);
-            gameObjectButton.OnClick += OnGameObjectButtonClicked;
+            this.gameObjectButton = UIFactory.CreateButton(this.UIRoot, "GameObjectButton", "Inspect GameObject", new Color(0.2f, 0.2f, 0.2f));
+            UIFactory.SetLayoutElement(this.gameObjectButton.Component.gameObject, minHeight: 25, minWidth: 160);
+            this.gameObjectButton.OnClick += this.OnGameObjectButtonClicked;
 
-            Text instanceLabel = UIFactory.CreateLabel(UIRoot, "InstanceLabel", "Instance ID:", TextAnchor.MiddleRight, Color.grey);
+            Text instanceLabel = UIFactory.CreateLabel(this.UIRoot, "InstanceLabel", "Instance ID:", TextAnchor.MiddleRight, Color.grey);
             UIFactory.SetLayoutElement(instanceLabel.gameObject, minHeight: 25, minWidth: 100, flexibleWidth: 0);
 
-            instanceIdInput = UIFactory.CreateInputField(UIRoot, "InstanceIDInput", "ERROR");
-            UIFactory.SetLayoutElement(instanceIdInput.UIRoot, minHeight: 25, minWidth: 100, flexibleWidth: 0);
-            instanceIdInput.Component.readOnly = true;
+            this.instanceIdInput = UIFactory.CreateInputField(this.UIRoot, "InstanceIDInput", "ERROR");
+            UIFactory.SetLayoutElement(this.instanceIdInput.UIRoot, minHeight: 25, minWidth: 100, flexibleWidth: 0);
+            this.instanceIdInput.Component.readOnly = true;
 
-            UIRoot.SetActive(false);
+            this.UIRoot.SetActive(false);
 
-            return UIRoot;
+            return this.UIRoot;
         }
     }
 }

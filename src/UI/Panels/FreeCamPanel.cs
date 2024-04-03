@@ -1,6 +1,7 @@
 ﻿using UniverseLib.Input;
 using UniverseLib.UI;
 using UniverseLib.UI.Models;
+using Object = UnityEngine.Object;
 #if UNHOLLOWER
 using UnhollowerRuntimeLib;
 #endif
@@ -108,7 +109,7 @@ namespace UnityExplorer.UI.Panels
             {
                 ourCamera = new GameObject("UE_Freecam").AddComponent<Camera>();
                 ourCamera.gameObject.tag = "MainCamera";
-                GameObject.DontDestroyOnLoad(ourCamera.gameObject);
+                Object.DontDestroyOnLoad(ourCamera.gameObject);
                 ourCamera.gameObject.hideFlags = HideFlags.HideAndDontSave;
             }
 
@@ -144,7 +145,7 @@ namespace UnityExplorer.UI.Panels
 
             if (freeCamScript)
             {
-                GameObject.Destroy(freeCamScript);
+                Object.Destroy(freeCamScript);
                 freeCamScript = null;
             }
 
@@ -177,33 +178,33 @@ namespace UnityExplorer.UI.Panels
 
         protected override void ConstructPanelContent()
         {
-            startStopButton = UIFactory.CreateButton(ContentRoot, "ToggleButton", "Freecam");
+            startStopButton = UIFactory.CreateButton(this.ContentRoot, "ToggleButton", "Freecam");
             UIFactory.SetLayoutElement(startStopButton.GameObject, minWidth: 150, minHeight: 25, flexibleWidth: 9999);
-            startStopButton.OnClick += StartStopButton_OnClick;
-            SetToggleButtonState();
+            startStopButton.OnClick += this.StartStopButton_OnClick;
+            this.SetToggleButtonState();
 
-            AddSpacer(5);
+            this.AddSpacer(5);
 
-            GameObject toggleObj = UIFactory.CreateToggle(ContentRoot, "UseGameCameraToggle", out useGameCameraToggle, out Text toggleText);
+            GameObject toggleObj = UIFactory.CreateToggle(this.ContentRoot, "UseGameCameraToggle", out useGameCameraToggle, out Text toggleText);
             UIFactory.SetLayoutElement(toggleObj, minHeight: 25, flexibleWidth: 9999);
-            useGameCameraToggle.onValueChanged.AddListener(OnUseGameCameraToggled);
+            useGameCameraToggle.onValueChanged.AddListener(this.OnUseGameCameraToggled);
             useGameCameraToggle.isOn = false;
             toggleText.text = "Use Game Camera?";
 
-            AddSpacer(5);
+            this.AddSpacer(5);
 
-            GameObject posRow = AddInputField("Position", "Freecam Pos:", "eg. 0 0 0", out positionInput, PositionInput_OnEndEdit);
+            GameObject posRow = this.AddInputField("Position", "Freecam Pos:", "eg. 0 0 0", out positionInput, this.PositionInput_OnEndEdit);
 
             ButtonRef resetPosButton = UIFactory.CreateButton(posRow, "ResetButton", "Reset");
             UIFactory.SetLayoutElement(resetPosButton.GameObject, minWidth: 70, minHeight: 25);
-            resetPosButton.OnClick += OnResetPosButtonClicked;
+            resetPosButton.OnClick += this.OnResetPosButtonClicked;
 
-            AddSpacer(5);
+            this.AddSpacer(5);
 
-            AddInputField("MoveSpeed", "Move Speed:", "Default: 1", out moveSpeedInput, MoveSpeedInput_OnEndEdit);
+            this.AddInputField("MoveSpeed", "Move Speed:", "Default: 1", out moveSpeedInput, this.MoveSpeedInput_OnEndEdit);
             moveSpeedInput.Text = desiredMoveSpeed.ToString();
 
-            AddSpacer(5);
+            this.AddSpacer(5);
 
             string instructions = @"Controls:
 - WASD / Arrows: Movement
@@ -212,28 +213,28 @@ namespace UnityExplorer.UI.Panels
 - Right Mouse Button: Free look
 - Shift: Super speed";
 
-            Text instructionsText = UIFactory.CreateLabel(ContentRoot, "Instructions", instructions, TextAnchor.UpperLeft);
+            Text instructionsText = UIFactory.CreateLabel(this.ContentRoot, "Instructions", instructions, TextAnchor.UpperLeft);
             UIFactory.SetLayoutElement(instructionsText.gameObject, flexibleWidth: 9999, flexibleHeight: 9999);
 
-            AddSpacer(5);
+            this.AddSpacer(5);
 
-            inspectButton = UIFactory.CreateButton(ContentRoot, "InspectButton", "Inspect Free Camera");
+            inspectButton = UIFactory.CreateButton(this.ContentRoot, "InspectButton", "Inspect Free Camera");
             UIFactory.SetLayoutElement(inspectButton.GameObject, flexibleWidth: 9999, minHeight: 25);
             inspectButton.OnClick += () => { InspectorManager.Inspect(ourCamera); };
             inspectButton.GameObject.SetActive(false);
 
-            AddSpacer(5);
+            this.AddSpacer(5);
         }
 
         void AddSpacer(int height)
         {
-            GameObject obj = UIFactory.CreateUIObject("Spacer", ContentRoot);
+            GameObject obj = UIFactory.CreateUIObject("Spacer", this.ContentRoot);
             UIFactory.SetLayoutElement(obj, minHeight: height, flexibleHeight: 0);
         }
 
         GameObject AddInputField(string name, string labelText, string placeHolder, out InputFieldRef inputField, Action<string> onInputEndEdit)
         {
-            GameObject row = UIFactory.CreateHorizontalGroup(ContentRoot, $"{name}_Group", false, false, true, true, 3, default, new(1, 1, 1, 0));
+            GameObject row = UIFactory.CreateHorizontalGroup(this.ContentRoot, $"{name}_Group", false, false, true, true, 3, default, new(1, 1, 1, 0));
 
             Text posLabel = UIFactory.CreateLabel(row, $"{name}_Label", labelText);
             UIFactory.SetLayoutElement(posLabel.gameObject, minWidth: 100, minHeight: 25);
@@ -254,7 +255,7 @@ namespace UnityExplorer.UI.Panels
             else
                 BeginFreecam();
 
-            SetToggleButtonState();
+            this.SetToggleButtonState();
         }
 
         void SetToggleButtonState()

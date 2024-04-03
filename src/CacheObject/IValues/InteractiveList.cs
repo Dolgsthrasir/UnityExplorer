@@ -12,7 +12,7 @@ namespace UnityExplorer.CacheObject.IValues
         object ICacheObjectController.Target => this.CurrentOwner.Value;
         public Type TargetType { get; private set; }
 
-        public override bool CanWrite => base.CanWrite && ((RefIList != null && !RefIList.IsReadOnly) || IsWritableGenericIList);
+        public override bool CanWrite => base.CanWrite && ((this.RefIList != null && !this.RefIList.IsReadOnly) || this.IsWritableGenericIList);
 
         public Type EntryType;
         public IList RefIList;
@@ -20,7 +20,7 @@ namespace UnityExplorer.CacheObject.IValues
         private bool IsWritableGenericIList;
         private PropertyInfo genericIndexer;
 
-        public int ItemCount => cachedEntries.Count;
+        public int ItemCount => this.cachedEntries.Count;
         private readonly List<CacheListEntry> cachedEntries = new();
 
         public ScrollPool<CacheListEntryCell> ListScrollPool { get; private set; }
@@ -33,27 +33,27 @@ namespace UnityExplorer.CacheObject.IValues
         {
             base.OnBorrowed(owner);
 
-            ListScrollPool.Refresh(true, true);
+            this.ListScrollPool.Refresh(true, true);
         }
 
         public override void ReleaseFromOwner()
         {
             base.ReleaseFromOwner();
 
-            ClearAndRelease();
+            this.ClearAndRelease();
         }
 
         private void ClearAndRelease()
         {
-            RefIList = null;
+            this.RefIList = null;
 
-            foreach (CacheListEntry entry in cachedEntries)
+            foreach (CacheListEntry entry in this.cachedEntries)
             {
                 entry.UnlinkFromView();
                 entry.ReleasePooledObjects();
             }
 
-            cachedEntries.Clear();
+            this.cachedEntries.Clear();
         }
 
         // List entry scroll pool
@@ -62,7 +62,7 @@ namespace UnityExplorer.CacheObject.IValues
         {
             float minHeight = 5f;
 
-            foreach (CacheListEntryCell cell in ListScrollPool.CellPool)
+            foreach (CacheListEntryCell cell in this.ListScrollPool.CellPool)
             {
                 if (cell.Enabled)
                     minHeight += cell.Rect.rect.height;
@@ -75,7 +75,7 @@ namespace UnityExplorer.CacheObject.IValues
 
         public void SetCell(CacheListEntryCell cell, int index)
         {
-            CacheObjectControllerHelper.SetCell(cell, index, cachedEntries, null);
+            CacheObjectControllerHelper.SetCell(cell, index, this.cachedEntries, null);
         }
 
         // Setting the List value itself to this model
@@ -84,17 +84,16 @@ namespace UnityExplorer.CacheObject.IValues
             if (value == null)
             {
                 // should never be null
-                if (cachedEntries.Any())
-                    ClearAndRelease();
+                if (this.cachedEntries.Any()) this.ClearAndRelease();
             }
             else
             {
                 Type type = value.GetActualType();
-                ReflectionUtility.TryGetEntryType(type, out EntryType);
+                ReflectionUtility.TryGetEntryType(type, out this.EntryType);
 
-                CacheEntries(value);
+                this.CacheEntries(value);
 
-                TopLabel.text = $"[{cachedEntries.Count}] {SignatureHighlighter.Parse(type, false)}";
+                this.TopLabel.text = $"[{this.cachedEntries.Count}] {SignatureHighlighter.Parse(type, false)}";
             }
 
             //this.ScrollPoolLayout.minHeight = Math.Min(400f, 35f * values.Count);
@@ -103,19 +102,19 @@ namespace UnityExplorer.CacheObject.IValues
 
         private void CacheEntries(object value)
         {
-            RefIList = value as IList;
+            this.RefIList = value as IList;
 
             // Check if the type implements IList<T> but not IList (ie. Il2CppArrayBase)
-            if (RefIList == null)
-                CheckGenericIList(value);
+            if (this.RefIList == null)
+                this.CheckGenericIList(value);
             else
-                IsWritableGenericIList = false;
+                this.IsWritableGenericIList = false;
 
             int idx = 0;
 
             if (ReflectionUtility.TryGetEnumerator(value, out IEnumerator enumerator))
             {
-                NotSupportedLabel.gameObject.SetActive(false);
+                this.NotSupportedLabel.gameObject.SetActive(false);
 
                 while (enumerator.MoveNext())
                 {
@@ -123,14 +122,14 @@ namespace UnityExplorer.CacheObject.IValues
 
                     // If list count increased, create new cache entries
                     CacheListEntry cache;
-                    if (idx >= cachedEntries.Count)
+                    if (idx >= this.cachedEntries.Count)
                     {
                         cache = new CacheListEntry();
                         cache.SetListOwner(this, idx);
-                        cachedEntries.Add(cache);
+                        this.cachedEntries.Add(cache);
                     }
                     else
-                        cache = cachedEntries[idx];
+                        cache = this.cachedEntries[idx];
 
                     cache.SetFallbackType(this.EntryType);
                     cache.SetValueFromSource(entry);
@@ -138,22 +137,22 @@ namespace UnityExplorer.CacheObject.IValues
                 }
 
                 // Remove excess cached entries if list count decreased
-                if (cachedEntries.Count > idx)
+                if (this.cachedEntries.Count > idx)
                 {
-                    for (int i = cachedEntries.Count - 1; i >= idx; i--)
+                    for (int i = this.cachedEntries.Count - 1; i >= idx; i--)
                     {
-                        CacheListEntry cache = cachedEntries[i];
+                        CacheListEntry cache = this.cachedEntries[i];
                         if (cache.CellView != null)
                             cache.UnlinkFromView();
 
                         cache.ReleasePooledObjects();
-                        cachedEntries.RemoveAt(i);
+                        this.cachedEntries.RemoveAt(i);
                     }
                 }
             }
             else
             {
-                NotSupportedLabel.gameObject.SetActive(true);
+                this.NotSupportedLabel.gameObject.SetActive(true);
             }
         }
 
@@ -163,11 +162,11 @@ namespace UnityExplorer.CacheObject.IValues
             {
                 Type type = value.GetType();
                 if (type.GetInterfaces().Any(it => it.IsGenericType && it.GetGenericTypeDefinition() == typeof(IList<>)))
-                    IsWritableGenericIList = !(bool)type.GetProperty("IsReadOnly").GetValue(value, null);
+                    this.IsWritableGenericIList = !(bool)type.GetProperty("IsReadOnly").GetValue(value, null);
                 else
-                    IsWritableGenericIList = false;
+                    this.IsWritableGenericIList = false;
 
-                if (IsWritableGenericIList)
+                if (this.IsWritableGenericIList)
                 {
                     // Find the "this[int index]" property.
                     // It might be a private implementation.
@@ -179,22 +178,22 @@ namespace UnityExplorer.CacheObject.IValues
                             && parameters.Length == 1
                             && parameters[0].ParameterType == typeof(int))
                         {
-                            genericIndexer = prop;
+                            this.genericIndexer = prop;
                             break;
                         }
                     }
 
-                    if (genericIndexer == null)
+                    if (this.genericIndexer == null)
                     {
                         ExplorerCore.LogWarning($"Failed to find indexer property for IList<T> type '{type.FullName}'!");
-                        IsWritableGenericIList = false;
+                        this.IsWritableGenericIList = false;
                     }
                 }
             }
             catch (Exception ex)
             {
                 ExplorerCore.LogWarning($"Exception processing IEnumerable for IList<T> check: {ex.ReflectionExToString()}");
-                IsWritableGenericIList = false;
+                this.IsWritableGenericIList = false;
             }
         }
 
@@ -204,16 +203,16 @@ namespace UnityExplorer.CacheObject.IValues
         {
             try
             {
-                if (!IsWritableGenericIList)
+                if (!this.IsWritableGenericIList)
                 {
-                    RefIList[index] = value;
+                    this.RefIList[index] = value;
                 }
                 else
                 {
-                    genericIndexer.SetValue(CurrentOwner.Value, value, new object[] { index });
+                    this.genericIndexer.SetValue(this.CurrentOwner.Value, value, new object[] { index });
                 }
 
-                CacheListEntry entry = cachedEntries[index];
+                CacheListEntry entry = this.cachedEntries[index];
                 entry.SetValueFromSource(value);
 
                 if (entry.CellView != null)
@@ -227,32 +226,32 @@ namespace UnityExplorer.CacheObject.IValues
 
         public override GameObject CreateContent(GameObject parent)
         {
-            UIRoot = UIFactory.CreateVerticalGroup(parent, "InteractiveList", true, true, true, true, 6, new Vector4(10, 3, 15, 4),
+            this.UIRoot = UIFactory.CreateVerticalGroup(parent, "InteractiveList", true, true, true, true, 6, new Vector4(10, 3, 15, 4),
                 new Color(0.05f, 0.05f, 0.05f));
-            UIFactory.SetLayoutElement(UIRoot, flexibleWidth: 9999, minHeight: 25, flexibleHeight: 600);
-            UIRoot.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            UIFactory.SetLayoutElement(this.UIRoot, flexibleWidth: 9999, minHeight: 25, flexibleHeight: 600);
+            this.UIRoot.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
             // Entries label
 
-            TopLabel = UIFactory.CreateLabel(UIRoot, "EntryLabel", "not set", TextAnchor.MiddleLeft, fontSize: 16);
-            TopLabel.horizontalOverflow = HorizontalWrapMode.Overflow;
+            this.TopLabel = UIFactory.CreateLabel(this.UIRoot, "EntryLabel", "not set", TextAnchor.MiddleLeft, fontSize: 16);
+            this.TopLabel.horizontalOverflow = HorizontalWrapMode.Overflow;
 
             // entry scroll pool
 
-            ListScrollPool = UIFactory.CreateScrollPool<CacheListEntryCell>(UIRoot, "EntryList", out GameObject scrollObj,
+            this.ListScrollPool = UIFactory.CreateScrollPool<CacheListEntryCell>(this.UIRoot, "EntryList", out GameObject scrollObj,
                 out GameObject _, new Color(0.09f, 0.09f, 0.09f));
             UIFactory.SetLayoutElement(scrollObj, minHeight: 400, flexibleHeight: 0);
-            ListScrollPool.Initialize(this, SetLayout);
-            scrollLayout = scrollObj.GetComponent<LayoutElement>();
+            this.ListScrollPool.Initialize(this, this.SetLayout);
+            this.scrollLayout = scrollObj.GetComponent<LayoutElement>();
 
-            NotSupportedLabel = UIFactory.CreateLabel(ListScrollPool.Content.gameObject, "NotSupportedMessage",
+            this.NotSupportedLabel = UIFactory.CreateLabel(this.ListScrollPool.Content.gameObject, "NotSupportedMessage",
                 "The IEnumerable failed to enumerate. This is likely due to an issue with Unhollowed interfaces.",
                 TextAnchor.MiddleLeft, Color.red);
 
-            UIFactory.SetLayoutElement(NotSupportedLabel.gameObject, minHeight: 25, flexibleWidth: 9999);
-            NotSupportedLabel.gameObject.SetActive(false);
+            UIFactory.SetLayoutElement(this.NotSupportedLabel.gameObject, minHeight: 25, flexibleWidth: 9999);
+            this.NotSupportedLabel.gameObject.SetActive(false);
 
-            return UIRoot;
+            return this.UIRoot;
         }
     }
 }

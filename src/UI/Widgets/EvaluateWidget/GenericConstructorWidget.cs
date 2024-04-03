@@ -18,48 +18,48 @@ namespace UnityExplorer.UI.Widgets
 
         public void Show(Action<Type[]> onSubmit, Action onCancel, Type genericTypeDefinition)
         {
-            Title.text = $"Setting generic arguments for {SignatureHighlighter.Parse(genericTypeDefinition, false)}...";
+            this.Title.text = $"Setting generic arguments for {SignatureHighlighter.Parse(genericTypeDefinition, false)}...";
 
-            OnShow(onSubmit, onCancel, genericTypeDefinition.GetGenericArguments());
+            this.OnShow(onSubmit, onCancel, genericTypeDefinition.GetGenericArguments());
         }
 
         public void Show(Action<Type[]> onSubmit, Action onCancel, MethodInfo genericMethodDefinition)
         {
-            Title.text = $"Setting generic arguments for {SignatureHighlighter.ParseMethod(genericMethodDefinition)}...";
+            this.Title.text = $"Setting generic arguments for {SignatureHighlighter.ParseMethod(genericMethodDefinition)}...";
 
-            OnShow(onSubmit, onCancel, genericMethodDefinition.GetGenericArguments());
+            this.OnShow(onSubmit, onCancel, genericMethodDefinition.GetGenericArguments());
         }
 
         void OnShow(Action<Type[]> onSubmit, Action onCancel, Type[] genericParameters)
         {
-            currentOnSubmit = onSubmit;
-            currentOnCancel = onCancel;
+            this.currentOnSubmit = onSubmit;
+            this.currentOnCancel = onCancel;
 
-            SetGenericParameters(genericParameters);
+            this.SetGenericParameters(genericParameters);
         }
 
         void SetGenericParameters(Type[] genericParameters)
         {
-            currentGenericParameters = genericParameters;
+            this.currentGenericParameters = genericParameters;
 
-            handlers = new GenericArgumentHandler[genericParameters.Length];
+            this.handlers = new GenericArgumentHandler[genericParameters.Length];
             for (int i = 0; i < genericParameters.Length; i++)
             {
                 Type type = genericParameters[i];
 
-                GenericArgumentHandler holder = handlers[i] = Pool<GenericArgumentHandler>.Borrow();
-                holder.UIRoot.transform.SetParent(ArgsHolder.transform, false);
+                GenericArgumentHandler holder = this.handlers[i] = Pool<GenericArgumentHandler>.Borrow();
+                holder.UIRoot.transform.SetParent(this.ArgsHolder.transform, false);
                 holder.OnBorrowed(type);
             }
         }
 
         public void TrySubmit()
         {
-            Type[] args = new Type[currentGenericParameters.Length];
+            Type[] args = new Type[this.currentGenericParameters.Length];
 
             for (int i = 0; i < args.Length; i++)
             {
-                GenericArgumentHandler handler = handlers[i];
+                GenericArgumentHandler handler = this.handlers[i];
                 Type arg;
                 try
                 {
@@ -74,27 +74,27 @@ namespace UnityExplorer.UI.Widgets
                 args[i] = arg;
             }
 
-            OnClose();
-            currentOnSubmit(args);
+            this.OnClose();
+            this.currentOnSubmit(args);
         }
 
         public void Cancel()
         {
-            OnClose();
+            this.OnClose();
 
-            currentOnCancel?.Invoke();
+            this.currentOnCancel?.Invoke();
         }
 
         void OnClose()
         {
-            if (handlers != null)
+            if (this.handlers != null)
             {
-                foreach (GenericArgumentHandler widget in handlers)
+                foreach (GenericArgumentHandler widget in this.handlers)
                 {
                     widget.OnReturned();
                     Pool<GenericArgumentHandler>.Return(widget);
                 }
-                handlers = null;
+                this.handlers = null;
             }
         }
 
@@ -102,24 +102,24 @@ namespace UnityExplorer.UI.Widgets
 
         internal void ConstructUI(GameObject parent)
         {
-            UIRoot = UIFactory.CreateVerticalGroup(parent, "GenericArgsHandler", false, false, true, true, 5, new Vector4(5, 5, 5, 5), 
+            this.UIRoot = UIFactory.CreateVerticalGroup(parent, "GenericArgsHandler", false, false, true, true, 5, new Vector4(5, 5, 5, 5), 
                 childAlignment: TextAnchor.MiddleCenter);
-            UIFactory.SetLayoutElement(UIRoot, flexibleWidth: 9999, flexibleHeight: 9999);
+            UIFactory.SetLayoutElement(this.UIRoot, flexibleWidth: 9999, flexibleHeight: 9999);
 
-            ButtonRef submitButton = UIFactory.CreateButton(UIRoot, "SubmitButton", "Submit", new Color(0.2f, 0.3f, 0.2f));
+            ButtonRef submitButton = UIFactory.CreateButton(this.UIRoot, "SubmitButton", "Submit", new Color(0.2f, 0.3f, 0.2f));
             UIFactory.SetLayoutElement(submitButton.GameObject, minHeight: 25, minWidth: 200);
-            submitButton.OnClick += TrySubmit;
+            submitButton.OnClick += this.TrySubmit;
 
-            ButtonRef cancelButton = UIFactory.CreateButton(UIRoot, "CancelButton", "Cancel", new Color(0.3f, 0.2f, 0.2f));
+            ButtonRef cancelButton = UIFactory.CreateButton(this.UIRoot, "CancelButton", "Cancel", new Color(0.3f, 0.2f, 0.2f));
             UIFactory.SetLayoutElement(cancelButton.GameObject, minHeight: 25, minWidth: 200);
-            cancelButton.OnClick += Cancel;
+            cancelButton.OnClick += this.Cancel;
 
-            Title = UIFactory.CreateLabel(UIRoot, "Title", "Generic Arguments", TextAnchor.MiddleCenter);
-            UIFactory.SetLayoutElement(Title.gameObject, minHeight: 25, flexibleWidth: 9999);
+            this.Title = UIFactory.CreateLabel(this.UIRoot, "Title", "Generic Arguments", TextAnchor.MiddleCenter);
+            UIFactory.SetLayoutElement(this.Title.gameObject, minHeight: 25, flexibleWidth: 9999);
 
-            GameObject scrollview = UIFactory.CreateScrollView(UIRoot, "GenericArgsScrollView", out ArgsHolder, out _, new(0.1f, 0.1f, 0.1f));
+            GameObject scrollview = UIFactory.CreateScrollView(this.UIRoot, "GenericArgsScrollView", out this.ArgsHolder, out _, new(0.1f, 0.1f, 0.1f));
             UIFactory.SetLayoutElement(scrollview, flexibleWidth: 9999, flexibleHeight: 9999);
-            UIFactory.SetLayoutGroup<VerticalLayoutGroup>(ArgsHolder, padTop: 5, padLeft: 5, padBottom: 5, padRight: 5);
+            UIFactory.SetLayoutGroup<VerticalLayoutGroup>(this.ArgsHolder, padTop: 5, padLeft: 5, padBottom: 5, padRight: 5);
         }
     }
 }

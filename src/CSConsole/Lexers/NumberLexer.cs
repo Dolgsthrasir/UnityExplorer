@@ -13,13 +13,13 @@
             if (!lexer.IsDelimiter(lexer.Previous, true))
                 return false;
 
-            if (!IsNumeric(lexer.Current))
+            if (!this.IsNumeric(lexer.Current))
                 return false;
 
             while (!lexer.EndOfInput)
             {
                 lexer.Commit();
-                if (!IsNumeric(lexer.PeekNext()))
+                if (!this.IsNumeric(lexer.PeekNext()))
                     break;
             }
 

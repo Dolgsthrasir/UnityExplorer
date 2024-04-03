@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using UnityExplorer.Config;
 using UniverseLib.Input;
+using Object = UnityEngine.Object;
 
 namespace UnityExplorer.UI
 {
@@ -52,7 +53,7 @@ namespace UnityExplorer.UI
                 if (!canvasCamera)
                 {
                     canvasCamera = new GameObject("UnityExplorer_CanvasCamera").AddComponent<Camera>();
-                    GameObject.DontDestroyOnLoad(canvasCamera.gameObject);
+                    Object.DontDestroyOnLoad(canvasCamera.gameObject);
                     canvasCamera.hideFlags = HideFlags.HideAndDontSave;
                 }
                 canvasCamera.targetDisplay = display;

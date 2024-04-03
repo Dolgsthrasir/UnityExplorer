@@ -30,36 +30,35 @@ namespace UnityExplorer.UI.Panels
 
         public void SetTab(int tabIndex)
         {
-            if (SelectedTab != -1)
-                DisableTab(SelectedTab);
+            if (this.SelectedTab != -1) this.DisableTab(this.SelectedTab);
 
-            UIModel content = tabPages[tabIndex];
+            UIModel content = this.tabPages[tabIndex];
             content.SetActive(true);
 
-            ButtonRef button = tabButtons[tabIndex];
+            ButtonRef button = this.tabButtons[tabIndex];
             RuntimeHelper.SetColorBlock(button.Component, UniversalUI.EnabledButtonColor, UniversalUI.EnabledButtonColor * 1.2f);
 
-            SelectedTab = tabIndex;
-            SaveInternalData();
+            this.SelectedTab = tabIndex;
+            this.SaveInternalData();
         }
 
         private void DisableTab(int tabIndex)
         {
-            tabPages[tabIndex].SetActive(false);
-            RuntimeHelper.SetColorBlock(tabButtons[tabIndex].Component, UniversalUI.DisabledButtonColor, UniversalUI.DisabledButtonColor * 1.2f);
+            this.tabPages[tabIndex].SetActive(false);
+            RuntimeHelper.SetColorBlock(this.tabButtons[tabIndex].Component, UniversalUI.DisabledButtonColor, UniversalUI.DisabledButtonColor * 1.2f);
         }
 
         public override void Update()
         {
-            if (SelectedTab == 0)
-                SceneExplorer.Update();
+            if (this.SelectedTab == 0)
+                this.SceneExplorer.Update();
             else
-                ObjectSearch.Update();
+                this.ObjectSearch.Update();
         }
 
         public override string ToSaveData()
         {
-            return string.Join("|", new string[] { base.ToSaveData(), SelectedTab.ToString() });
+            return string.Join("|", new string[] { base.ToSaveData(), this.SelectedTab.ToString() });
         }
 
         protected override void ApplySaveData(string data)
@@ -69,38 +68,38 @@ namespace UnityExplorer.UI.Panels
             try
             {
                 int tab = int.Parse(data.Split('|').Last());
-                SelectedTab = tab;
+                this.SelectedTab = tab;
             }
             catch
             {
-                SelectedTab = 0;
+                this.SelectedTab = 0;
             }
 
-            SelectedTab = Math.Max(0, SelectedTab);
-            SelectedTab = Math.Min(1, SelectedTab);
+            this.SelectedTab = Math.Max(0, this.SelectedTab);
+            this.SelectedTab = Math.Min(1, this.SelectedTab);
 
-            SetTab(SelectedTab);
+            this.SetTab(this.SelectedTab);
         }
 
         protected override void ConstructPanelContent()
         {
             // Tab bar
-            GameObject tabGroup = UIFactory.CreateHorizontalGroup(ContentRoot, "TabBar", true, true, true, true, 2, new Vector4(2, 2, 2, 2));
+            GameObject tabGroup = UIFactory.CreateHorizontalGroup(this.ContentRoot, "TabBar", true, true, true, true, 2, new Vector4(2, 2, 2, 2));
             UIFactory.SetLayoutElement(tabGroup, minHeight: 25, flexibleHeight: 0);
 
             // Scene Explorer
-            SceneExplorer = new SceneExplorer(this);
-            SceneExplorer.ConstructUI(ContentRoot);
-            tabPages.Add(SceneExplorer);
+            this.SceneExplorer = new SceneExplorer(this);
+            this.SceneExplorer.ConstructUI(this.ContentRoot);
+            this.tabPages.Add(this.SceneExplorer);
 
             // Object search
-            ObjectSearch = new ObjectSearch(this);
-            ObjectSearch.ConstructUI(ContentRoot);
-            tabPages.Add(ObjectSearch);
+            this.ObjectSearch = new ObjectSearch(this);
+            this.ObjectSearch.ConstructUI(this.ContentRoot);
+            this.tabPages.Add(this.ObjectSearch);
 
             // set up tabs
-            AddTabButton(tabGroup, "Scene Explorer");
-            AddTabButton(tabGroup, "Object Search");
+            this.AddTabButton(tabGroup, "Scene Explorer");
+            this.AddTabButton(tabGroup, "Object Search");
 
             // default active state: Active
             this.SetActive(true);
@@ -110,13 +109,13 @@ namespace UnityExplorer.UI.Panels
         {
             ButtonRef button = UIFactory.CreateButton(tabGroup, $"Button_{label}", label);
 
-            int idx = tabButtons.Count;
+            int idx = this.tabButtons.Count;
             //button.onClick.AddListener(() => { SetTab(idx); });
-            button.OnClick += () => { SetTab(idx); };
+            button.OnClick += () => { this.SetTab(idx); };
 
-            tabButtons.Add(button);
+            this.tabButtons.Add(button);
 
-            DisableTab(tabButtons.Count - 1);
+            this.DisableTab(this.tabButtons.Count - 1);
         }
     }
 }

@@ -26,21 +26,19 @@ namespace UnityExplorer.CSConsole
 
         public LexerBuilder()
         {
-            lexers = new Lexer[]
+            this.lexers = new Lexer[]
             {
-                commentLexer,
-                stringLexer,
+                this.commentLexer, this.stringLexer,
                 new SymbolLexer(),
                 new NumberLexer(),
                 new KeywordLexer(),
             };
 
-            foreach (Lexer matcher in lexers)
+            foreach (Lexer matcher in this.lexers)
             {
                 foreach (char c in matcher.Delimiters)
                 {
-                    if (!delimiters.Contains(c))
-                        delimiters.Add(c);
+                    if (!this.delimiters.Contains(c)) this.delimiters.Add(c);
                 }
             }
         }
@@ -51,14 +49,14 @@ namespace UnityExplorer.CSConsole
         public int CurrentIndex { get; private set; }
 
         /// <summary>The current character we are parsing, determined by CurrentIndex.</summary>
-        public char Current => !EndOfInput ? currentInput[CurrentIndex] : WHITESPACE;
+        public char Current => !this.EndOfInput ? this.currentInput[this.CurrentIndex] : WHITESPACE;
         /// <summary>The previous character (CurrentIndex - 1), or whitespace if no previous character.</summary>
-        public char Previous => CurrentIndex >= 1 ? currentInput[CurrentIndex - 1] : WHITESPACE;
+        public char Previous => this.CurrentIndex >= 1 ? this.currentInput[this.CurrentIndex - 1] : WHITESPACE;
 
         /// <summary>Returns true if CurrentIndex is >= the current input length.</summary>
-        public bool EndOfInput => CurrentIndex > currentEndIdx;
+        public bool EndOfInput => this.CurrentIndex > this.currentEndIdx;
         /// <summary>Returns true if EndOfInput or current character is a new line.</summary>
-        public bool EndOrNewLine => EndOfInput || IsNewLine(Current);
+        public bool EndOrNewLine => this.EndOfInput || IsNewLine(this.Current);
 
         public static bool IsNewLine(char c) => c == '\n' || c == '\r';
 
@@ -81,9 +79,9 @@ namespace UnityExplorer.CSConsole
             if (string.IsNullOrEmpty(input) || endIdx <= startIdx)
                 return input;
 
-            currentInput = input;
-            currentStartIdx = startIdx;
-            currentEndIdx = endIdx;
+            this.currentInput = input;
+            this.currentStartIdx = startIdx;
+            this.currentEndIdx = endIdx;
 
             StringBuilder sb = new();
 
@@ -91,7 +89,7 @@ namespace UnityExplorer.CSConsole
                 sb.Append('\n');
 
             int lastUnhighlighted = startIdx;
-            foreach (MatchInfo match in GetMatches())
+            foreach (MatchInfo match in this.GetMatches())
             {
                 // append non-highlighted text between last match and this
                 for (int i = lastUnhighlighted; i < match.startIndex; i++)
@@ -99,7 +97,7 @@ namespace UnityExplorer.CSConsole
 
                 // append the highlighted match
                 sb.Append(match.htmlColorTag);
-                for (int i = match.startIndex; i <= match.endIndex && i <= currentEndIdx; i++)
+                for (int i = match.startIndex; i <= match.endIndex && i <= this.currentEndIdx; i++)
                     sb.Append(input[i]);
                 sb.Append(SignatureHighlighter.CLOSE_COLOR);
 
@@ -137,16 +135,16 @@ namespace UnityExplorer.CSConsole
 
         public IEnumerable<MatchInfo> GetMatches()
         {
-            CommittedIndex = currentStartIdx - 1;
-            Rollback();
+            this.CommittedIndex = this.currentStartIdx - 1;
+            this.Rollback();
 
-            while (!EndOfInput)
+            while (!this.EndOfInput)
             {
-                SkipWhitespace();
+                this.SkipWhitespace();
                 bool anyMatch = false;
-                int startIndex = CommittedIndex + 1;
+                int startIndex = this.CommittedIndex + 1;
 
-                foreach (Lexer lexer in lexers)
+                foreach (Lexer lexer in this.lexers)
                 {
                     if (lexer.TryMatchCurrent(this))
                     {
@@ -155,20 +153,20 @@ namespace UnityExplorer.CSConsole
                         yield return new MatchInfo
                         {
                             startIndex = startIndex,
-                            endIndex = CommittedIndex,
+                            endIndex = this.CommittedIndex,
                             htmlColorTag = lexer.ColorTag,
                             isStringOrComment = lexer is StringLexer || lexer is CommentLexer,
                         };
                         break;
                     }
                     else
-                        Rollback();
+                        this.Rollback();
                 }
 
                 if (!anyMatch)
                 {
-                    CurrentIndex = CommittedIndex + 1;
-                    Commit();
+                    this.CurrentIndex = this.CommittedIndex + 1;
+                    this.Commit();
                 }
             }
         }
@@ -177,28 +175,28 @@ namespace UnityExplorer.CSConsole
 
         public char PeekNext(int amount = 1)
         {
-            CurrentIndex += amount;
-            return Current;
+            this.CurrentIndex += amount;
+            return this.Current;
         }
 
         public void Commit()
         {
-            CommittedIndex = Math.Min(currentEndIdx, CurrentIndex);
+            this.CommittedIndex = Math.Min(this.currentEndIdx, this.CurrentIndex);
         }
 
         public void Rollback()
         {
-            CurrentIndex = CommittedIndex + 1;
+            this.CurrentIndex = this.CommittedIndex + 1;
         }
 
         public void RollbackBy(int amount)
         {
-            CurrentIndex = Math.Max(CommittedIndex + 1, CurrentIndex - amount);
+            this.CurrentIndex = Math.Max(this.CommittedIndex + 1, this.CurrentIndex - amount);
         }
 
         public bool IsDelimiter(char character, bool orWhitespace = false, bool orLetterOrDigit = false)
         {
-            return delimiters.Contains(character)
+            return this.delimiters.Contains(character)
                 || (orWhitespace && char.IsWhiteSpace(character))
                 || (orLetterOrDigit && char.IsLetterOrDigit(character));
         }
@@ -206,14 +204,13 @@ namespace UnityExplorer.CSConsole
         private void SkipWhitespace()
         {
             // peek and commit as long as there is whitespace
-            while (!EndOfInput && char.IsWhiteSpace(Current))
+            while (!this.EndOfInput && char.IsWhiteSpace(this.Current))
             {
-                Commit();
-                PeekNext();
+                this.Commit();
+                this.PeekNext();
             }
 
-            if (!char.IsWhiteSpace(Current))
-                Rollback();
+            if (!char.IsWhiteSpace(this.Current)) this.Rollback();
         }
 
         #region Auto Indenting
@@ -228,50 +225,50 @@ namespace UnityExplorer.CSConsole
             char c = input[lastCharIndex];
 
             // we only want to indent for new lines and close indents
-            if (!IsNewLine(c) && !IndentCloseChars.Contains(c))
+            if (!IsNewLine(c) && !this.IndentCloseChars.Contains(c))
                 return input;
 
             // perform a light parse up to the caret to determine indent level
-            currentInput = input;
-            currentStartIdx = 0;
-            currentEndIdx = lastCharIndex;
-            CommittedIndex = -1;
-            Rollback();
+            this.currentInput = input;
+            this.currentStartIdx = 0;
+            this.currentEndIdx = lastCharIndex;
+            this.CommittedIndex = -1;
+            this.Rollback();
 
             int indent = 0;
 
-            while (!EndOfInput)
+            while (!this.EndOfInput)
             {
-                if (CurrentIndex >= lastCharIndex)
+                if (this.CurrentIndex >= lastCharIndex)
                 {
                     // reached the caret index
                     if (indent <= 0)
                         break;
 
                     if (IsNewLine(c))
-                        input = IndentNewLine(input, indent, ref caretIndex);
+                        input = this.IndentNewLine(input, indent, ref caretIndex);
                     else // closing indent
-                        input = IndentCloseDelimiter(input, indent, lastCharIndex, ref caretIndex);
+                        input = this.IndentCloseDelimiter(input, indent, lastCharIndex, ref caretIndex);
 
                     break;
                 }
 
                 // Try match strings and comments (Lexer will commit to the end of the match)
-                if (stringLexer.TryMatchCurrent(this) || commentLexer.TryMatchCurrent(this))
+                if (this.stringLexer.TryMatchCurrent(this) || this.commentLexer.TryMatchCurrent(this))
                 {
-                    PeekNext();
+                    this.PeekNext();
                     continue;
                 }
 
                 // Still parsing, check indent
 
-                if (IndentOpenChars.Contains(Current))
+                if (this.IndentOpenChars.Contains(this.Current))
                     indent++;
-                else if (IndentCloseChars.Contains(Current))
+                else if (this.IndentCloseChars.Contains(this.Current))
                     indent--;
 
-                Commit();
-                PeekNext();
+                this.Commit();
+                this.PeekNext();
             }
 
             return input;
@@ -281,15 +278,15 @@ namespace UnityExplorer.CSConsole
         {
             // continue until the end of line or next non-whitespace character.
             // if there's a close-indent on this line, reduce the indent level.
-            while (CurrentIndex < input.Length - 1)
+            while (this.CurrentIndex < input.Length - 1)
             {
-                CurrentIndex++;
-                char next = input[CurrentIndex];
+                this.CurrentIndex++;
+                char next = input[this.CurrentIndex];
                 if (IsNewLine(next))
                     break;
                 if (char.IsWhiteSpace(next))
                     continue;
-                else if (IndentCloseChars.Contains(next))
+                else if (this.IndentCloseChars.Contains(next))
                     indent--;
 
                 break;
@@ -306,7 +303,7 @@ namespace UnityExplorer.CSConsole
 
         private string IndentCloseDelimiter(string input, int indent, int lastCharIndex, ref int caretIndex)
         {
-            if (CurrentIndex > lastCharIndex)
+            if (this.CurrentIndex > lastCharIndex)
             {
                 return input;
             }
@@ -315,10 +312,10 @@ namespace UnityExplorer.CSConsole
             indent--;
 
             // go back from the caret to the start of the line, calculate how much indent we need to adjust.
-            while (CurrentIndex > 0)
+            while (this.CurrentIndex > 0)
             {
-                CurrentIndex--;
-                char prev = input[CurrentIndex];
+                this.CurrentIndex--;
+                char prev = input[this.CurrentIndex];
                 if (IsNewLine(prev))
                     break;
                 if (!char.IsWhiteSpace(prev))

@@ -7,7 +7,7 @@ namespace UnityExplorer.CacheObject
         public ConstructorInfo CtorInfo { get; }
         readonly Type typeForStructConstructor;
 
-        public override Type DeclaringType => typeForStructConstructor ?? CtorInfo.DeclaringType;
+        public override Type DeclaringType => this.typeForStructConstructor ?? this.CtorInfo.DeclaringType;
         public override bool IsStatic => true;
         public override bool ShouldAutoEvaluate => false;
         public override bool CanWrite => false;
@@ -26,52 +26,51 @@ namespace UnityExplorer.CacheObject
         {
             Type ctorReturnType;
             // if is parameterless struct ctor
-            if (typeForStructConstructor != null)
+            if (this.typeForStructConstructor != null)
             {
-                ctorReturnType = typeForStructConstructor;
+                ctorReturnType = this.typeForStructConstructor;
                 this.Owner = inspector;
 
                 // eg. Vector3.Vector3()
-                this.NameLabelText = SignatureHighlighter.Parse(typeForStructConstructor, false);
-                NameLabelText += $".{NameLabelText}()";
+                this.NameLabelText = SignatureHighlighter.Parse(this.typeForStructConstructor, false);
+                this.NameLabelText += $".{this.NameLabelText}()";
 
-                this.NameForFiltering = SignatureHighlighter.RemoveHighlighting(NameLabelText);
-                this.NameLabelTextRaw = NameForFiltering;
+                this.NameForFiltering = SignatureHighlighter.RemoveHighlighting(this.NameLabelText);
+                this.NameLabelTextRaw = this.NameForFiltering;
                 return;
             }
             else
             {
                 base.SetInspectorOwner(inspector, member);
 
-                Arguments = CtorInfo.GetParameters();
-                ctorReturnType = CtorInfo.DeclaringType;
+                this.Arguments = this.CtorInfo.GetParameters();
+                ctorReturnType = this.CtorInfo.DeclaringType;
             }
 
-            if (ctorReturnType.IsGenericTypeDefinition)
-                GenericArguments = ctorReturnType.GetGenericArguments();
+            if (ctorReturnType.IsGenericTypeDefinition) this.GenericArguments = ctorReturnType.GetGenericArguments();
         }
 
         protected override object TryEvaluate()
         {
             try
             {
-                Type returnType = DeclaringType;
+                Type returnType = this.DeclaringType;
 
                 if (returnType.IsGenericTypeDefinition)
-                    returnType = DeclaringType.MakeGenericType(Evaluator.TryParseGenericArguments());
+                    returnType = this.DeclaringType.MakeGenericType(this.Evaluator.TryParseGenericArguments());
 
                 object ret;
-                if (HasArguments)
-                    ret = Activator.CreateInstance(returnType, Evaluator.TryParseArguments());
+                if (this.HasArguments)
+                    ret = Activator.CreateInstance(returnType, this.Evaluator.TryParseArguments());
                 else
                     ret = Activator.CreateInstance(returnType, ArgumentUtility.EmptyArgs);
 
-                LastException = null;
+                this.LastException = null;
                 return ret;
             }
             catch (Exception ex)
             {
-                LastException = ex;
+                this.LastException = ex;
                 return null;
             }
         }

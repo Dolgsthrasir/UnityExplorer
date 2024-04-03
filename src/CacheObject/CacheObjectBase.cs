@@ -3,6 +3,7 @@ using UnityExplorer.CacheObject.IValues;
 using UnityExplorer.CacheObject.Views;
 using UniverseLib.UI;
 using UniverseLib.UI.ObjectPool;
+using Object = UnityEngine.Object;
 
 namespace UnityExplorer.CacheObject
 {
@@ -53,7 +54,7 @@ namespace UnityExplorer.CacheObject
         public virtual void SetFallbackType(Type fallbackType)
         {
             this.FallbackType = fallbackType;
-            this.ValueLabelText = GetValueLabel();
+            this.ValueLabelText = this.GetValueLabel();
         }
 
         public virtual void SetView(CacheObjectCell cellView)
@@ -76,11 +77,9 @@ namespace UnityExplorer.CacheObject
 
         public virtual void ReleasePooledObjects()
         {
-            if (this.IValue != null)
-                ReleaseIValue();
+            if (this.IValue != null) this.ReleaseIValue();
 
-            if (this.CellView != null)
-                UnlinkFromView();
+            if (this.CellView != null) this.UnlinkFromView();
         }
 
         // Updating and applying values
@@ -90,80 +89,77 @@ namespace UnityExplorer.CacheObject
         {
             this.Value = value;
 
-            if (!Value.IsNullOrDestroyed())
-                Value = Value.TryCast();
+            if (!this.Value.IsNullOrDestroyed()) this.Value = this.Value.TryCast();
 
-            ProcessOnEvaluate();
+            this.ProcessOnEvaluate();
 
             if (this.IValue != null)
             {
-                if (SubContentShowWanted)
-                    this.IValue.SetValue(Value);
+                if (this.SubContentShowWanted)
+                    this.IValue.SetValue(this.Value);
                 else
-                    IValue.PendingValueWanted = true;
+                    this.IValue.PendingValueWanted = true;
             }
         }
 
         public void SetUserValue(object value)
         {
-            value = value.TryCast(FallbackType);
+            value = value.TryCast(this.FallbackType);
 
-            TrySetUserValue(value);
+            this.TrySetUserValue(value);
 
-            if (CellView != null)
-                SetDataToCell(CellView);
+            if (this.CellView != null) this.SetDataToCell(this.CellView);
 
             // If the owner's ParentCacheObject is set, we are setting the value of an inspected struct.
             // Set the inspector target as the value back to that parent.
-            if (Owner.ParentCacheObject != null)
-                Owner.ParentCacheObject.SetUserValue(Owner.Target);
+            if (this.Owner.ParentCacheObject != null) this.Owner.ParentCacheObject.SetUserValue(this.Owner.Target);
         }
 
         public abstract void TrySetUserValue(object value);
 
         protected virtual void ProcessOnEvaluate()
         {
-            ValueState prevState = State;
+            ValueState prevState = this.State;
 
-            if (LastException != null)
+            if (this.LastException != null)
             {
-                valueIsNull = true;
-                currentValueType = FallbackType;
-                State = ValueState.Exception;
+                this.valueIsNull = true;
+                this.currentValueType = this.FallbackType;
+                this.State = ValueState.Exception;
             }
-            else if (Value.IsNullOrDestroyed())
+            else if (this.Value.IsNullOrDestroyed())
             {
-                valueIsNull = true;
-                State = GetStateForType(FallbackType);
+                this.valueIsNull = true;
+                this.State = this.GetStateForType(this.FallbackType);
             }
             else
             {
-                valueIsNull = false;
-                State = GetStateForType(Value.GetActualType());
+                this.valueIsNull = false;
+                this.State = this.GetStateForType(this.Value.GetActualType());
             }
 
-            if (IValue != null)
+            if (this.IValue != null)
             {
                 // If we changed states (always needs IValue change)
                 // or if the value is null, and the fallback type isnt string (we always want to edit strings).
-                if (State != prevState || (State != ValueState.String && State != ValueState.Exception && Value.IsNullOrDestroyed()))
+                if (this.State != prevState || (this.State != ValueState.String && this.State != ValueState.Exception && this.Value.IsNullOrDestroyed()))
                 {
                     // need to return IValue
-                    ReleaseIValue();
-                    SubContentShowWanted = false;
+                    this.ReleaseIValue();
+                    this.SubContentShowWanted = false;
                 }
             }
 
             // Set label text
-            this.ValueLabelText = GetValueLabel();
+            this.ValueLabelText = this.GetValueLabel();
         }
 
         public ValueState GetStateForType(Type type)
         {
-            if (currentValueType == type && (State != ValueState.Exception || LastException != null))
-                return State;
+            if (this.currentValueType == type && (this.State != ValueState.Exception || this.LastException != null))
+                return this.State;
 
-            currentValueType = type;
+            this.currentValueType = type;
             if (type == typeof(bool))
                 return ValueState.Boolean;
             else if (type.IsPrimitive || type == typeof(decimal))
@@ -188,13 +184,13 @@ namespace UnityExplorer.CacheObject
         {
             string label = string.Empty;
 
-            switch (State)
+            switch (this.State)
             {
                 case ValueState.NotEvaluated:
-                    return $"<i>{NOT_YET_EVAL} ({SignatureHighlighter.Parse(FallbackType, true)})</i>";
+                    return $"<i>{NOT_YET_EVAL} ({SignatureHighlighter.Parse(this.FallbackType, true)})</i>";
 
                 case ValueState.Exception:
-                    return $"<i><color=#eb4034>{LastException.ReflectionExToString()}</color></i>";
+                    return $"<i><color=#eb4034>{this.LastException.ReflectionExToString()}</color></i>";
 
                 // bool and number dont want the label for the value at all
                 case ValueState.Boolean:
@@ -203,23 +199,23 @@ namespace UnityExplorer.CacheObject
 
                 // and valuestruct also doesnt want it if we can parse it
                 case ValueState.ValueStruct:
-                    if (ParseUtility.CanParse(currentValueType))
+                    if (ParseUtility.CanParse(this.currentValueType))
                         return null;
                     break;
 
                 // string wants it trimmed to max 200 chars
                 case ValueState.String:
-                    if (!valueIsNull)
-                        return $"\"{ToStringUtility.PruneString(Value as string, 200, 5)}\"";
+                    if (!this.valueIsNull)
+                        return $"\"{ToStringUtility.PruneString(this.Value as string, 200, 5)}\"";
                     break;
 
                 // try to prefix the count of the collection for lists and dicts
                 case ValueState.Collection:
-                    if (!valueIsNull)
+                    if (!this.valueIsNull)
                     {
-                        if (Value is IList iList)
+                        if (this.Value is IList iList)
                             label = $"[{iList.Count}] ";
-                        else if (Value is ICollection iCol)
+                        else if (this.Value is ICollection iCol)
                             label = $"[{iCol.Count}] ";
                         else
                             label = "[?] ";
@@ -227,9 +223,9 @@ namespace UnityExplorer.CacheObject
                     break;
 
                 case ValueState.Dictionary:
-                    if (!valueIsNull)
+                    if (!this.valueIsNull)
                     {
-                        if (Value is IDictionary iDict)
+                        if (this.Value is IDictionary iDict)
                             label = $"[{iDict.Count}] ";
                         else
                             label = "[?] ";
@@ -239,7 +235,7 @@ namespace UnityExplorer.CacheObject
 
             // Cases which dont return will append to ToStringWithType
 
-            return label += ToStringUtility.ToStringWithType(Value, FallbackType, true);
+            return label += ToStringUtility.ToStringWithType(this.Value, this.FallbackType, true);
         }
 
         // Setting cell state from our model
@@ -249,23 +245,23 @@ namespace UnityExplorer.CacheObject
 
         public virtual void SetDataToCell(CacheObjectCell cell)
         {
-            cell.NameLabel.text = NameLabelText;
+            cell.NameLabel.text = this.NameLabelText;
             if (cell.HiddenNameLabel != null)
-                cell.HiddenNameLabel.Text = NameLabelTextRaw ?? string.Empty;
+                cell.HiddenNameLabel.Text = this.NameLabelTextRaw ?? string.Empty;
             cell.ValueLabel.gameObject.SetActive(true);
 
-            cell.SubContentHolder.gameObject.SetActive(SubContentShowWanted);
-            if (IValue != null)
+            cell.SubContentHolder.gameObject.SetActive(this.SubContentShowWanted);
+            if (this.IValue != null)
             {
-                IValue.UIRoot.transform.SetParent(cell.SubContentHolder.transform, false);
-                IValue.SetLayout();
+                this.IValue.UIRoot.transform.SetParent(cell.SubContentHolder.transform, false);
+                this.IValue.SetLayout();
             }
 
-            bool evaluated = TryAutoEvaluateIfUnitialized(cell);
+            bool evaluated = this.TryAutoEvaluateIfUnitialized(cell);
 
             if (cell.CopyButton != null)
             {
-                bool canCopy = State != ValueState.NotEvaluated && State != ValueState.Exception;
+                bool canCopy = this.State != ValueState.NotEvaluated && this.State != ValueState.Exception;
                 cell.CopyButton.Component.gameObject.SetActive(canCopy);
                 cell.PasteButton.Component.gameObject.SetActive(canCopy && this.CanWrite);
             }
@@ -276,39 +272,39 @@ namespace UnityExplorer.CacheObject
             // The following only executes if the object has evaluated.
             // For members and properties with args, they will return by default now.
 
-            switch (State)
+            switch (this.State)
             {
                 case ValueState.Exception:
-                    SetValueState(cell, new(true, subContentButtonActive: true));
+                    this.SetValueState(cell, new(true, subContentButtonActive: true));
                     break;
                 case ValueState.Boolean:
-                    SetValueState(cell, new(false, toggleActive: true, applyActive: CanWrite));
+                    this.SetValueState(cell, new(false, toggleActive: true, applyActive: this.CanWrite));
                     break;
                 case ValueState.Number:
-                    SetValueState(cell, new(false, typeLabelActive: true, inputActive: true, applyActive: CanWrite));
+                    this.SetValueState(cell, new(false, typeLabelActive: true, inputActive: true, applyActive: this.CanWrite));
                     break;
                 case ValueState.String:
-                    if (valueIsNull)
-                        SetValueState(cell, new(true, subContentButtonActive: true));
+                    if (this.valueIsNull)
+                        this.SetValueState(cell, new(true, subContentButtonActive: true));
                     else
-                        SetValueState(cell, new(true, false, SignatureHighlighter.StringOrange, subContentButtonActive: true));
+                        this.SetValueState(cell, new(true, false, SignatureHighlighter.StringOrange, subContentButtonActive: true));
                     break;
                 case ValueState.Enum:
-                    SetValueState(cell, new(true, subContentButtonActive: CanWrite));
+                    this.SetValueState(cell, new(true, subContentButtonActive: this.CanWrite));
                     break;
                 case ValueState.Color:
                 case ValueState.ValueStruct:
-                    if (ParseUtility.CanParse(currentValueType))
-                        SetValueState(cell, new(false, false, null, true, false, true, CanWrite, true, true));
+                    if (ParseUtility.CanParse(this.currentValueType))
+                        this.SetValueState(cell, new(false, false, null, true, false, true, this.CanWrite, true, true));
                     else
-                        SetValueState(cell, new(true, inspectActive: true, subContentButtonActive: true));
+                        this.SetValueState(cell, new(true, inspectActive: true, subContentButtonActive: true));
                     break;
                 case ValueState.Collection:
                 case ValueState.Dictionary:
-                    SetValueState(cell, new(true, inspectActive: !valueIsNull, subContentButtonActive: !valueIsNull));
+                    this.SetValueState(cell, new(true, inspectActive: !this.valueIsNull, subContentButtonActive: !this.valueIsNull));
                     break;
                 case ValueState.Unsupported:
-                    SetValueState(cell, new(true, inspectActive: !valueIsNull));
+                    this.SetValueState(cell, new(true, inspectActive: !this.valueIsNull));
                     break;
             }
 
@@ -320,7 +316,7 @@ namespace UnityExplorer.CacheObject
             // main value label
             if (args.valueActive)
             {
-                cell.ValueLabel.text = ValueLabelText;
+                cell.ValueLabel.text = this.ValueLabelText;
                 cell.ValueLabel.supportRichText = args.valueRichText;
                 cell.ValueLabel.color = args.valueColor;
             }
@@ -330,23 +326,23 @@ namespace UnityExplorer.CacheObject
             // Type label (for primitives)
             cell.TypeLabel.gameObject.SetActive(args.typeLabelActive);
             if (args.typeLabelActive)
-                cell.TypeLabel.text = SignatureHighlighter.Parse(currentValueType, false);
+                cell.TypeLabel.text = SignatureHighlighter.Parse(this.currentValueType, false);
 
             // toggle for bools
             cell.Toggle.gameObject.SetActive(args.toggleActive);
             if (args.toggleActive)
             {
-                cell.Toggle.interactable = CanWrite;
-                cell.Toggle.isOn = (bool)Value;
-                cell.ToggleText.text = Value.ToString();
+                cell.Toggle.interactable = this.CanWrite;
+                cell.Toggle.isOn = (bool)this.Value;
+                cell.ToggleText.text = this.Value.ToString();
             }
 
             // inputfield for numbers
             cell.InputField.UIRoot.SetActive(args.inputActive);
             if (args.inputActive)
             {
-                cell.InputField.Text = ParseUtility.ToStringForInput(Value, currentValueType);
-                cell.InputField.Component.readOnly = !CanWrite;
+                cell.InputField.Text = ParseUtility.ToStringForInput(this.Value, this.currentValueType);
+                cell.InputField.Component.readOnly = !this.CanWrite;
             }
 
             // apply for bool and numbers
@@ -354,25 +350,25 @@ namespace UnityExplorer.CacheObject
 
             // Inspect button only if last value not null.
             if (cell.InspectButton != null)
-                cell.InspectButton.Component.gameObject.SetActive(args.inspectActive && !valueIsNull);
+                cell.InspectButton.Component.gameObject.SetActive(args.inspectActive && !this.valueIsNull);
 
             // set subcontent button if needed, and for null strings and exceptions
             cell.SubContentButton.Component.gameObject.SetActive(
                 args.subContentButtonActive
-                && (!valueIsNull || State == ValueState.String || State == ValueState.Exception));
+                && (!this.valueIsNull || this.State == ValueState.String || this.State == ValueState.Exception));
         }
 
         // CacheObjectCell Apply
 
         public virtual void OnCellApplyClicked()
         {
-            if (State == ValueState.Boolean)
-                SetUserValue(this.CellView.Toggle.isOn);
+            if (this.State == ValueState.Boolean)
+                this.SetUserValue(this.CellView.Toggle.isOn);
             else
             {
-                if (ParseUtility.TryParse(CellView.InputField.Text, currentValueType, out object value, out Exception ex))
+                if (ParseUtility.TryParse(this.CellView.InputField.Text, this.currentValueType, out object value, out Exception ex))
                 {
-                    SetUserValue(value);
+                    this.SetUserValue(value);
                 }
                 else
                 {
@@ -382,7 +378,7 @@ namespace UnityExplorer.CacheObject
                 }
             }
 
-            SetDataToCell(this.CellView);
+            this.SetDataToCell(this.CellView);
         }
 
         // IValues
@@ -391,19 +387,19 @@ namespace UnityExplorer.CacheObject
         {
             if (this.IValue == null)
             {
-                Type ivalueType = InteractiveValue.GetIValueTypeForState(State);
+                Type ivalueType = InteractiveValue.GetIValueTypeForState(this.State);
 
                 if (ivalueType == null)
                     return;
 
-                IValue = (InteractiveValue)Pool.Borrow(ivalueType);
-                CurrentIValueType = ivalueType;
+                this.IValue = (InteractiveValue)Pool.Borrow(ivalueType);
+                this.CurrentIValueType = ivalueType;
 
-                IValue.OnBorrowed(this);
-                IValue.SetValue(this.Value);
-                IValue.UIRoot.transform.SetParent(CellView.SubContentHolder.transform, false);
-                CellView.SubContentHolder.SetActive(true);
-                SubContentShowWanted = true;
+                this.IValue.OnBorrowed(this);
+                this.IValue.SetValue(this.Value);
+                this.IValue.UIRoot.transform.SetParent(this.CellView.SubContentHolder.transform, false);
+                this.CellView.SubContentHolder.SetActive(true);
+                this.SubContentShowWanted = true;
 
                 // update our cell after creating the ivalue (the value may have updated, make sure its consistent)
                 this.ProcessOnEvaluate();
@@ -411,30 +407,30 @@ namespace UnityExplorer.CacheObject
             }
             else
             {
-                SubContentShowWanted = !SubContentShowWanted;
-                CellView.SubContentHolder.SetActive(SubContentShowWanted);
+                this.SubContentShowWanted = !this.SubContentShowWanted;
+                this.CellView.SubContentHolder.SetActive(this.SubContentShowWanted);
 
-                if (SubContentShowWanted && IValue.PendingValueWanted)
+                if (this.SubContentShowWanted && this.IValue.PendingValueWanted)
                 {
-                    IValue.PendingValueWanted = false;
+                    this.IValue.PendingValueWanted = false;
                     this.ProcessOnEvaluate();
                     this.SetDataToCell(this.CellView);
-                    IValue.SetValue(this.Value);
+                    this.IValue.SetValue(this.Value);
                 }
             }
 
-            CellView.RefreshSubcontentButton();
+            this.CellView.RefreshSubcontentButton();
         }
 
         public virtual void ReleaseIValue()
         {
-            if (IValue == null)
+            if (this.IValue == null)
                 return;
 
-            IValue.ReleaseFromOwner();
-            Pool.Return(CurrentIValueType, IValue);
+            this.IValue.ReleaseFromOwner();
+            Pool.Return(this.CurrentIValueType, this.IValue);
 
-            IValue = null;
+            this.IValue = null;
         }
 
         internal static GameObject InactiveIValueHolder
@@ -444,7 +440,7 @@ namespace UnityExplorer.CacheObject
                 if (!inactiveIValueHolder)
                 {
                     inactiveIValueHolder = new GameObject("Temp_IValue_Holder");
-                    GameObject.DontDestroyOnLoad(inactiveIValueHolder);
+                    Object.DontDestroyOnLoad(inactiveIValueHolder);
                     inactiveIValueHolder.hideFlags = HideFlags.HideAndDontSave;
                     inactiveIValueHolder.transform.parent = UniversalUI.PoolHolder.transform;
                     inactiveIValueHolder.SetActive(false);

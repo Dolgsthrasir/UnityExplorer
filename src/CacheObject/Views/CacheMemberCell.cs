@@ -5,7 +5,7 @@ namespace UnityExplorer.CacheObject.Views
 {
     public class CacheMemberCell : CacheObjectCell
     {
-        public CacheMember MemberOccupant => Occupant as CacheMember;
+        public CacheMember MemberOccupant => this.Occupant as CacheMember;
 
         public GameObject EvaluateHolder;
         public ButtonRef EvaluateButton;
@@ -19,13 +19,13 @@ namespace UnityExplorer.CacheObject.Views
         {
             // Evaluate vert group
 
-            EvaluateHolder = UIFactory.CreateUIObject("EvalGroup", parent);
-            UIFactory.SetLayoutGroup<VerticalLayoutGroup>(EvaluateHolder, false, false, true, true, 3);
-            UIFactory.SetLayoutElement(EvaluateHolder, minHeight: 25, flexibleWidth: 9999, flexibleHeight: 775);
+            this.EvaluateHolder = UIFactory.CreateUIObject("EvalGroup", parent);
+            UIFactory.SetLayoutGroup<VerticalLayoutGroup>(this.EvaluateHolder, false, false, true, true, 3);
+            UIFactory.SetLayoutElement(this.EvaluateHolder, minHeight: 25, flexibleWidth: 9999, flexibleHeight: 775);
 
-            EvaluateButton = UIFactory.CreateButton(EvaluateHolder, "EvaluateButton", "Evaluate", new Color(0.15f, 0.15f, 0.15f));
-            UIFactory.SetLayoutElement(EvaluateButton.Component.gameObject, minWidth: 100, minHeight: 25);
-            EvaluateButton.OnClick += EvaluateClicked;
+            this.EvaluateButton = UIFactory.CreateButton(this.EvaluateHolder, "EvaluateButton", "Evaluate", new Color(0.15f, 0.15f, 0.15f));
+            UIFactory.SetLayoutElement(this.EvaluateButton.Component.gameObject, minWidth: 100, minHeight: 25);
+            this.EvaluateButton.OnClick += this.EvaluateClicked;
         }
     }
 }

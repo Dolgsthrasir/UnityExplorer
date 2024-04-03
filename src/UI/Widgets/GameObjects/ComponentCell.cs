@@ -14,12 +14,12 @@ namespace UnityExplorer.UI.Widgets
 
         private void BehaviourToggled(bool val)
         {
-            OnBehaviourToggled?.Invoke(val, CurrentDataIndex);
+            this.OnBehaviourToggled?.Invoke(val, this.CurrentDataIndex);
         }
 
         private void DestroyClicked()
         {
-            OnDestroyClicked?.Invoke(CurrentDataIndex);
+            this.OnDestroyClicked?.Invoke(this.CurrentDataIndex);
         }
 
         public override GameObject CreateContent(GameObject parent)
@@ -32,17 +32,17 @@ namespace UnityExplorer.UI.Widgets
 
             // Behaviour toggle
 
-            GameObject toggleObj = UIFactory.CreateToggle(UIRoot, "BehaviourToggle", out BehaviourToggle, out Text behavText);
+            GameObject toggleObj = UIFactory.CreateToggle(this.UIRoot, "BehaviourToggle", out this.BehaviourToggle, out Text behavText);
             UIFactory.SetLayoutElement(toggleObj, minHeight: 25, minWidth: 25);
-            BehaviourToggle.onValueChanged.AddListener(BehaviourToggled);
+            this.BehaviourToggle.onValueChanged.AddListener(this.BehaviourToggled);
             // put at first object
             toggleObj.transform.SetSiblingIndex(0);
 
             // Destroy button
 
-            DestroyButton = UIFactory.CreateButton(UIRoot, "DestroyButton", "X", new Color(0.3f, 0.2f, 0.2f));
-            UIFactory.SetLayoutElement(DestroyButton.Component.gameObject, minHeight: 21, minWidth: 25);
-            DestroyButton.OnClick += DestroyClicked;
+            this.DestroyButton = UIFactory.CreateButton(this.UIRoot, "DestroyButton", "X", new Color(0.3f, 0.2f, 0.2f));
+            UIFactory.SetLayoutElement(this.DestroyButton.Component.gameObject, minHeight: 21, minWidth: 25);
+            this.DestroyButton.OnClick += this.DestroyClicked;
 
             return root;
         }

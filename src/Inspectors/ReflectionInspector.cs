@@ -31,7 +31,7 @@ namespace UnityExplorer.Inspectors
         public bool StaticOnly { get; internal set; }
         public bool CanWrite => true;
 
-        public bool AutoUpdateWanted => autoUpdateToggle.isOn;
+        public bool AutoUpdateWanted => this.autoUpdateToggle.isOn;
 
         List<CacheMember> members = new();
         readonly List<CacheMember> filteredMembers = new();
@@ -58,7 +58,7 @@ namespace UnityExplorer.Inspectors
 
         public GameObject ContentRoot { get; private set; }
         public ScrollPool<CacheMemberCell> MemberScrollPool { get; private set; }
-        public int ItemCount => filteredMembers.Count;
+        public int ItemCount => this.filteredMembers.Count;
         public UnityObjectWidget UnityWidget { get; private set; }
         public string TabButtonText { get; set; }
 
@@ -81,11 +81,11 @@ namespace UnityExplorer.Inspectors
         public override void OnBorrowedFromPool(object target)
         {
             base.OnBorrowedFromPool(target);
-            CalculateLayouts();
+            this.CalculateLayouts();
 
-            SetTarget(target);
+            this.SetTarget(target);
 
-            RuntimeHelper.StartCoroutine(InitCoroutine());
+            RuntimeHelper.StartCoroutine(this.InitCoroutine());
         }
 
         private IEnumerator InitCoroutine()
@@ -101,25 +101,25 @@ namespace UnityExplorer.Inspectors
 
         public override void OnReturnToPool()
         {
-            foreach (CacheMember member in members)
+            foreach (CacheMember member in this.members)
             {
                 member.UnlinkFromView();
                 member.ReleasePooledObjects();
             }
 
-            members.Clear();
-            filteredMembers.Clear();
+            this.members.Clear();
+            this.filteredMembers.Clear();
 
-            autoUpdateToggle.isOn = false;
+            this.autoUpdateToggle.isOn = false;
 
-            if (UnityWidget != null)
+            if (this.UnityWidget != null)
             {
-                UnityWidget.OnReturnToPool();
-                Pool.Return(UnityWidget.GetType(), UnityWidget);
+                this.UnityWidget.OnReturnToPool();
+                Pool.Return(this.UnityWidget.GetType(), this.UnityWidget);
                 this.UnityWidget = null;
             }
 
-            genericConstructor?.Cancel();
+            this.genericConstructor?.Cancel();
 
             base.OnReturnToPool();
         }
@@ -129,60 +129,60 @@ namespace UnityExplorer.Inspectors
         private void SetTarget(object target)
         {
             string prefix;
-            if (StaticOnly)
+            if (this.StaticOnly)
             {
-                Target = null;
-                TargetType = target as Type;
+                this.Target = null;
+                this.TargetType = target as Type;
                 prefix = "[S]";
 
-                makeGenericButton.GameObject.SetActive(TargetType.IsGenericTypeDefinition);
+                this.makeGenericButton.GameObject.SetActive(this.TargetType.IsGenericTypeDefinition);
             }
             else
             {
-                TargetType = target.GetActualType();
+                this.TargetType = target.GetActualType();
                 prefix = "[R]";
             }
 
             // Setup main labels and tab text
-            TabButtonText = $"{prefix} {SignatureHighlighter.Parse(TargetType, false)}";
-            Tab.TabText.text = TabButtonText;
-            nameText.text = SignatureHighlighter.Parse(TargetType, true);
-            hiddenNameText.Text = SignatureHighlighter.RemoveHighlighting(nameText.text);
+            this.TabButtonText = $"{prefix} {SignatureHighlighter.Parse(this.TargetType, false)}";
+            this.Tab.TabText.text = this.TabButtonText;
+            this.nameText.text = SignatureHighlighter.Parse(this.TargetType, true);
+            this.hiddenNameText.Text = SignatureHighlighter.RemoveHighlighting(this.nameText.text);
 
             string asmText;
-            if (TargetType.Assembly is AssemblyBuilder || string.IsNullOrEmpty(TargetType.Assembly.Location))
+            if (this.TargetType.Assembly is AssemblyBuilder || string.IsNullOrEmpty(this.TargetType.Assembly.Location))
             {
-                asmText = $"{TargetType.Assembly.GetName().Name} <color=grey><i>(in memory)</i></color>";
-                dnSpyButton.GameObject.SetActive(false);
+                asmText = $"{this.TargetType.Assembly.GetName().Name} <color=grey><i>(in memory)</i></color>";
+                this.dnSpyButton.GameObject.SetActive(false);
             }
             else
             {
-                asmText = Path.GetFileName(TargetType.Assembly.Location);
-                dnSpyButton.GameObject.SetActive(true);
+                asmText = Path.GetFileName(this.TargetType.Assembly.Location);
+                this.dnSpyButton.GameObject.SetActive(true);
             }
-            assemblyText.text = $"<color=grey>Assembly:</color> {asmText}";
+            this.assemblyText.text = $"<color=grey>Assembly:</color> {asmText}";
 
             // Unity object helper widget
 
-            if (!StaticOnly)
-                this.UnityWidget = UnityObjectWidget.GetUnityWidget(target, TargetType, this);
+            if (!this.StaticOnly)
+                this.UnityWidget = UnityObjectWidget.GetUnityWidget(target, this.TargetType, this);
 
             // Get cache members
 
-            this.members = CacheMemberFactory.GetCacheMembers(TargetType, this);
+            this.members = CacheMemberFactory.GetCacheMembers(this.TargetType, this);
 
             // reset filters
 
             this.filterInputField.Text = string.Empty;
 
-            SetFilter(string.Empty, StaticOnly ? BindingFlags.Static : BindingFlags.Default);
-            scopeFilterButtons[BindingFlags.Default].Component.gameObject.SetActive(!StaticOnly);
-            scopeFilterButtons[BindingFlags.Instance].Component.gameObject.SetActive(!StaticOnly);
+            this.SetFilter(string.Empty, this.StaticOnly ? BindingFlags.Static : BindingFlags.Default);
+            this.scopeFilterButtons[BindingFlags.Default].Component.gameObject.SetActive(!this.StaticOnly);
+            this.scopeFilterButtons[BindingFlags.Instance].Component.gameObject.SetActive(!this.StaticOnly);
 
-            foreach (Toggle toggle in memberTypeToggles)
+            foreach (Toggle toggle in this.memberTypeToggles)
                 toggle.isOn = true;
 
-            refreshWanted = true;
+            this.refreshWanted = true;
         }
 
         // Updating
@@ -192,34 +192,32 @@ namespace UnityExplorer.Inspectors
             if (!this.IsActive)
                 return;
 
-            if (!StaticOnly && Target.IsNullOrDestroyed(false))
+            if (!this.StaticOnly && this.Target.IsNullOrDestroyed(false))
             {
                 InspectorManager.ReleaseInspector(this);
                 return;
             }
 
             // check filter changes or force-refresh
-            if (refreshWanted || nameFilter != lastNameFilter || scopeFlagsFilter != lastFlagsFilter || lastMemberFilter != memberFilter)
+            if (this.refreshWanted || this.nameFilter != this.lastNameFilter || this.scopeFlagsFilter != this.lastFlagsFilter || this.lastMemberFilter != this.memberFilter)
             {
-                lastNameFilter = nameFilter;
-                lastFlagsFilter = scopeFlagsFilter;
-                lastMemberFilter = memberFilter;
+                this.lastNameFilter = this.nameFilter;
+                this.lastFlagsFilter = this.scopeFlagsFilter;
+                this.lastMemberFilter = this.memberFilter;
 
-                FilterMembers();
-                MemberScrollPool.Refresh(true, true);
-                refreshWanted = false;
+                this.FilterMembers();
+                this.MemberScrollPool.Refresh(true, true);
+                this.refreshWanted = false;
             }
 
             // once-per-second updates
-            if (timeOfLastAutoUpdate.OccuredEarlierThan(1))
+            if (this.timeOfLastAutoUpdate.OccuredEarlierThan(1))
             {
-                timeOfLastAutoUpdate = Time.realtimeSinceStartup;
+                this.timeOfLastAutoUpdate = Time.realtimeSinceStartup;
 
-                if (this.UnityWidget != null)
-                    UnityWidget.Update();
+                if (this.UnityWidget != null) this.UnityWidget.Update();
 
-                if (AutoUpdateWanted)
-                    UpdateDisplayedMembers();
+                if (this.AutoUpdateWanted) this.UpdateDisplayedMembers();
             }
         }
 
@@ -229,49 +227,50 @@ namespace UnityExplorer.Inspectors
         {
             this.nameFilter = name;
 
-            if (flags != scopeFlagsFilter)
+            if (flags != this.scopeFlagsFilter)
             {
-                Button btn = scopeFilterButtons[scopeFlagsFilter].Component;
+                Button btn = this.scopeFilterButtons[this.scopeFlagsFilter].Component;
                 RuntimeHelper.SetColorBlock(btn, disabledButtonColor, disabledButtonColor * 1.3f);
 
                 this.scopeFlagsFilter = flags;
-                btn = scopeFilterButtons[scopeFlagsFilter].Component;
+                btn = this.scopeFilterButtons[this.scopeFlagsFilter].Component;
                 RuntimeHelper.SetColorBlock(btn, enabledButtonColor, enabledButtonColor * 1.3f);
             }
         }
 
         void FilterMembers()
         {
-            filteredMembers.Clear();
+            this.filteredMembers.Clear();
 
-            for (int i = 0; i < members.Count; i++)
+            for (int i = 0; i < this.members.Count; i++)
             {
-                CacheMember member = members[i];
+                CacheMember member = this.members[i];
 
-                if (scopeFlagsFilter != BindingFlags.Default)
+                if (this.scopeFlagsFilter != BindingFlags.Default)
                 {
-                    if (scopeFlagsFilter == BindingFlags.Instance && member.IsStatic
-                        || scopeFlagsFilter == BindingFlags.Static && !member.IsStatic)
+                    if (this.scopeFlagsFilter == BindingFlags.Instance && member.IsStatic
+                        ||
+                        this.scopeFlagsFilter == BindingFlags.Static && !member.IsStatic)
                         continue;
                 }
 
-                if ((member is CacheMethod && !memberFilter.HasFlag(MemberFilter.Method))
-                    || (member is CacheField && !memberFilter.HasFlag(MemberFilter.Field))
-                    || (member is CacheProperty && !memberFilter.HasFlag(MemberFilter.Property))
-                    || (member is CacheConstructor && !memberFilter.HasFlag(MemberFilter.Constructor)))
+                if ((member is CacheMethod && !this.memberFilter.HasFlag(MemberFilter.Method))
+                    || (member is CacheField && !this.memberFilter.HasFlag(MemberFilter.Field))
+                    || (member is CacheProperty && !this.memberFilter.HasFlag(MemberFilter.Property))
+                    || (member is CacheConstructor && !this.memberFilter.HasFlag(MemberFilter.Constructor)))
                     continue;
 
-                if (!string.IsNullOrEmpty(nameFilter) && !member.NameForFiltering.ContainsIgnoreCase(nameFilter))
+                if (!string.IsNullOrEmpty(this.nameFilter) && !member.NameForFiltering.ContainsIgnoreCase(this.nameFilter))
                     continue;
 
-                filteredMembers.Add(member);
+                this.filteredMembers.Add(member);
             }
         }
 
         void UpdateDisplayedMembers()
         {
             bool shouldRefresh = false;
-            foreach (CacheMemberCell cell in MemberScrollPool.CellPool)
+            foreach (CacheMemberCell cell in this.MemberScrollPool.CellPool)
             {
                 if (!cell.Enabled || cell.Occupant == null)
                     continue;
@@ -284,8 +283,7 @@ namespace UnityExplorer.Inspectors
                 }
             }
 
-            if (shouldRefresh)
-                MemberScrollPool.Refresh(false);
+            if (shouldRefresh) this.MemberScrollPool.Refresh(false);
         }
 
         // Member cells
@@ -294,17 +292,16 @@ namespace UnityExplorer.Inspectors
 
         public void SetCell(CacheMemberCell cell, int index)
         {
-            CacheObjectControllerHelper.SetCell(cell, index, filteredMembers, SetCellLayout);
+            CacheObjectControllerHelper.SetCell(cell, index, this.filteredMembers, this.SetCellLayout);
         }
 
         // Cell layout (fake table alignment)
 
         internal void SetLayouts()
         {
-            CalculateLayouts();
+            this.CalculateLayouts();
 
-            foreach (CacheMemberCell cell in MemberScrollPool.CellPool)
-                SetCellLayout(cell);
+            foreach (CacheMemberCell cell in this.MemberScrollPool.CellPool) this.SetCellLayout(cell);
         }
 
         void CalculateLayouts()
@@ -326,25 +323,25 @@ namespace UnityExplorer.Inspectors
 
         void OnUpdateClicked()
         {
-            UpdateDisplayedMembers();
+            this.UpdateDisplayedMembers();
         }
 
         public void OnSetNameFilter(string name)
         {
-            SetFilter(name, scopeFlagsFilter);
+            this.SetFilter(name, this.scopeFlagsFilter);
         }
 
         public void OnSetFlags(BindingFlags flags)
         {
-            SetFilter(nameFilter, flags);
+            this.SetFilter(this.nameFilter, flags);
         }
 
         void OnMemberTypeToggled(MemberFilter flag, bool val)
         {
             if (!val)
-                memberFilter &= ~flag;
+                this.memberFilter &= ~flag;
             else
-                memberFilter |= flag;
+                this.memberFilter |= flag;
         }
 
         void OnCopyClicked()
@@ -357,7 +354,7 @@ namespace UnityExplorer.Inspectors
             string path = ConfigManager.DnSpy_Path.Value;
             if (File.Exists(path) && path.EndsWith("dnspy.exe", StringComparison.OrdinalIgnoreCase))
             {
-                Type type = TargetType;
+                Type type = this.TargetType;
                 // if constructed generic type, use the generic type definition
                 if (type.IsGenericType && !type.IsGenericTypeDefinition)
                     type = type.GetGenericTypeDefinition();
@@ -373,118 +370,118 @@ namespace UnityExplorer.Inspectors
 
         void OnMakeGenericClicked()
         {
-            ContentRoot.SetActive(false);
+            this.ContentRoot.SetActive(false);
 
-            if (genericConstructor == null)
+            if (this.genericConstructor == null)
             {
-                genericConstructor = new();
-                genericConstructor.ConstructUI(UIRoot);
+                this.genericConstructor = new();
+                this.genericConstructor.ConstructUI(this.UIRoot);
             }
 
-            genericConstructor.UIRoot.SetActive(true);
-            genericConstructor.Show(OnGenericSubmit, OnGenericCancel, TargetType);
+            this.genericConstructor.UIRoot.SetActive(true);
+            this.genericConstructor.Show(this.OnGenericSubmit, this.OnGenericCancel, this.TargetType);
         }
 
         void OnGenericSubmit(Type[] args)
         {
-            ContentRoot.SetActive(true);
-            genericConstructor.UIRoot.SetActive(false);
+            this.ContentRoot.SetActive(true);
+            this.genericConstructor.UIRoot.SetActive(false);
 
-            Type newType = TargetType.MakeGenericType(args);
+            Type newType = this.TargetType.MakeGenericType(args);
             InspectorManager.Inspect(newType);
             //InspectorManager.ReleaseInspector(this);
         }
 
         void OnGenericCancel()
         {
-            ContentRoot.SetActive(true);
-            genericConstructor.UIRoot.SetActive(false);
+            this.ContentRoot.SetActive(true);
+            this.genericConstructor.UIRoot.SetActive(false);
         }
 
         // UI Construction
 
         public override GameObject CreateContent(GameObject parent)
         {
-            UIRoot = UIFactory.CreateVerticalGroup(parent, "ReflectionInspector", true, true, true, true, 5,
+            this.UIRoot = UIFactory.CreateVerticalGroup(parent, "ReflectionInspector", true, true, true, true, 5,
                 new Vector4(4, 4, 4, 4), new Color(0.065f, 0.065f, 0.065f));
 
             // Class name, assembly
 
-            GameObject topRow = UIFactory.CreateHorizontalGroup(UIRoot, "TopRow", false, false, true, true, 4, default, 
+            GameObject topRow = UIFactory.CreateHorizontalGroup(this.UIRoot, "TopRow", false, false, true, true, 4, default, 
                 new(0.1f, 0.1f, 0.1f), TextAnchor.MiddleLeft);
             UIFactory.SetLayoutElement(topRow, minHeight: 25, flexibleWidth: 9999);
 
             GameObject titleHolder = UIFactory.CreateUIObject("TitleHolder", topRow);
             UIFactory.SetLayoutElement(titleHolder, minHeight: 35, flexibleHeight: 0, flexibleWidth: 9999);
 
-            nameText = UIFactory.CreateLabel(titleHolder, "VisibleTitle", "NotSet", TextAnchor.MiddleLeft);
-            RectTransform namerect = nameText.GetComponent<RectTransform>();
+            this.nameText = UIFactory.CreateLabel(titleHolder, "VisibleTitle", "NotSet", TextAnchor.MiddleLeft);
+            RectTransform namerect = this.nameText.GetComponent<RectTransform>();
             namerect.anchorMin = new Vector2(0, 0);
             namerect.anchorMax = new Vector2(1, 1);
-            nameText.fontSize = 17;
-            UIFactory.SetLayoutElement(nameText.gameObject, minHeight: 35, flexibleHeight: 0, minWidth: 300, flexibleWidth: 9999);
+            this.nameText.fontSize = 17;
+            UIFactory.SetLayoutElement(this.nameText.gameObject, minHeight: 35, flexibleHeight: 0, minWidth: 300, flexibleWidth: 9999);
 
-            hiddenNameText = UIFactory.CreateInputField(titleHolder, "Title", "not set");
-            RectTransform hiddenrect = hiddenNameText.Component.gameObject.GetComponent<RectTransform>();
+            this.hiddenNameText = UIFactory.CreateInputField(titleHolder, "Title", "not set");
+            RectTransform hiddenrect = this.hiddenNameText.Component.gameObject.GetComponent<RectTransform>();
             hiddenrect.anchorMin = new Vector2(0, 0);
             hiddenrect.anchorMax = new Vector2(1, 1);
-            hiddenNameText.Component.readOnly = true;
-            hiddenNameText.Component.lineType = InputField.LineType.MultiLineNewline;
-            hiddenNameText.Component.gameObject.GetComponent<Image>().color = Color.clear;
-            hiddenNameText.Component.textComponent.horizontalOverflow = HorizontalWrapMode.Wrap;
-            hiddenNameText.Component.textComponent.fontSize = 17;
-            hiddenNameText.Component.textComponent.color = Color.clear;
-            UIFactory.SetLayoutElement(hiddenNameText.Component.gameObject, minHeight: 35, flexibleHeight: 0, flexibleWidth: 9999);
+            this.hiddenNameText.Component.readOnly = true;
+            this.hiddenNameText.Component.lineType = InputField.LineType.MultiLineNewline;
+            this.hiddenNameText.Component.gameObject.GetComponent<Image>().color = Color.clear;
+            this.hiddenNameText.Component.textComponent.horizontalOverflow = HorizontalWrapMode.Wrap;
+            this.hiddenNameText.Component.textComponent.fontSize = 17;
+            this.hiddenNameText.Component.textComponent.color = Color.clear;
+            UIFactory.SetLayoutElement(this.hiddenNameText.Component.gameObject, minHeight: 35, flexibleHeight: 0, flexibleWidth: 9999);
 
-            makeGenericButton = UIFactory.CreateButton(topRow, "MakeGenericButton", "Construct Generic", new Color(0.2f, 0.3f, 0.2f));
-            UIFactory.SetLayoutElement(makeGenericButton.GameObject, minWidth: 140, minHeight: 25);
-            makeGenericButton.OnClick += OnMakeGenericClicked;
-            makeGenericButton.GameObject.SetActive(false);
+            this.makeGenericButton = UIFactory.CreateButton(topRow, "MakeGenericButton", "Construct Generic", new Color(0.2f, 0.3f, 0.2f));
+            UIFactory.SetLayoutElement(this.makeGenericButton.GameObject, minWidth: 140, minHeight: 25);
+            this.makeGenericButton.OnClick += this.OnMakeGenericClicked;
+            this.makeGenericButton.GameObject.SetActive(false);
 
             ButtonRef copyButton = UIFactory.CreateButton(topRow, "CopyButton", "Copy to Clipboard", new Color(0.2f, 0.2f, 0.2f, 1));
             copyButton.ButtonText.color = Color.yellow;
             UIFactory.SetLayoutElement(copyButton.Component.gameObject, minHeight: 25, minWidth: 120, flexibleWidth: 0);
-            copyButton.OnClick += OnCopyClicked;
+            copyButton.OnClick += this.OnCopyClicked;
 
             // Assembly row
 
-            GameObject asmRow = UIFactory.CreateHorizontalGroup(UIRoot, "AssemblyRow", false, false, true, true, 5, default, new(1, 1, 1, 0));
+            GameObject asmRow = UIFactory.CreateHorizontalGroup(this.UIRoot, "AssemblyRow", false, false, true, true, 5, default, new(1, 1, 1, 0));
             UIFactory.SetLayoutElement(asmRow, flexibleWidth: 9999, minHeight: 25);
 
-            assemblyText = UIFactory.CreateLabel(asmRow, "AssemblyLabel", "not set", TextAnchor.MiddleLeft);
-            UIFactory.SetLayoutElement(assemblyText.gameObject, minHeight: 25, flexibleWidth: 9999);
+            this.assemblyText = UIFactory.CreateLabel(asmRow, "AssemblyLabel", "not set", TextAnchor.MiddleLeft);
+            UIFactory.SetLayoutElement(this.assemblyText.gameObject, minHeight: 25, flexibleWidth: 9999);
 
-            dnSpyButton = UIFactory.CreateButton(asmRow, "DnSpyButton", "View in dnSpy");
-            UIFactory.SetLayoutElement(dnSpyButton.GameObject, minWidth: 120, minHeight: 25);
-            dnSpyButton.OnClick += OnDnSpyButtonClicked;
+            this.dnSpyButton = UIFactory.CreateButton(asmRow, "DnSpyButton", "View in dnSpy");
+            UIFactory.SetLayoutElement(this.dnSpyButton.GameObject, minWidth: 120, minHeight: 25);
+            this.dnSpyButton.OnClick += this.OnDnSpyButtonClicked;
 
             // Content 
 
-            ContentRoot = UIFactory.CreateVerticalGroup(UIRoot, "ContentRoot", false, false, true, true, 5, new Vector4(2, 2, 2, 2),
+            this.ContentRoot = UIFactory.CreateVerticalGroup(this.UIRoot, "ContentRoot", false, false, true, true, 5, new Vector4(2, 2, 2, 2),
                 new Color(0.12f, 0.12f, 0.12f));
-            UIFactory.SetLayoutElement(ContentRoot, flexibleWidth: 9999, flexibleHeight: 9999);
+            UIFactory.SetLayoutElement(this.ContentRoot, flexibleWidth: 9999, flexibleHeight: 9999);
 
-            ConstructFirstRow(ContentRoot);
+            this.ConstructFirstRow(this.ContentRoot);
 
-            ConstructSecondRow(ContentRoot);
+            this.ConstructSecondRow(this.ContentRoot);
 
             // Member scroll pool
 
-            GameObject memberBorder = UIFactory.CreateVerticalGroup(ContentRoot, "ScrollPoolHolder", false, false, true, true,
+            GameObject memberBorder = UIFactory.CreateVerticalGroup(this.ContentRoot, "ScrollPoolHolder", false, false, true, true,
                 padding: new Vector4(2, 2, 2, 2), bgColor: new Color(0.05f, 0.05f, 0.05f));
             UIFactory.SetLayoutElement(memberBorder, flexibleWidth: 9999, flexibleHeight: 9999);
 
-            MemberScrollPool = UIFactory.CreateScrollPool<CacheMemberCell>(memberBorder, "MemberList", out GameObject scrollObj,
+            this.MemberScrollPool = UIFactory.CreateScrollPool<CacheMemberCell>(memberBorder, "MemberList", out GameObject scrollObj,
                 out GameObject _, new Color(0.09f, 0.09f, 0.09f));
             UIFactory.SetLayoutElement(scrollObj, flexibleHeight: 9999);
-            MemberScrollPool.Initialize(this);
+            this.MemberScrollPool.Initialize(this);
 
             // For debugging scroll pool
             //InspectorPanel.Instance.UIRoot.GetComponent<Mask>().enabled = false;
             //MemberScrollPool.Viewport.GetComponent<Mask>().enabled = false;
             //MemberScrollPool.Viewport.GetComponent<Image>().color = new Color(0.12f, 0.12f, 0.12f);
 
-            return UIRoot;
+            return this.UIRoot;
         }
 
         // First row
@@ -498,9 +495,9 @@ namespace UnityExplorer.Inspectors
             Text nameLabel = UIFactory.CreateLabel(rowObj, "NameFilterLabel", "Filter names:", TextAnchor.MiddleLeft, Color.grey);
             UIFactory.SetLayoutElement(nameLabel.gameObject, minHeight: 25, minWidth: 90, flexibleWidth: 0);
 
-            filterInputField = UIFactory.CreateInputField(rowObj, "NameFilterInput", "...");
-            UIFactory.SetLayoutElement(filterInputField.UIRoot, minHeight: 25, flexibleWidth: 300);
-            filterInputField.OnValueChanged += (string val) => { OnSetNameFilter(val); };
+            this.filterInputField = UIFactory.CreateInputField(rowObj, "NameFilterInput", "...");
+            UIFactory.SetLayoutElement(this.filterInputField.UIRoot, minHeight: 25, flexibleWidth: 300);
+            this.filterInputField.OnValueChanged += (string val) => { this.OnSetNameFilter(val); };
 
             GameObject spacer = UIFactory.CreateUIObject("Spacer", rowObj);
             UIFactory.SetLayoutElement(spacer, minWidth: 25);
@@ -509,11 +506,11 @@ namespace UnityExplorer.Inspectors
 
             ButtonRef updateButton = UIFactory.CreateButton(rowObj, "UpdateButton", "Update displayed values", new Color(0.22f, 0.28f, 0.22f));
             UIFactory.SetLayoutElement(updateButton.Component.gameObject, minHeight: 25, minWidth: 175, flexibleWidth: 0);
-            updateButton.OnClick += OnUpdateClicked;
+            updateButton.OnClick += this.OnUpdateClicked;
 
-            GameObject toggleObj = UIFactory.CreateToggle(rowObj, "AutoUpdateToggle", out autoUpdateToggle, out Text toggleText);
+            GameObject toggleObj = UIFactory.CreateToggle(rowObj, "AutoUpdateToggle", out this.autoUpdateToggle, out Text toggleText);
             UIFactory.SetLayoutElement(toggleObj, minWidth: 125, minHeight: 25);
-            autoUpdateToggle.isOn = false;
+            this.autoUpdateToggle.isOn = false;
             toggleText.text = "Auto-update";
         }
 
@@ -529,19 +526,19 @@ namespace UnityExplorer.Inspectors
 
             Text scopeLabel = UIFactory.CreateLabel(rowObj, "ScopeLabel", "Scope:", TextAnchor.MiddleLeft, Color.grey);
             UIFactory.SetLayoutElement(scopeLabel.gameObject, minHeight: 25, minWidth: 60, flexibleWidth: 0);
-            AddScopeFilterButton(rowObj, BindingFlags.Default, true);
-            AddScopeFilterButton(rowObj, BindingFlags.Instance);
-            AddScopeFilterButton(rowObj, BindingFlags.Static);
+            this.AddScopeFilterButton(rowObj, BindingFlags.Default, true);
+            this.AddScopeFilterButton(rowObj, BindingFlags.Instance);
+            this.AddScopeFilterButton(rowObj, BindingFlags.Static);
 
             GameObject spacer = UIFactory.CreateUIObject("Spacer", rowObj);
             UIFactory.SetLayoutElement(spacer, minWidth: 15);
 
             // Member type toggles
 
-            AddMemberTypeToggle(rowObj, MemberTypes.Property, 90);
-            AddMemberTypeToggle(rowObj, MemberTypes.Field, 70);
-            AddMemberTypeToggle(rowObj, MemberTypes.Method, 90);
-            AddMemberTypeToggle(rowObj, MemberTypes.Constructor, 110);
+            this.AddMemberTypeToggle(rowObj, MemberTypes.Property, 90);
+            this.AddMemberTypeToggle(rowObj, MemberTypes.Field, 70);
+            this.AddMemberTypeToggle(rowObj, MemberTypes.Method, 90);
+            this.AddMemberTypeToggle(rowObj, MemberTypes.Constructor, 110);
         }
 
         void AddScopeFilterButton(GameObject parent, BindingFlags flags, bool setAsActive = false)
@@ -551,9 +548,9 @@ namespace UnityExplorer.Inspectors
 
             ButtonRef button = UIFactory.CreateButton(parent, "Filter_" + flags, lbl, color);
             UIFactory.SetLayoutElement(button.Component.gameObject, minHeight: 25, flexibleHeight: 0, minWidth: 70, flexibleWidth: 0);
-            scopeFilterButtons.Add(flags, button);
+            this.scopeFilterButtons.Add(flags, button);
 
-            button.OnClick += () => { OnSetFlags(flags); };
+            button.OnClick += () => { this.OnSetFlags(flags); };
         }
 
         void AddMemberTypeToggle(GameObject parent, MemberTypes type, int width)
@@ -581,9 +578,9 @@ namespace UnityExplorer.Inspectors
                 _ => throw new NotImplementedException()
             };
 
-            toggle.onValueChanged.AddListener((bool val) => { OnMemberTypeToggled(flag, val); });
+            toggle.onValueChanged.AddListener((bool val) => { this.OnMemberTypeToggled(flag, val); });
 
-            memberTypeToggles.Add(toggle);
+            this.memberTypeToggles.Add(toggle);
         }
     }
 }

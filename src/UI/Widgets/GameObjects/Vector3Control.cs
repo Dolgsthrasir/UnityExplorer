@@ -8,8 +8,8 @@ namespace UnityExplorer.UI.Widgets
     public class Vector3Control
     {
         public TransformControls Owner { get; }
-        public GameObject Target => Owner.Owner.Target;
-        public Transform Transform => Target.transform;
+        public GameObject Target => this.Owner.Owner.Target;
+        public Transform Transform => this.Target.transform;
         public TransformType Type { get; }
 
         public InputFieldRef MainInput { get; }
@@ -21,12 +21,13 @@ namespace UnityExplorer.UI.Widgets
 
         Vector3 lastValue;
 
-        Vector3 CurrentValue => Type switch
+        Vector3 CurrentValue =>
+            this.Type switch
         {
-            TransformType.Position => Transform.position,
-            TransformType.LocalPosition => Transform.localPosition,
-            TransformType.Rotation => Transform.localEulerAngles,
-            TransformType.Scale => Transform.localScale,
+            TransformType.Position => this.Transform.position,
+            TransformType.LocalPosition => this.Transform.localPosition,
+            TransformType.Rotation => this.Transform.localEulerAngles,
+            TransformType.Scale => this.Transform.localScale,
             _ => throw new NotImplementedException()
         };
 
@@ -39,11 +40,11 @@ namespace UnityExplorer.UI.Widgets
 
         public void Update(bool force)
         {
-            Vector3 currValue = CurrentValue;
-            if (force || (!MainInput.Component.isFocused && !lastValue.Equals(currValue)))
+            Vector3 currValue = this.CurrentValue;
+            if (force || (!this.MainInput.Component.isFocused && !this.lastValue.Equals(currValue)))
             {
-                MainInput.Text = ParseUtility.ToStringForInput<Vector3>(currValue);
-                lastValue = currValue;
+                this.MainInput.Text = ParseUtility.ToStringForInput<Vector3>(currValue);
+                this.lastValue = currValue;
             }
         }
 
@@ -53,41 +54,37 @@ namespace UnityExplorer.UI.Widgets
             {
                 case TransformType.Position:
                     {
-                        if (ParseUtility.TryParse(input, out Vector3 val, out _))
-                            Target.transform.position = val;
+                        if (ParseUtility.TryParse(input, out Vector3 val, out _)) this.Target.transform.position = val;
                     }
                     break;
                 case TransformType.LocalPosition:
                     {
-                        if (ParseUtility.TryParse(input, out Vector3 val, out _))
-                            Target.transform.localPosition = val;
+                        if (ParseUtility.TryParse(input, out Vector3 val, out _)) this.Target.transform.localPosition = val;
                     }
                     break;
                 case TransformType.Rotation:
                     {
-                        if (ParseUtility.TryParse(input, out Vector3 val, out _))
-                            Target.transform.localEulerAngles = val;
+                        if (ParseUtility.TryParse(input, out Vector3 val, out _)) this.Target.transform.localEulerAngles = val;
                     }
                     break;
                 case TransformType.Scale:
                     {
-                        if (ParseUtility.TryParse(input, out Vector3 val, out _))
-                            Target.transform.localScale = val;
+                        if (ParseUtility.TryParse(input, out Vector3 val, out _)) this.Target.transform.localScale = val;
                     }
                     break;
             }
 
-            Owner.UpdateTransformControlValues(true);
+            this.Owner.UpdateTransformControlValues(true);
         }
 
         void IncrementInput_OnEndEdit(string value)
         {
             if (!ParseUtility.TryParse(value, out float increment, out _))
-                IncrementInput.Text = ParseUtility.ToStringForInput<float>(Increment);
+                this.IncrementInput.Text = ParseUtility.ToStringForInput<float>(this.Increment);
             else
             {
-                Increment = increment;
-                foreach (AxisControl slider in AxisControls)
+                this.Increment = increment;
+                foreach (AxisControl slider in this.AxisControls)
                 {
                     slider.slider.minValue = -increment;
                     slider.slider.maxValue = increment;

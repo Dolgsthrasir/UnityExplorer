@@ -13,7 +13,7 @@ namespace UnityExplorer.ObjectExplorer
 
         public ObjectSearch(ObjectExplorerPanel parent)
         {
-            Parent = parent;
+            this.Parent = parent;
         }
 
         private SearchContext context = SearchContext.UnityObject;
@@ -31,7 +31,7 @@ namespace UnityExplorer.ObjectExplorer
         public TypeCompleter unityObjectTypeCompleter;
         public TypeCompleter allTypesCompleter;
 
-        public override GameObject UIRoot => uiRoot;
+        public override GameObject UIRoot => this.uiRoot;
         private GameObject uiRoot;
         private GameObject sceneFilterRow;
         private GameObject childFilterRow;
@@ -40,44 +40,44 @@ namespace UnityExplorer.ObjectExplorer
         private InputFieldRef nameInputField;
         private Text resultsLabel;
 
-        public List<object> GetEntries() => currentResults;
+        public List<object> GetEntries() => this.currentResults;
 
         public void DoSearch()
         {
             cachedCellTexts.Clear();
 
-            if (context == SearchContext.Singleton)
-                currentResults = SearchProvider.InstanceSearch(desiredTypeInput).ToList();
-            else if (context == SearchContext.Class)
-                currentResults = SearchProvider.ClassSearch(desiredTypeInput);
+            if (this.context == SearchContext.Singleton)
+                this.currentResults = SearchProvider.InstanceSearch(this.desiredTypeInput).ToList();
+            else if (this.context == SearchContext.Class)
+                this.currentResults = SearchProvider.ClassSearch(this.desiredTypeInput);
             else
-                currentResults = SearchProvider.UnityObjectSearch(nameInputField.Text, desiredTypeInput, childFilter, sceneFilter);
+                this.currentResults = SearchProvider.UnityObjectSearch(this.nameInputField.Text, this.desiredTypeInput, this.childFilter, this.sceneFilter);
 
-            dataHandler.RefreshData();
-            resultsScrollPool.Refresh(true);
+            this.dataHandler.RefreshData();
+            this.resultsScrollPool.Refresh(true);
 
-            resultsLabel.text = $"{currentResults.Count} results";
+            this.resultsLabel.text = $"{this.currentResults.Count} results";
         }
 
         public void Update()
         {
-            if (context == SearchContext.UnityObject && lastCheckedTypeInput != desiredTypeInput)
+            if (this.context == SearchContext.UnityObject && this.lastCheckedTypeInput != this.desiredTypeInput)
             {
-                lastCheckedTypeInput = desiredTypeInput;
+                this.lastCheckedTypeInput = this.desiredTypeInput;
 
                 //var type = ReflectionUtility.GetTypeByName(desiredTypeInput);
-                if (ReflectionUtility.GetTypeByName(desiredTypeInput) is Type cachedType)
+                if (ReflectionUtility.GetTypeByName(this.desiredTypeInput) is Type cachedType)
                 {
                     Type type = cachedType;
-                    lastTypeCanHaveGameObject = typeof(Component).IsAssignableFrom(type) || type == typeof(GameObject);
-                    sceneFilterRow.SetActive(lastTypeCanHaveGameObject);
-                    childFilterRow.SetActive(lastTypeCanHaveGameObject);
+                    this.lastTypeCanHaveGameObject = typeof(Component).IsAssignableFrom(type) || type == typeof(GameObject);
+                    this.sceneFilterRow.SetActive(this.lastTypeCanHaveGameObject);
+                    this.childFilterRow.SetActive(this.lastTypeCanHaveGameObject);
                 }
                 else
                 {
-                    sceneFilterRow.SetActive(false);
-                    childFilterRow.SetActive(false);
-                    lastTypeCanHaveGameObject = false;
+                    this.sceneFilterRow.SetActive(false);
+                    this.childFilterRow.SetActive(false);
+                    this.lastTypeCanHaveGameObject = false;
                 }
             }
         }
@@ -86,41 +86,41 @@ namespace UnityExplorer.ObjectExplorer
 
         private void OnContextDropdownChanged(int value)
         {
-            context = (SearchContext)value;
+            this.context = (SearchContext)value;
 
-            lastCheckedTypeInput = null;
-            sceneFilterRow.SetActive(false);
-            childFilterRow.SetActive(false);
+            this.lastCheckedTypeInput = null;
+            this.sceneFilterRow.SetActive(false);
+            this.childFilterRow.SetActive(false);
 
-            nameInputRow.SetActive(context == SearchContext.UnityObject);
+            this.nameInputRow.SetActive(this.context == SearchContext.UnityObject);
 
-            switch (context)
+            switch (this.context)
             {
                 case SearchContext.UnityObject:
-                    unityObjectTypeCompleter.Enabled = true;
-                    allTypesCompleter.Enabled = false;
+                    this.unityObjectTypeCompleter.Enabled = true;
+                    this.allTypesCompleter.Enabled = false;
                     break;
                 case SearchContext.Singleton:
                 case SearchContext.Class:
-                    allTypesCompleter.Enabled = true;
-                    unityObjectTypeCompleter.Enabled = false;
+                    this.allTypesCompleter.Enabled = true;
+                    this.unityObjectTypeCompleter.Enabled = false;
                     break;
             }
         }
 
-        private void OnSceneFilterDropChanged(int value) => sceneFilter = (SceneFilter)value;
+        private void OnSceneFilterDropChanged(int value) => this.sceneFilter = (SceneFilter)value;
 
-        private void OnChildFilterDropChanged(int value) => childFilter = (ChildFilter)value;
+        private void OnChildFilterDropChanged(int value) => this.childFilter = (ChildFilter)value;
 
         private void OnTypeInputChanged(string val)
         {
-            desiredTypeInput = val;
+            this.desiredTypeInput = val;
 
             if (string.IsNullOrEmpty(val))
             {
-                sceneFilterRow.SetActive(false);
-                childFilterRow.SetActive(false);
-                lastCheckedTypeInput = val;
+                this.sceneFilterRow.SetActive(false);
+                this.childFilterRow.SetActive(false);
+                this.lastCheckedTypeInput = val;
             }
         }
 
@@ -132,13 +132,13 @@ namespace UnityExplorer.ObjectExplorer
             if (!cachedCellTexts.ContainsKey(index))
             {
                 string text;
-                if (context == SearchContext.Class)
+                if (this.context == SearchContext.Class)
                 {
-                    Type type = currentResults[index] as Type;
+                    Type type = this.currentResults[index] as Type;
                     text = $"{SignatureHighlighter.Parse(type, true)} <color=grey><i>({type.Assembly.GetName().Name})</i></color>";
                 }
                 else
-                    text = ToStringUtility.ToStringWithType(currentResults[index], currentResults[index]?.GetActualType());
+                    text = ToStringUtility.ToStringWithType(this.currentResults[index], this.currentResults[index]?.GetActualType());
 
                 cachedCellTexts.Add(index, text);
             }
@@ -148,74 +148,74 @@ namespace UnityExplorer.ObjectExplorer
 
         private void OnCellClicked(int dataIndex)
         {
-            if (context == SearchContext.Class)
-                InspectorManager.Inspect(currentResults[dataIndex] as Type);
+            if (this.context == SearchContext.Class)
+                InspectorManager.Inspect(this.currentResults[dataIndex] as Type);
             else
-                InspectorManager.Inspect(currentResults[dataIndex]);
+                InspectorManager.Inspect(this.currentResults[dataIndex]);
         }
 
         private bool ShouldDisplayCell(object arg1, string arg2) => true;
 
         public override void ConstructUI(GameObject parent)
         {
-            uiRoot = UIFactory.CreateVerticalGroup(parent, "ObjectSearch", true, true, true, true, 2, new Vector4(2, 2, 2, 2));
-            UIFactory.SetLayoutElement(uiRoot, flexibleHeight: 9999);
+            this.uiRoot = UIFactory.CreateVerticalGroup(parent, "ObjectSearch", true, true, true, true, 2, new Vector4(2, 2, 2, 2));
+            UIFactory.SetLayoutElement(this.uiRoot, flexibleHeight: 9999);
 
             // Search context row
 
-            GameObject contextGroup = UIFactory.CreateHorizontalGroup(uiRoot, "SearchContextRow", false, true, true, true, 2, new Vector4(2, 2, 2, 2));
+            GameObject contextGroup = UIFactory.CreateHorizontalGroup(this.uiRoot, "SearchContextRow", false, true, true, true, 2, new Vector4(2, 2, 2, 2));
             UIFactory.SetLayoutElement(contextGroup, minHeight: 25, flexibleHeight: 0);
 
             Text contextLbl = UIFactory.CreateLabel(contextGroup, "SearchContextLabel", "Searching for:", TextAnchor.MiddleLeft);
             UIFactory.SetLayoutElement(contextLbl.gameObject, minWidth: 110, flexibleWidth: 0);
 
-            GameObject contextDropObj = UIFactory.CreateDropdown(contextGroup, "ContextDropdown", out Dropdown contextDrop, null, 14, OnContextDropdownChanged);
+            GameObject contextDropObj = UIFactory.CreateDropdown(contextGroup, "ContextDropdown", out Dropdown contextDrop, null, 14, this.OnContextDropdownChanged);
             foreach (string name in Enum.GetNames(typeof(SearchContext)))
                 contextDrop.options.Add(new Dropdown.OptionData(name));
             UIFactory.SetLayoutElement(contextDropObj, minHeight: 25, flexibleHeight: 0, flexibleWidth: 9999);
 
             // Class input
 
-            classInputRow = UIFactory.CreateHorizontalGroup(uiRoot, "ClassRow", false, true, true, true, 2, new Vector4(2, 2, 2, 2));
-            UIFactory.SetLayoutElement(classInputRow, minHeight: 25, flexibleHeight: 0);
+            this.classInputRow = UIFactory.CreateHorizontalGroup(this.uiRoot, "ClassRow", false, true, true, true, 2, new Vector4(2, 2, 2, 2));
+            UIFactory.SetLayoutElement(this.classInputRow, minHeight: 25, flexibleHeight: 0);
 
-            Text unityClassLbl = UIFactory.CreateLabel(classInputRow, "ClassLabel", "Class filter:", TextAnchor.MiddleLeft);
+            Text unityClassLbl = UIFactory.CreateLabel(this.classInputRow, "ClassLabel", "Class filter:", TextAnchor.MiddleLeft);
             UIFactory.SetLayoutElement(unityClassLbl.gameObject, minWidth: 110, flexibleWidth: 0);
 
-            InputFieldRef classInputField = UIFactory.CreateInputField(classInputRow, "ClassInput", "...");
+            InputFieldRef classInputField = UIFactory.CreateInputField(this.classInputRow, "ClassInput", "...");
             UIFactory.SetLayoutElement(classInputField.UIRoot, minHeight: 25, flexibleHeight: 0, flexibleWidth: 9999);
 
-            unityObjectTypeCompleter = new(typeof(UnityEngine.Object), classInputField, true, false, true);
-            allTypesCompleter = new(null, classInputField, true, false, true);
-            allTypesCompleter.Enabled = false;
-            classInputField.OnValueChanged += OnTypeInputChanged;
+            this.unityObjectTypeCompleter = new(typeof(UnityEngine.Object), classInputField, true, false, true);
+            this.allTypesCompleter = new(null, classInputField, true, false, true);
+            this.allTypesCompleter.Enabled = false;
+            classInputField.OnValueChanged += this.OnTypeInputChanged;
 
             //unityObjectClassRow.SetActive(false);
 
             // Child filter row
 
-            childFilterRow = UIFactory.CreateHorizontalGroup(uiRoot, "ChildFilterRow", false, true, true, true, 2, new Vector4(2, 2, 2, 2));
-            UIFactory.SetLayoutElement(childFilterRow, minHeight: 25, flexibleHeight: 0);
+            this.childFilterRow = UIFactory.CreateHorizontalGroup(this.uiRoot, "ChildFilterRow", false, true, true, true, 2, new Vector4(2, 2, 2, 2));
+            UIFactory.SetLayoutElement(this.childFilterRow, minHeight: 25, flexibleHeight: 0);
 
-            Text childLbl = UIFactory.CreateLabel(childFilterRow, "ChildLabel", "Child filter:", TextAnchor.MiddleLeft);
+            Text childLbl = UIFactory.CreateLabel(this.childFilterRow, "ChildLabel", "Child filter:", TextAnchor.MiddleLeft);
             UIFactory.SetLayoutElement(childLbl.gameObject, minWidth: 110, flexibleWidth: 0);
 
-            GameObject childDropObj = UIFactory.CreateDropdown(childFilterRow, "ChildFilterDropdown", out Dropdown childDrop, null, 14, OnChildFilterDropChanged);
+            GameObject childDropObj = UIFactory.CreateDropdown(this.childFilterRow, "ChildFilterDropdown", out Dropdown childDrop, null, 14, this.OnChildFilterDropChanged);
             foreach (string name in Enum.GetNames(typeof(ChildFilter)))
                 childDrop.options.Add(new Dropdown.OptionData(name));
             UIFactory.SetLayoutElement(childDropObj, minHeight: 25, flexibleHeight: 0, flexibleWidth: 9999);
 
-            childFilterRow.SetActive(false);
+            this.childFilterRow.SetActive(false);
 
             // Scene filter row
 
-            sceneFilterRow = UIFactory.CreateHorizontalGroup(uiRoot, "SceneFilterRow", false, true, true, true, 2, new Vector4(2, 2, 2, 2));
-            UIFactory.SetLayoutElement(sceneFilterRow, minHeight: 25, flexibleHeight: 0);
+            this.sceneFilterRow = UIFactory.CreateHorizontalGroup(this.uiRoot, "SceneFilterRow", false, true, true, true, 2, new Vector4(2, 2, 2, 2));
+            UIFactory.SetLayoutElement(this.sceneFilterRow, minHeight: 25, flexibleHeight: 0);
 
-            Text sceneLbl = UIFactory.CreateLabel(sceneFilterRow, "SceneLabel", "Scene filter:", TextAnchor.MiddleLeft);
+            Text sceneLbl = UIFactory.CreateLabel(this.sceneFilterRow, "SceneLabel", "Scene filter:", TextAnchor.MiddleLeft);
             UIFactory.SetLayoutElement(sceneLbl.gameObject, minWidth: 110, flexibleWidth: 0);
 
-            GameObject sceneDropObj = UIFactory.CreateDropdown(sceneFilterRow, "SceneFilterDropdown", out Dropdown sceneDrop, null, 14, OnSceneFilterDropChanged);
+            GameObject sceneDropObj = UIFactory.CreateDropdown(this.sceneFilterRow, "SceneFilterDropdown", out Dropdown sceneDrop, null, 14, this.OnSceneFilterDropChanged);
             foreach (string name in Enum.GetNames(typeof(SceneFilter)))
             {
                 if (!SceneHandler.DontDestroyExists && name == "DontDestroyOnLoad")
@@ -224,39 +224,39 @@ namespace UnityExplorer.ObjectExplorer
             }
             UIFactory.SetLayoutElement(sceneDropObj, minHeight: 25, flexibleHeight: 0, flexibleWidth: 9999);
 
-            sceneFilterRow.SetActive(false);
+            this.sceneFilterRow.SetActive(false);
 
             // Name filter input
 
-            nameInputRow = UIFactory.CreateHorizontalGroup(uiRoot, "NameRow", true, true, true, true, 2, new Vector4(2, 2, 2, 2));
-            UIFactory.SetLayoutElement(nameInputRow, minHeight: 25, flexibleHeight: 0);
+            this.nameInputRow = UIFactory.CreateHorizontalGroup(this.uiRoot, "NameRow", true, true, true, true, 2, new Vector4(2, 2, 2, 2));
+            UIFactory.SetLayoutElement(this.nameInputRow, minHeight: 25, flexibleHeight: 0);
 
-            Text nameLbl = UIFactory.CreateLabel(nameInputRow, "NameFilterLabel", "Name contains:", TextAnchor.MiddleLeft);
+            Text nameLbl = UIFactory.CreateLabel(this.nameInputRow, "NameFilterLabel", "Name contains:", TextAnchor.MiddleLeft);
             UIFactory.SetLayoutElement(nameLbl.gameObject, minWidth: 110, flexibleWidth: 0);
 
-            nameInputField = UIFactory.CreateInputField(nameInputRow, "NameFilterInput", "...");
-            UIFactory.SetLayoutElement(nameInputField.UIRoot, minHeight: 25, flexibleHeight: 0, flexibleWidth: 9999);
+            this.nameInputField = UIFactory.CreateInputField(this.nameInputRow, "NameFilterInput", "...");
+            UIFactory.SetLayoutElement(this.nameInputField.UIRoot, minHeight: 25, flexibleHeight: 0, flexibleWidth: 9999);
 
             // Search button
 
-            ButtonRef searchButton = UIFactory.CreateButton(uiRoot, "SearchButton", "Search");
+            ButtonRef searchButton = UIFactory.CreateButton(this.uiRoot, "SearchButton", "Search");
             UIFactory.SetLayoutElement(searchButton.Component.gameObject, minHeight: 25, flexibleHeight: 0);
-            searchButton.OnClick += DoSearch;
+            searchButton.OnClick += this.DoSearch;
 
             // Results count label
 
-            GameObject resultsCountRow = UIFactory.CreateHorizontalGroup(uiRoot, "ResultsCountRow", true, true, true, true);
+            GameObject resultsCountRow = UIFactory.CreateHorizontalGroup(this.uiRoot, "ResultsCountRow", true, true, true, true);
             UIFactory.SetLayoutElement(resultsCountRow, minHeight: 25, flexibleHeight: 0);
 
-            resultsLabel = UIFactory.CreateLabel(resultsCountRow, "ResultsLabel", "0 results", TextAnchor.MiddleCenter);
+            this.resultsLabel = UIFactory.CreateLabel(resultsCountRow, "ResultsLabel", "0 results", TextAnchor.MiddleCenter);
 
             // RESULTS SCROLL POOL
 
-            dataHandler = new ButtonListHandler<object, ButtonCell>(resultsScrollPool, GetEntries, SetCell, ShouldDisplayCell, OnCellClicked);
-            resultsScrollPool = UIFactory.CreateScrollPool<ButtonCell>(uiRoot, "ResultsList", out GameObject scrollObj,
+            this.dataHandler = new ButtonListHandler<object, ButtonCell>(this.resultsScrollPool, this.GetEntries, this.SetCell, this.ShouldDisplayCell, this.OnCellClicked);
+            this.resultsScrollPool = UIFactory.CreateScrollPool<ButtonCell>(this.uiRoot, "ResultsList", out GameObject scrollObj,
                 out GameObject scrollContent);
 
-            resultsScrollPool.Initialize(dataHandler);
+            this.resultsScrollPool.Initialize(this.dataHandler);
             UIFactory.SetLayoutElement(scrollObj, flexibleHeight: 9999);
         }
     }

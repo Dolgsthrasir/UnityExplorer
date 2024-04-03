@@ -5,7 +5,7 @@ namespace UnityExplorer.CacheObject.Views
     public class CacheListEntryCell : CacheObjectCell
     {
         public Image Image { get; private set; }
-        public InteractiveList ListOwner => Occupant.Owner as InteractiveList;
+        public InteractiveList ListOwner => this.Occupant.Owner as InteractiveList;
 
         public static Color EvenColor = new(0.12f, 0.12f, 0.12f);
         public static Color OddColor = new(0.1f, 0.1f, 0.1f);
@@ -14,7 +14,7 @@ namespace UnityExplorer.CacheObject.Views
         {
             GameObject root = base.CreateContent(parent);
 
-            Image = root.AddComponent<Image>();
+            this.Image = root.AddComponent<Image>();
 
             this.NameLayout.minWidth = 40;
             this.NameLayout.flexibleWidth = 50;

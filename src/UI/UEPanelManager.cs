@@ -16,7 +16,7 @@ namespace UnityExplorer.UI
 
         internal void DoInvokeOnPanelsReordered()
         {
-            InvokeOnPanelsReordered();
+            this.InvokeOnPanelsReordered();
         }
 
         protected override void SortDraggerHeirarchy()

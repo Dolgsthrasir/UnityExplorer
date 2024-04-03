@@ -5,9 +5,9 @@ namespace UnityExplorer.CacheObject
     public class CacheMethod : CacheMember
     {
         public MethodInfo MethodInfo { get; }
-        public override Type DeclaringType => MethodInfo.DeclaringType;
+        public override Type DeclaringType => this.MethodInfo.DeclaringType;
         public override bool CanWrite => false;
-        public override bool IsStatic => MethodInfo.IsStatic;
+        public override bool IsStatic => this.MethodInfo.IsStatic;
 
         public override bool ShouldAutoEvaluate => false;
 
@@ -20,30 +20,29 @@ namespace UnityExplorer.CacheObject
         {
             base.SetInspectorOwner(inspector, member);
 
-            Arguments = MethodInfo.GetParameters();
-            if (MethodInfo.IsGenericMethod)
-                GenericArguments = MethodInfo.GetGenericArguments();
+            this.Arguments = this.MethodInfo.GetParameters();
+            if (this.MethodInfo.IsGenericMethod) this.GenericArguments = this.MethodInfo.GetGenericArguments();
         }
 
         protected override object TryEvaluate()
         {
             try
             {
-                MethodInfo methodInfo = MethodInfo;
+                MethodInfo methodInfo = this.MethodInfo;
                 if (methodInfo.IsGenericMethod)
-                    methodInfo = MethodInfo.MakeGenericMethod(Evaluator.TryParseGenericArguments());
+                    methodInfo = this.MethodInfo.MakeGenericMethod(this.Evaluator.TryParseGenericArguments());
 
                 object ret;
-                if (HasArguments)
-                    ret = methodInfo.Invoke(DeclaringInstance, Evaluator.TryParseArguments());
+                if (this.HasArguments)
+                    ret = methodInfo.Invoke(this.DeclaringInstance, this.Evaluator.TryParseArguments());
                 else
-                    ret = methodInfo.Invoke(DeclaringInstance, ArgumentUtility.EmptyArgs);
-                LastException = null;
+                    ret = methodInfo.Invoke(this.DeclaringInstance, ArgumentUtility.EmptyArgs);
+                this.LastException = null;
                 return ret;
             }
             catch (Exception ex)
             {
-                LastException = ex;
+                this.LastException = ex;
                 return null;
             }
         }

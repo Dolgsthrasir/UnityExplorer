@@ -14,13 +14,13 @@ namespace UnityExplorer.ObjectExplorer
 
         public SceneExplorer(ObjectExplorerPanel parent)
         {
-            Parent = parent;
+            this.Parent = parent;
 
-            SceneHandler.OnInspectedSceneChanged += SceneHandler_OnInspectedSceneChanged;
-            SceneHandler.OnLoadedScenesUpdated += SceneHandler_OnLoadedScenesUpdated;
+            SceneHandler.OnInspectedSceneChanged += this.SceneHandler_OnInspectedSceneChanged;
+            SceneHandler.OnLoadedScenesUpdated += this.SceneHandler_OnLoadedScenesUpdated;
         }
 
-        public override GameObject UIRoot => uiRoot;
+        public override GameObject UIRoot => this.uiRoot;
         private GameObject uiRoot;
 
         /// <summary>
@@ -44,17 +44,17 @@ namespace UnityExplorer.ObjectExplorer
 
         public void Update()
         {
-            if ((AutoUpdate || !SceneHandler.InspectingAssetScene) && timeOfLastUpdate.OccuredEarlierThan(1))
+            if ((this.AutoUpdate || !SceneHandler.InspectingAssetScene) && this.timeOfLastUpdate.OccuredEarlierThan(1))
             {
-                timeOfLastUpdate = Time.realtimeSinceStartup;
-                UpdateTree();
+                this.timeOfLastUpdate = Time.realtimeSinceStartup;
+                this.UpdateTree();
             }
         }
 
         public void UpdateTree()
         {
             SceneHandler.Update();
-            Tree.RefreshData(true, false, false, false);
+            this.Tree.RefreshData(true, false, false, false);
         }
 
         public void JumpToTransform(Transform transform)
@@ -71,14 +71,14 @@ namespace UnityExplorer.ObjectExplorer
             {
                 int idx;
                 if (go.scene == default || go.scene.handle == -1)
-                    idx = sceneDropdown.options.Count - 1;
+                    idx = this.sceneDropdown.options.Count - 1;
                 else
-                    idx = sceneDropdown.options.IndexOf(sceneToDropdownOption[go.scene]);
-                sceneDropdown.value = idx;
+                    idx = this.sceneDropdown.options.IndexOf(this.sceneToDropdownOption[go.scene]);
+                this.sceneDropdown.value = idx;
             }
 
             // Let the TransformTree handle the rest
-            Tree.JumpAndExpandToTransform(transform);
+            this.Tree.JumpAndExpandToTransform(transform);
         }
 
         private void OnSceneSelectionDropdownChanged(int value)
@@ -88,47 +88,45 @@ namespace UnityExplorer.ObjectExplorer
 
             SceneHandler.SelectedScene = SceneHandler.LoadedScenes[value];
             SceneHandler.Update();
-            Tree.RefreshData(true, true, true, false);
-            OnSelectedSceneChanged(SceneHandler.SelectedScene.Value);
+            this.Tree.RefreshData(true, true, true, false);
+            this.OnSelectedSceneChanged(SceneHandler.SelectedScene.Value);
         }
 
         private void SceneHandler_OnInspectedSceneChanged(Scene scene)
         {
-            if (!sceneToDropdownOption.ContainsKey(scene))
-                PopulateSceneDropdown(SceneHandler.LoadedScenes);
+            if (!this.sceneToDropdownOption.ContainsKey(scene)) this.PopulateSceneDropdown(SceneHandler.LoadedScenes);
 
-            if (sceneToDropdownOption.ContainsKey(scene))
+            if (this.sceneToDropdownOption.ContainsKey(scene))
             {
-                Dropdown.OptionData opt = sceneToDropdownOption[scene];
-                int idx = sceneDropdown.options.IndexOf(opt);
-                if (sceneDropdown.value != idx)
-                    sceneDropdown.value = idx;
+                Dropdown.OptionData opt = this.sceneToDropdownOption[scene];
+                int idx = this.sceneDropdown.options.IndexOf(opt);
+                if (this.sceneDropdown.value != idx)
+                    this.sceneDropdown.value = idx;
                 else
-                    sceneDropdown.captionText.text = opt.text;
+                    this.sceneDropdown.captionText.text = opt.text;
             }
 
-            OnSelectedSceneChanged(scene);
+            this.OnSelectedSceneChanged(scene);
         }
 
         private void OnSelectedSceneChanged(Scene scene)
         {
-            if (refreshRow)
-                refreshRow.SetActive(!scene.IsValid());
+            if (this.refreshRow) this.refreshRow.SetActive(!scene.IsValid());
         }
 
         private void SceneHandler_OnLoadedScenesUpdated(List<Scene> loadedScenes)
         {
-            PopulateSceneDropdown(loadedScenes);
+            this.PopulateSceneDropdown(loadedScenes);
         }
 
         private void PopulateSceneDropdown(List<Scene> loadedScenes)
         {
-            sceneToDropdownOption.Clear();
-            sceneDropdown.options.Clear();
+            this.sceneToDropdownOption.Clear();
+            this.sceneDropdown.options.Clear();
 
             foreach (Scene scene in loadedScenes)
             {
-                if (sceneToDropdownOption.ContainsKey(scene))
+                if (this.sceneToDropdownOption.ContainsKey(scene))
                     continue;
 
                 string name = scene.name?.Trim();
@@ -139,20 +137,20 @@ namespace UnityExplorer.ObjectExplorer
                     name = "<untitled>";
 
                 Dropdown.OptionData option = new(name);
-                sceneDropdown.options.Add(option);
-                sceneToDropdownOption.Add(scene, option);
+                this.sceneDropdown.options.Add(option);
+                this.sceneToDropdownOption.Add(scene, option);
             }
         }
 
         private void OnFilterInput(string input)
         {
-            if ((!string.IsNullOrEmpty(input) && !Tree.Filtering) || (string.IsNullOrEmpty(input) && Tree.Filtering))
+            if ((!string.IsNullOrEmpty(input) && !this.Tree.Filtering) || (string.IsNullOrEmpty(input) && this.Tree.Filtering))
             {
-                Tree.Clear();
+                this.Tree.Clear();
             }
 
-            Tree.CurrentFilter = input;
-            Tree.RefreshData(true, false, true, false);
+            this.Tree.CurrentFilter = input;
+            this.Tree.RefreshData(true, false, true, false);
         }
 
         private void TryLoadScene(LoadSceneMode mode, Dropdown allSceneDrop)
@@ -175,13 +173,13 @@ namespace UnityExplorer.ObjectExplorer
 
         public override void ConstructUI(GameObject content)
         {
-            uiRoot = UIFactory.CreateUIObject("SceneExplorer", content);
-            UIFactory.SetLayoutGroup<VerticalLayoutGroup>(uiRoot, true, true, true, true, 0, 2, 2, 2, 2);
-            UIFactory.SetLayoutElement(uiRoot, flexibleHeight: 9999);
+            this.uiRoot = UIFactory.CreateUIObject("SceneExplorer", content);
+            UIFactory.SetLayoutGroup<VerticalLayoutGroup>(this.uiRoot, true, true, true, true, 0, 2, 2, 2, 2);
+            UIFactory.SetLayoutElement(this.uiRoot, flexibleHeight: 9999);
 
             // Tool bar (top area)
 
-            GameObject toolbar = UIFactory.CreateVerticalGroup(uiRoot, "Toolbar", true, true, true, true, 2, new Vector4(2, 2, 2, 2),
+            GameObject toolbar = UIFactory.CreateVerticalGroup(this.uiRoot, "Toolbar", true, true, true, true, 2, new Vector4(2, 2, 2, 2),
                new Color(0.15f, 0.15f, 0.15f));
 
             // Scene selector dropdown
@@ -192,12 +190,12 @@ namespace UnityExplorer.ObjectExplorer
             Text dropLabel = UIFactory.CreateLabel(dropRow, "SelectorLabel", "Scene:", TextAnchor.MiddleLeft, Color.cyan, false, 15);
             UIFactory.SetLayoutElement(dropLabel.gameObject, minHeight: 25, minWidth: 60, flexibleWidth: 0);
 
-            GameObject dropdownObj = UIFactory.CreateDropdown(dropRow, "SceneDropdown", out sceneDropdown, "<notset>", 13, OnSceneSelectionDropdownChanged);
+            GameObject dropdownObj = UIFactory.CreateDropdown(dropRow, "SceneDropdown", out this.sceneDropdown, "<notset>", 13, this.OnSceneSelectionDropdownChanged);
             UIFactory.SetLayoutElement(dropdownObj, minHeight: 25, flexibleHeight: 0, flexibleWidth: 9999);
 
             SceneHandler.Update();
-            PopulateSceneDropdown(SceneHandler.LoadedScenes);
-            sceneDropdown.captionText.text = sceneToDropdownOption.First().Value.text;
+            this.PopulateSceneDropdown(SceneHandler.LoadedScenes);
+            this.sceneDropdown.captionText.text = this.sceneToDropdownOption.First().Value.text;
 
             // Filter row
 
@@ -211,27 +209,27 @@ namespace UnityExplorer.ObjectExplorer
                 new Color(0.08f, 0.08f, 0.08f));
             UIFactory.SetLayoutElement(inputField.UIRoot, minHeight: 25);
             //inputField.OnValueChanged += OnFilterInput;
-            inputField.Component.GetOnEndEdit().AddListener(OnFilterInput);
+            inputField.Component.GetOnEndEdit().AddListener(this.OnFilterInput);
 
             // refresh row
 
-            refreshRow = UIFactory.CreateHorizontalGroup(toolbar, "RefreshGroup", true, true, true, true, 2, new Vector4(2, 2, 2, 2));
-            UIFactory.SetLayoutElement(refreshRow, minHeight: 30, flexibleHeight: 0);
+            this.refreshRow = UIFactory.CreateHorizontalGroup(toolbar, "RefreshGroup", true, true, true, true, 2, new Vector4(2, 2, 2, 2));
+            UIFactory.SetLayoutElement(this.refreshRow, minHeight: 30, flexibleHeight: 0);
 
-            ButtonRef refreshButton = UIFactory.CreateButton(refreshRow, "RefreshButton", "Update");
+            ButtonRef refreshButton = UIFactory.CreateButton(this.refreshRow, "RefreshButton", "Update");
             UIFactory.SetLayoutElement(refreshButton.Component.gameObject, minWidth: 65, flexibleWidth: 0);
-            refreshButton.OnClick += UpdateTree;
+            refreshButton.OnClick += this.UpdateTree;
 
-            GameObject refreshToggle = UIFactory.CreateToggle(refreshRow, "RefreshToggle", out Toggle toggle, out Text text);
+            GameObject refreshToggle = UIFactory.CreateToggle(this.refreshRow, "RefreshToggle", out Toggle toggle, out Text text);
             UIFactory.SetLayoutElement(refreshToggle, flexibleWidth: 9999);
             text.text = "Auto-update (1 second)";
             text.alignment = TextAnchor.MiddleLeft;
             text.color = Color.white;
             text.fontSize = 12;
             toggle.isOn = false;
-            toggle.onValueChanged.AddListener((bool val) => AutoUpdate = val);
+            toggle.onValueChanged.AddListener((bool val) => this.AutoUpdate = val);
 
-            refreshRow.SetActive(false);
+            this.refreshRow.SetActive(false);
 
             // tree labels row
 
@@ -246,21 +244,21 @@ namespace UnityExplorer.ObjectExplorer
 
             // Transform Tree
 
-            UniverseLib.UI.Widgets.ScrollView.ScrollPool<TransformCell> scrollPool = UIFactory.CreateScrollPool<TransformCell>(uiRoot, "TransformTree", out GameObject scrollObj,
+            UniverseLib.UI.Widgets.ScrollView.ScrollPool<TransformCell> scrollPool = UIFactory.CreateScrollPool<TransformCell>(this.uiRoot, "TransformTree", out GameObject scrollObj,
                 out GameObject scrollContent, new Color(0.11f, 0.11f, 0.11f));
             UIFactory.SetLayoutElement(scrollObj, flexibleHeight: 9999);
             UIFactory.SetLayoutElement(scrollContent, flexibleHeight: 9999);
 
-            Tree = new TransformTree(scrollPool, GetRootEntries, OnCellClicked);
-            Tree.RefreshData(true, true, true, false);
+            this.Tree = new TransformTree(scrollPool, this.GetRootEntries, this.OnCellClicked);
+            this.Tree.RefreshData(true, true, true, false);
             //scrollPool.Viewport.GetComponent<Mask>().enabled = false;
             //UIRoot.GetComponent<Mask>().enabled = false;
 
             // Scene Loader
 
-            ConstructSceneLoader();
+            this.ConstructSceneLoader();
 
-            RuntimeHelper.StartCoroutine(TempFixCoro());
+            RuntimeHelper.StartCoroutine(this.TempFixCoro());
         }
 
         void OnCellClicked(GameObject obj) => InspectorManager.Inspect(obj);
@@ -274,7 +272,7 @@ namespace UnityExplorer.ObjectExplorer
                 yield return null;
 
             // Select "HideAndDontSave" and then go back to first scene.
-            this.sceneDropdown.value = sceneDropdown.options.Count - 1;
+            this.sceneDropdown.value = this.sceneDropdown.options.Count - 1;
             this.sceneDropdown.value = 0;
         }
 
@@ -282,33 +280,31 @@ namespace UnityExplorer.ObjectExplorer
 
         private void RefreshSceneLoaderOptions(string filter)
         {
-            allSceneDropdown.options.Clear();
-            allSceneDropdown.options.Add(new Dropdown.OptionData(DEFAULT_LOAD_TEXT));
+            this.allSceneDropdown.options.Clear();
+            this.allSceneDropdown.options.Add(new Dropdown.OptionData(DEFAULT_LOAD_TEXT));
 
             foreach (string scene in SceneHandler.AllSceneNames)
             {
-                if (string.IsNullOrEmpty(filter) || scene.ContainsIgnoreCase(filter))
-                    allSceneDropdown.options.Add(new Dropdown.OptionData(Path.GetFileNameWithoutExtension(scene)));
+                if (string.IsNullOrEmpty(filter) || scene.ContainsIgnoreCase(filter)) this.allSceneDropdown.options.Add(new Dropdown.OptionData(Path.GetFileNameWithoutExtension(scene)));
             }
 
-            allSceneDropdown.RefreshShownValue();
+            this.allSceneDropdown.RefreshShownValue();
 
-            if (loadButton != null)
-                RefreshSceneLoaderButtons();
+            if (this.loadButton != null) this.RefreshSceneLoaderButtons();
         }
 
         private void RefreshSceneLoaderButtons()
         {
-            string text = allSceneDropdown.captionText.text;
+            string text = this.allSceneDropdown.captionText.text;
             if (text == DEFAULT_LOAD_TEXT)
             {
-                loadButton.Component.interactable = false;
-                loadAdditiveButton.Component.interactable = false;
+                this.loadButton.Component.interactable = false;
+                this.loadAdditiveButton.Component.interactable = false;
             }
             else
             {
-                loadButton.Component.interactable = true;
-                loadAdditiveButton.Component.interactable = true;
+                this.loadButton.Component.interactable = true;
+                this.loadAdditiveButton.Component.interactable = true;
             }
         }
 
@@ -319,7 +315,7 @@ namespace UnityExplorer.ObjectExplorer
             {
                 if (SceneHandler.WasAbleToGetScenesInBuild)
                 {
-                    GameObject sceneLoaderObj = UIFactory.CreateVerticalGroup(uiRoot, "SceneLoader", true, true, true, true);
+                    GameObject sceneLoaderObj = UIFactory.CreateVerticalGroup(this.uiRoot, "SceneLoader", true, true, true, true);
                     UIFactory.SetLayoutElement(sceneLoaderObj, minHeight: 25);
 
                     // Title
@@ -331,43 +327,43 @@ namespace UnityExplorer.ObjectExplorer
 
                     InputFieldRef searchFilterObj = UIFactory.CreateInputField(sceneLoaderObj, "SearchFilterInput", "Filter scene names...");
                     UIFactory.SetLayoutElement(searchFilterObj.UIRoot, minHeight: 25, flexibleHeight: 0);
-                    searchFilterObj.OnValueChanged += RefreshSceneLoaderOptions;
+                    searchFilterObj.OnValueChanged += this.RefreshSceneLoaderOptions;
 
                     // Dropdown
 
-                    GameObject allSceneDropObj = UIFactory.CreateDropdown(sceneLoaderObj, "SceneLoaderDropdown", out allSceneDropdown, "", 14, null);
+                    GameObject allSceneDropObj = UIFactory.CreateDropdown(sceneLoaderObj, "SceneLoaderDropdown", out this.allSceneDropdown, "", 14, null);
                     UIFactory.SetLayoutElement(allSceneDropObj, minHeight: 25, minWidth: 150, flexibleWidth: 0, flexibleHeight: 0);
 
-                    RefreshSceneLoaderOptions(string.Empty);
+                    this.RefreshSceneLoaderOptions(string.Empty);
 
                     // Button row
 
                     GameObject buttonRow = UIFactory.CreateHorizontalGroup(sceneLoaderObj, "LoadButtons", true, true, true, true, 4);
 
-                    loadButton = UIFactory.CreateButton(buttonRow, "LoadSceneButton", "Load (Single)", new Color(0.1f, 0.3f, 0.3f));
-                    UIFactory.SetLayoutElement(loadButton.Component.gameObject, minHeight: 25, minWidth: 150);
-                    loadButton.OnClick += () =>
+                    this.loadButton = UIFactory.CreateButton(buttonRow, "LoadSceneButton", "Load (Single)", new Color(0.1f, 0.3f, 0.3f));
+                    UIFactory.SetLayoutElement(this.loadButton.Component.gameObject, minHeight: 25, minWidth: 150);
+                    this.loadButton.OnClick += () =>
                     {
-                        TryLoadScene(LoadSceneMode.Single, allSceneDropdown);
+                        this.TryLoadScene(LoadSceneMode.Single, this.allSceneDropdown);
                     };
 
-                    loadAdditiveButton = UIFactory.CreateButton(buttonRow, "LoadSceneButton", "Load (Additive)", new Color(0.1f, 0.3f, 0.3f));
-                    UIFactory.SetLayoutElement(loadAdditiveButton.Component.gameObject, minHeight: 25, minWidth: 150);
-                    loadAdditiveButton.OnClick += () =>
+                    this.loadAdditiveButton = UIFactory.CreateButton(buttonRow, "LoadSceneButton", "Load (Additive)", new Color(0.1f, 0.3f, 0.3f));
+                    UIFactory.SetLayoutElement(this.loadAdditiveButton.Component.gameObject, minHeight: 25, minWidth: 150);
+                    this.loadAdditiveButton.OnClick += () =>
                     {
-                        TryLoadScene(LoadSceneMode.Additive, allSceneDropdown);
+                        this.TryLoadScene(LoadSceneMode.Additive, this.allSceneDropdown);
                     };
 
                     Color disabledColor = new(0.24f, 0.24f, 0.24f);
-                    RuntimeHelper.SetColorBlock(loadButton.Component, disabled: disabledColor);
-                    RuntimeHelper.SetColorBlock(loadAdditiveButton.Component, disabled: disabledColor);
+                    RuntimeHelper.SetColorBlock(this.loadButton.Component, disabled: disabledColor);
+                    RuntimeHelper.SetColorBlock(this.loadAdditiveButton.Component, disabled: disabledColor);
 
-                    loadButton.Component.interactable = false;
-                    loadAdditiveButton.Component.interactable = false;
+                    this.loadButton.Component.interactable = false;
+                    this.loadAdditiveButton.Component.interactable = false;
 
-                    allSceneDropdown.onValueChanged.AddListener((int val) =>
+                    this.allSceneDropdown.onValueChanged.AddListener((int val) =>
                     {
-                        RefreshSceneLoaderButtons();
+                        this.RefreshSceneLoaderButtons();
                     });
                 }
             }

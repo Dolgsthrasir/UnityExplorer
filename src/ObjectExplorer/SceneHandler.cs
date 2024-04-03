@@ -58,7 +58,7 @@ namespace UnityExplorer.ObjectExplorer
                 if (sceneUtil == null)
                     throw new Exception("This version of Unity does not ship with the 'SceneUtility' class, or it was not unstripped.");
 
-                System.Reflection.MethodInfo method = sceneUtil.GetMethod("GetScenePathByBuildIndex", ReflectionUtility.FLAGS);
+                MethodInfo method = sceneUtil.GetMethod("GetScenePathByBuildIndex", ReflectionUtility.FLAGS);
                 int sceneCount = SceneManager.sceneCountInBuildSettings;
                 for (int i = 0; i < sceneCount; i++)
                 {

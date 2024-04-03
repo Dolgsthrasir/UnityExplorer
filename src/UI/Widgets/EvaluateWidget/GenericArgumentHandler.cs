@@ -10,9 +10,9 @@ namespace UnityExplorer.UI.Widgets
         {
             this.genericArgument = genericArgument;
 
-            typeCompleter.Enabled = true;
-            typeCompleter.BaseType = this.genericArgument;
-            typeCompleter.CacheTypes();
+            this.typeCompleter.Enabled = true;
+            this.typeCompleter.BaseType = this.genericArgument;
+            this.typeCompleter.CacheTypes();
 
             Type[] constraints = this.genericArgument.GetGenericParameterConstraints();
 
@@ -29,7 +29,7 @@ namespace UnityExplorer.UI.Widgets
                     sb.Append(')');
             }
 
-            argNameLabel.text = sb.ToString();
+            this.argNameLabel.text = sb.ToString();
         }
 
         public void OnReturned()

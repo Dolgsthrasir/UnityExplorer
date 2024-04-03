@@ -14,7 +14,7 @@ namespace UnityExplorer.CacheObject
                 $"\r\n<color=grey><i>{configElement.Description}</i></color>";
             this.NameLabelTextRaw = string.Empty;
 
-            configElement.OnValueChangedNotify += UpdateValueFromSource;
+            configElement.OnValueChangedNotify += this.UpdateValueFromSource;
         }
 
         public IConfigElement RefConfigElement;
@@ -28,16 +28,16 @@ namespace UnityExplorer.CacheObject
             //if (RefConfigElement.BoxedValue.Equals(this.Value))
             //    return;
 
-            SetValueFromSource(RefConfigElement.BoxedValue);
+            this.SetValueFromSource(this.RefConfigElement.BoxedValue);
 
             if (this.CellView != null)
-                this.SetDataToCell(CellView);
+                this.SetDataToCell(this.CellView);
         }
 
         public override void TrySetUserValue(object value)
         {
             this.Value = value;
-            RefConfigElement.BoxedValue = value;
+            this.RefConfigElement.BoxedValue = value;
         }
 
         protected override bool TryAutoEvaluateIfUnitialized(CacheObjectCell cell) => true;

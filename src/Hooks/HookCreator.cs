@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Linq;
 using System.Xml.Serialization;
 using HarmonyLib;
@@ -56,17 +57,17 @@ namespace UnityExplorer.Hooks
             if (type.IsGenericType)
             {
                 pendingGenericDefinition = type;
-                HookManagerPanel.genericArgsHandler.Show(OnGenericClassChosen, OnGenericClassCancel, type);
+                HookManagerPanel.genericArgsHandler.Show(this.OnGenericClassChosen, this.OnGenericClassCancel, type);
                 HookManagerPanel.Instance.SetPage(HookManagerPanel.Pages.GenericArgsSelector);
                 return;    
             }
 
-            ShowMethodsForType(type);
+            this.ShowMethodsForType(type);
         }
 
         void ShowMethodsForType(Type type)
         {
-            SetAddHooksLabelType(SignatureHighlighter.Parse(type, true));
+            this.SetAddHooksLabelType(SignatureHighlighter.Parse(type, true));
 
             AddHooksMethodFilterInput.Text = string.Empty;
 
@@ -88,7 +89,7 @@ namespace UnityExplorer.Hooks
         void OnGenericClassChosen(Type[] genericArgs)
         {
             Type generic = pendingGenericDefinition.MakeGenericType(genericArgs);
-            ShowMethodsForType(generic);
+            this.ShowMethodsForType(generic);
             HookManagerPanel.Instance.SetPage(HookManagerPanel.Pages.ClassMethodSelector);
         }
 
@@ -140,7 +141,7 @@ namespace UnityExplorer.Hooks
             HookManagerPanel.Instance.SetPage(HookManagerPanel.Pages.ClassMethodSelector);
         }
 
-        public static HookInstance AddHook(MethodInfo method, bool enabled = true)
+        public static HookInstance AddHook(MethodInfo method, bool startUp = false)
         {
             HookManagerPanel.Instance.SetPage(HookManagerPanel.Pages.ClassMethodSelector);
 
@@ -152,7 +153,7 @@ namespace UnityExplorer.Hooks
             }
 
             HookInstance hook = new(method);
-            hook.Enabled = enabled;
+            hook.StartUp = startUp;
             HookList.hookedSignatures.Add(sig);
             HookList.currentHooks.Add(sig, hook);
 
@@ -273,15 +274,73 @@ namespace UnityExplorer.Hooks
             tw.Close();
             ExplorerCore.Log("Save hook: " + data.Description + " to: " + filename);
         }
+        
+        public static void SaveStartup(HookInstance hook, bool enabled)
+        {
+            if (enabled)
+            {
+                HookData data = new HookData();
+                data.Description = hook.TargetMethod.FullDescription();
+                data.ReflectedType = hook.TargetMethod.ReflectedType.ToString();
+                data.SourceCode = hook.PatchSourceCode;
+                string filename = data.Description.GetHashCode().ToString("X8") + ".txt";
+                string folderpath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "UnityExplorerHarmonyHooksStartup");
+                Directory.CreateDirectory(folderpath);
+                string fpath = Path.Combine(folderpath, filename);
+                XmlSerializer xs = new XmlSerializer(typeof(HookData));
+                TextWriter tw = new StreamWriter(fpath);
+                xs.Serialize(tw, data);
+                tw.Close();
+                ExplorerCore.Log("Save hook: " + data.Description + " to: " + filename);
+            }
+            else
+            {
+                HookCreator.HookData data = new HookCreator.HookData();
+                data.Description = hook.TargetMethod.FullDescription();
+                data.ReflectedType = hook.TargetMethod.ReflectedType.ToString();
+                data.SourceCode = hook.PatchSourceCode;
+                string filename = data.Description.GetHashCode().ToString("X8") + ".txt";
+                string folderpath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "UnityExplorerHarmonyHooksStartup");
+                Directory.CreateDirectory(folderpath);
+                string fpath = Path.Combine(folderpath, filename);
+                if (File.Exists(fpath))
+                {
+                    File.Delete(fpath);
+                    ExplorerCore.Log($"File {filename} deleted successfully.");
+                }
+                else
+                {
+                    ExplorerCore.Log($"file: {filename} not found to delete");
+                }
+            }
+        }
+
+        public IEnumerable<string> LoadStartUps()
+        {
+            string folderpath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "UnityExplorerHarmonyHooksStartup");
+            Directory.CreateDirectory(folderpath);
+            ExplorerCore.Log("Hooks path: " + folderpath);
+            XmlSerializer xs = new XmlSerializer(typeof(HookData));
+            xs.UnknownNode += new XmlNodeEventHandler(this.xs_UnknownNode);
+            xs.UnknownAttribute += new XmlAttributeEventHandler(this.xs_UnknownAttribute);
+            DirectoryInfo di = new DirectoryInfo(folderpath);
+            FileInfo[] fs = di.GetFiles("*.txt");
+            foreach (FileInfo fi in fs)
+            {
+                ExplorerCore.Log($"startup {fi.Name} found.");
+                yield return fi.Name;
+            }
+        }
 
         public void LoadSavedHooks()
         {
+            var startups = this.LoadStartUps().ToList();
             string folderpath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "UnityExplorerHarmonyHooks");
             Directory.CreateDirectory(folderpath);
             ExplorerCore.Log("Hooks path: " + folderpath);
             XmlSerializer xs = new XmlSerializer(typeof(HookData));
-            xs.UnknownNode += new XmlNodeEventHandler(xs_UnknownNode);
-            xs.UnknownAttribute += new XmlAttributeEventHandler(xs_UnknownAttribute);
+            xs.UnknownNode += new XmlNodeEventHandler(this.xs_UnknownNode);
+            xs.UnknownAttribute += new XmlAttributeEventHandler(this.xs_UnknownAttribute);
             DirectoryInfo di = new DirectoryInfo(folderpath);
             FileInfo[] fs = di.GetFiles("*.txt");
             foreach (FileInfo fi in fs)
@@ -313,10 +372,24 @@ namespace UnityExplorer.Hooks
                         return;
                     }
 
-                    var hook = AddHook(method, false);
+                    var enabledOnStartup = startups.Contains(fi.Name);
+                    var hook = AddHook(method, enabledOnStartup);
                     if (hook != null)
                     {
-                        hook.CompileAndGenerateProcessor(hookData.SourceCode);
+                        // hook.CompileAndGenerateProcessor(hookData.SourceCode);
+                        if (hook.CompileAndGenerateProcessor(hookData.SourceCode))
+                        {
+                            if (hook.StartUp)
+                            {
+                                hook.Patch();
+                            }
+                            hook.PatchSourceCode = hookData.SourceCode;
+                            HookManagerPanel.Instance.SetPage(HookManagerPanel.Pages.ClassMethodSelector);
+                        }
+                        else
+                        {
+                            ExplorerCore.LogWarning($"compile failed!");
+                        }
                     }
                     else
                     {
@@ -363,14 +436,14 @@ namespace UnityExplorer.Hooks
 
             ButtonRef addButton = UIFactory.CreateButton(addRow, "AddButton", "View Methods");
             UIFactory.SetLayoutElement(addButton.Component.gameObject, minWidth: 110, minHeight: 25);
-            addButton.OnClick += () => { OnClassSelectedForHooks(ClassSelectorInputField.Text); };
+            addButton.OnClick += () => { this.OnClassSelectedForHooks(ClassSelectorInputField.Text); };
 
             AddHooksLabel = UIFactory.CreateLabel(AddHooksRoot, "AddLabel", "Choose a class to begin...", TextAnchor.MiddleCenter);
             UIFactory.SetLayoutElement(AddHooksLabel.gameObject, minHeight: 30, minWidth: 100, flexibleWidth: 9999);
 
             AddHooksMethodFilterInput = UIFactory.CreateInputField(AddHooksRoot, "FilterInputField", "Filter method names...");
             UIFactory.SetLayoutElement(AddHooksMethodFilterInput.Component.gameObject, minHeight: 30, flexibleWidth: 9999);
-            AddHooksMethodFilterInput.OnValueChanged += OnAddHookFilterInputChanged;
+            AddHooksMethodFilterInput.OnValueChanged += this.OnAddHookFilterInputChanged;
 
             AddHooksScrollPool = UIFactory.CreateScrollPool<AddHookCell>(AddHooksRoot, "MethodAddScrollPool",
                 out GameObject addScrollRoot, out GameObject addContent);

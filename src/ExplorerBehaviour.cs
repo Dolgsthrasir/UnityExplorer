@@ -38,24 +38,24 @@ namespace UnityExplorer
 
         internal void OnDestroy()
         {
-            OnApplicationQuit();
+            this.OnApplicationQuit();
         }
 
         internal bool quitting;
 
         internal void OnApplicationQuit()
         {
-            if (quitting) return;
-            quitting = true;
+            if (this.quitting) return;
+            this.quitting = true;
 
-            TryDestroy(UIManager.UIRoot?.transform.root.gameObject);
+            this.TryDestroy(UIManager.UIRoot?.transform.root.gameObject);
 
-            TryDestroy((typeof(Universe).Assembly.GetType("UniverseLib.UniversalBehaviour")
+            this.TryDestroy((typeof(Universe).Assembly.GetType("UniverseLib.UniversalBehaviour")
                 .GetProperty("Instance", BindingFlags.Static | BindingFlags.NonPublic)
                 .GetValue(null, null)
                 as Component).gameObject);
 
-            TryDestroy(this.gameObject);
+            this.TryDestroy(this.gameObject);
         }
 
         internal void TryDestroy(GameObject obj)

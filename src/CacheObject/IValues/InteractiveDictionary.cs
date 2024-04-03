@@ -12,13 +12,13 @@ namespace UnityExplorer.CacheObject.IValues
         object ICacheObjectController.Target => this.CurrentOwner.Value;
         public Type TargetType { get; private set; }
 
-        public override bool CanWrite => base.CanWrite && RefIDictionary != null && !RefIDictionary.IsReadOnly;
+        public override bool CanWrite => base.CanWrite && this.RefIDictionary != null && !this.RefIDictionary.IsReadOnly;
 
         public Type KeysType;
         public Type ValuesType;
         public IDictionary RefIDictionary;
 
-        public int ItemCount => cachedEntries.Count;
+        public int ItemCount => this.cachedEntries.Count;
         private readonly List<CacheKeyValuePair> cachedEntries = new();
 
         public ScrollPool<CacheKeyValuePairCell> DictScrollPool { get; private set; }
@@ -34,27 +34,27 @@ namespace UnityExplorer.CacheObject.IValues
         {
             base.OnBorrowed(owner);
 
-            DictScrollPool.Refresh(true, true);
+            this.DictScrollPool.Refresh(true, true);
         }
 
         public override void ReleaseFromOwner()
         {
             base.ReleaseFromOwner();
 
-            ClearAndRelease();
+            this.ClearAndRelease();
         }
 
         private void ClearAndRelease()
         {
-            RefIDictionary = null;
+            this.RefIDictionary = null;
 
-            foreach (CacheKeyValuePair entry in cachedEntries)
+            foreach (CacheKeyValuePair entry in this.cachedEntries)
             {
                 entry.UnlinkFromView();
                 entry.ReleasePooledObjects();
             }
 
-            cachedEntries.Clear();
+            this.cachedEntries.Clear();
         }
 
         public override void SetValue(object value)
@@ -62,17 +62,17 @@ namespace UnityExplorer.CacheObject.IValues
             if (value == null)
             {
                 // should never be null
-                ClearAndRelease();
+                this.ClearAndRelease();
                 return;
             }
             else
             {
                 Type type = value.GetActualType();
-                ReflectionUtility.TryGetEntryTypes(type, out KeysType, out ValuesType);
+                ReflectionUtility.TryGetEntryTypes(type, out this.KeysType, out this.ValuesType);
 
-                CacheEntries(value);
+                this.CacheEntries(value);
 
-                TopLabel.text = $"[{cachedEntries.Count}] {SignatureHighlighter.Parse(type, false)}";
+                this.TopLabel.text = $"[{this.cachedEntries.Count}] {SignatureHighlighter.Parse(type, false)}";
             }
 
             this.DictScrollPool.Refresh(true, false);
@@ -80,26 +80,26 @@ namespace UnityExplorer.CacheObject.IValues
 
         private void CacheEntries(object value)
         {
-            RefIDictionary = value as IDictionary;
+            this.RefIDictionary = value as IDictionary;
 
             if (ReflectionUtility.TryGetDictEnumerator(value, out IEnumerator<DictionaryEntry> dictEnumerator))
             {
-                NotSupportedLabel.gameObject.SetActive(false);
+                this.NotSupportedLabel.gameObject.SetActive(false);
 
                 int idx = 0;
                 while (dictEnumerator.MoveNext())
                 {
                     CacheKeyValuePair cache;
-                    if (idx >= cachedEntries.Count)
+                    if (idx >= this.cachedEntries.Count)
                     {
                         cache = new CacheKeyValuePair();
                         cache.SetDictOwner(this, idx);
-                        cachedEntries.Add(cache);
+                        this.cachedEntries.Add(cache);
                     }
                     else
-                        cache = cachedEntries[idx];
+                        cache = this.cachedEntries[idx];
 
-                    cache.SetFallbackType(ValuesType);
+                    cache.SetFallbackType(this.ValuesType);
                     cache.SetKey(dictEnumerator.Current.Key);
                     cache.SetValueFromSource(dictEnumerator.Current.Value);
 
@@ -107,22 +107,22 @@ namespace UnityExplorer.CacheObject.IValues
                 }
 
                 // Remove excess cached entries if dict count decreased
-                if (cachedEntries.Count > idx)
+                if (this.cachedEntries.Count > idx)
                 {
-                    for (int i = cachedEntries.Count - 1; i >= idx; i--)
+                    for (int i = this.cachedEntries.Count - 1; i >= idx; i--)
                     {
-                        CacheKeyValuePair cache = cachedEntries[i];
+                        CacheKeyValuePair cache = this.cachedEntries[i];
                         if (cache.CellView != null)
                             cache.UnlinkFromView();
 
                         cache.ReleasePooledObjects();
-                        cachedEntries.RemoveAt(i);
+                        this.cachedEntries.RemoveAt(i);
                     }
                 }
             }
             else
             {
-                NotSupportedLabel.gameObject.SetActive(true);
+                this.NotSupportedLabel.gameObject.SetActive(true);
             }
         }
 
@@ -132,15 +132,15 @@ namespace UnityExplorer.CacheObject.IValues
         {
             try
             {
-                if (!RefIDictionary.Contains(key))
+                if (!this.RefIDictionary.Contains(key))
                 {
                     ExplorerCore.LogWarning("Unable to set key! Key may have been boxed to/from Il2Cpp Object.");
                     return;
                 }
 
-                RefIDictionary[key] = value;
+                this.RefIDictionary[key] = value;
 
-                CacheKeyValuePair entry = cachedEntries[keyIndex];
+                CacheKeyValuePair entry = this.cachedEntries[keyIndex];
                 entry.SetValueFromSource(value);
                 if (entry.CellView != null)
                     entry.SetDataToCell(entry.CellView);
@@ -157,21 +157,21 @@ namespace UnityExplorer.CacheObject.IValues
 
         public void SetCell(CacheKeyValuePairCell cell, int index)
         {
-            CacheObjectControllerHelper.SetCell(cell, index, cachedEntries, SetCellLayout);
+            CacheObjectControllerHelper.SetCell(cell, index, this.cachedEntries, this.SetCellLayout);
         }
 
-        public int AdjustedWidth => (int)UIRect.rect.width - 80;
+        public int AdjustedWidth => (int)this.UIRect.rect.width - 80;
 
         public override void SetLayout()
         {
             float minHeight = 5f;
 
-            KeyTitleLayout.minWidth = AdjustedWidth * 0.44f;
-            ValueTitleLayout.minWidth = AdjustedWidth * 0.55f;
+            this.KeyTitleLayout.minWidth = this.AdjustedWidth * 0.44f;
+            this.ValueTitleLayout.minWidth = this.AdjustedWidth * 0.55f;
 
-            foreach (CacheKeyValuePairCell cell in DictScrollPool.CellPool)
+            foreach (CacheKeyValuePairCell cell in this.DictScrollPool.CellPool)
             {
-                SetCellLayout(cell);
+                this.SetCellLayout(cell);
                 if (cell.Enabled)
                     minHeight += cell.Rect.rect.height;
             }
@@ -194,48 +194,48 @@ namespace UnityExplorer.CacheObject.IValues
 
         public override GameObject CreateContent(GameObject parent)
         {
-            UIRoot = UIFactory.CreateVerticalGroup(parent, "InteractiveDict", true, true, true, true, 6, new Vector4(10, 3, 15, 4),
+            this.UIRoot = UIFactory.CreateVerticalGroup(parent, "InteractiveDict", true, true, true, true, 6, new Vector4(10, 3, 15, 4),
                 new Color(0.05f, 0.05f, 0.05f));
-            UIFactory.SetLayoutElement(UIRoot, flexibleWidth: 9999, minHeight: 25, flexibleHeight: 475);
-            UIRoot.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            UIFactory.SetLayoutElement(this.UIRoot, flexibleWidth: 9999, minHeight: 25, flexibleHeight: 475);
+            this.UIRoot.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
-            UIRect = UIRoot.GetComponent<RectTransform>();
+            this.UIRect = this.UIRoot.GetComponent<RectTransform>();
 
             // Entries label
 
-            TopLabel = UIFactory.CreateLabel(UIRoot, "EntryLabel", "not set", TextAnchor.MiddleLeft, fontSize: 16);
-            TopLabel.horizontalOverflow = HorizontalWrapMode.Overflow;
+            this.TopLabel = UIFactory.CreateLabel(this.UIRoot, "EntryLabel", "not set", TextAnchor.MiddleLeft, fontSize: 16);
+            this.TopLabel.horizontalOverflow = HorizontalWrapMode.Overflow;
 
             // key / value titles
 
-            GameObject titleGroup = UIFactory.CreateUIObject("TitleGroup", UIRoot);
+            GameObject titleGroup = UIFactory.CreateUIObject("TitleGroup", this.UIRoot);
             UIFactory.SetLayoutElement(titleGroup, minHeight: 25, flexibleWidth: 9999, flexibleHeight: 0);
             UIFactory.SetLayoutGroup<HorizontalLayoutGroup>(titleGroup, false, true, true, true, padLeft: 65, padRight: 0, childAlignment: TextAnchor.LowerLeft);
 
             Text keyTitle = UIFactory.CreateLabel(titleGroup, "KeyTitle", "Keys", TextAnchor.MiddleLeft);
             UIFactory.SetLayoutElement(keyTitle.gameObject, minWidth: 100, flexibleWidth: 0);
-            KeyTitleLayout = keyTitle.GetComponent<LayoutElement>();
+            this.KeyTitleLayout = keyTitle.GetComponent<LayoutElement>();
 
             Text valueTitle = UIFactory.CreateLabel(titleGroup, "ValueTitle", "Values", TextAnchor.MiddleLeft);
             UIFactory.SetLayoutElement(valueTitle.gameObject, minWidth: 100, flexibleWidth: 0);
-            ValueTitleLayout = valueTitle.GetComponent<LayoutElement>();
+            this.ValueTitleLayout = valueTitle.GetComponent<LayoutElement>();
 
             // entry scroll pool
 
-            DictScrollPool = UIFactory.CreateScrollPool<CacheKeyValuePairCell>(UIRoot, "EntryList", out GameObject scrollObj,
+            this.DictScrollPool = UIFactory.CreateScrollPool<CacheKeyValuePairCell>(this.UIRoot, "EntryList", out GameObject scrollObj,
                 out GameObject _, new Color(0.09f, 0.09f, 0.09f));
             UIFactory.SetLayoutElement(scrollObj, minHeight: 150, flexibleHeight: 0);
-            DictScrollPool.Initialize(this, SetLayout);
-            scrollLayout = scrollObj.GetComponent<LayoutElement>();
+            this.DictScrollPool.Initialize(this, this.SetLayout);
+            this.scrollLayout = scrollObj.GetComponent<LayoutElement>();
 
-            NotSupportedLabel = UIFactory.CreateLabel(DictScrollPool.Content.gameObject, "NotSupportedMessage",
+            this.NotSupportedLabel = UIFactory.CreateLabel(this.DictScrollPool.Content.gameObject, "NotSupportedMessage",
                 "The IDictionary failed to enumerate. This is likely due to an issue with Unhollowed interfaces.",
                 TextAnchor.MiddleLeft, Color.red);
 
-            UIFactory.SetLayoutElement(NotSupportedLabel.gameObject, minHeight: 25, flexibleWidth: 9999);
-            NotSupportedLabel.gameObject.SetActive(false);
+            UIFactory.SetLayoutElement(this.NotSupportedLabel.gameObject, minHeight: 25, flexibleWidth: 9999);
+            this.NotSupportedLabel.gameObject.SetActive(false);
 
-            return UIRoot;
+            return this.UIRoot;
         }
     }
 }

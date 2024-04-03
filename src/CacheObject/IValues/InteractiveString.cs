@@ -20,10 +20,10 @@ namespace UnityExplorer.CacheObject.IValues
             base.OnBorrowed(owner);
 
             bool canWrite = owner.CanWrite && owner.State != ValueState.Exception;
-            inputField.Component.readOnly = !canWrite;
-            ApplyButton.Component.gameObject.SetActive(canWrite);
+            this.inputField.Component.readOnly = !canWrite;
+            this.ApplyButton.Component.gameObject.SetActive(canWrite);
 
-            SaveFilePath.Text = Path.Combine(ConfigManager.Default_Output_Path.Value, "untitled.txt");
+            this.SaveFilePath.Text = Path.Combine(ConfigManager.Default_Output_Path.Value, "untitled.txt");
         }
 
         private bool IsStringTooLong(string s)
@@ -36,91 +36,91 @@ namespace UnityExplorer.CacheObject.IValues
 
         public override void SetValue(object value)
         {
-            if (CurrentOwner.State == ValueState.Exception)
-                value = CurrentOwner.LastException.ToString();
+            if (this.CurrentOwner.State == ValueState.Exception)
+                value = this.CurrentOwner.LastException.ToString();
 
-            RealValue = value as string;
-            SaveFileRow.SetActive(IsStringTooLong(RealValue));
+            this.RealValue = value as string;
+            this.SaveFileRow.SetActive(this.IsStringTooLong(this.RealValue));
 
             if (value == null)
             {
-                inputField.Text = "";
-                EditedValue = "";
+                this.inputField.Text = "";
+                this.EditedValue = "";
             }
             else
             {
-                EditedValue = (string)value;
-                inputField.Text = EditedValue;
+                this.EditedValue = (string)value;
+                this.inputField.Text = this.EditedValue;
             }
         }
 
         private void OnApplyClicked()
         {
-            CurrentOwner.SetUserValue(EditedValue);
+            this.CurrentOwner.SetUserValue(this.EditedValue);
         }
 
         private void OnInputChanged(string input)
         {
-            EditedValue = input;
-            SaveFileRow.SetActive(IsStringTooLong(EditedValue));
+            this.EditedValue = input;
+            this.SaveFileRow.SetActive(this.IsStringTooLong(this.EditedValue));
         }
 
         private void OnSaveFileClicked()
         {
-            if (RealValue == null)
+            if (this.RealValue == null)
                 return;
 
-            if (string.IsNullOrEmpty(SaveFilePath.Text))
+            if (string.IsNullOrEmpty(this.SaveFilePath.Text))
             {
                 ExplorerCore.LogWarning("Cannot save an empty file path!");
                 return;
             }
 
-            string path = IOUtility.EnsureValidFilePath(SaveFilePath.Text);
+            string path = IOUtility.EnsureValidFilePath(this.SaveFilePath.Text);
 
             if (File.Exists(path))
                 File.Delete(path);
 
-            File.WriteAllText(path, RealValue);
+            File.WriteAllText(path, this.RealValue);
         }
 
         public override GameObject CreateContent(GameObject parent)
         {
-            UIRoot = UIFactory.CreateVerticalGroup(parent, "InteractiveString", false, false, true, true, 3, new Vector4(4, 4, 4, 4),
+            this.UIRoot = UIFactory.CreateVerticalGroup(parent, "InteractiveString", false, false, true, true, 3, new Vector4(4, 4, 4, 4),
                 new Color(0.06f, 0.06f, 0.06f));
 
             // Save to file helper
 
-            SaveFileRow = UIFactory.CreateUIObject("SaveFileRow", UIRoot);
-            UIFactory.SetLayoutElement(SaveFileRow, flexibleWidth: 9999);
-            UIFactory.SetLayoutGroup<VerticalLayoutGroup>(SaveFileRow, false, true, true, true, 3);
+            this.SaveFileRow = UIFactory.CreateUIObject("SaveFileRow", this.UIRoot);
+            UIFactory.SetLayoutElement(this.SaveFileRow, flexibleWidth: 9999);
+            UIFactory.SetLayoutGroup<VerticalLayoutGroup>(this.SaveFileRow, false, true, true, true, 3);
 
-            UIFactory.CreateLabel(SaveFileRow, "Info", "<color=red>String is too long! Save to file if you want to see the full string.</color>",
+            UIFactory.CreateLabel(this.SaveFileRow, "Info", "<color=red>String is too long! Save to file if you want to see the full string.</color>",
                 TextAnchor.MiddleLeft);
 
-            GameObject horizRow = UIFactory.CreateUIObject("Horiz", SaveFileRow);
+            GameObject horizRow = UIFactory.CreateUIObject("Horiz", this.SaveFileRow);
             UIFactory.SetLayoutGroup<HorizontalLayoutGroup>(horizRow, false, false, true, true, 4);
 
             ButtonRef saveButton = UIFactory.CreateButton(horizRow, "SaveButton", "Save file");
             UIFactory.SetLayoutElement(saveButton.Component.gameObject, minHeight: 25, minWidth: 100, flexibleWidth: 0);
-            saveButton.OnClick += OnSaveFileClicked;
+            saveButton.OnClick += this.OnSaveFileClicked;
 
-            SaveFilePath = UIFactory.CreateInputField(horizRow, "SaveInput", "...");
-            UIFactory.SetLayoutElement(SaveFilePath.UIRoot, minHeight: 25, flexibleWidth: 9999);
+            this.SaveFilePath = UIFactory.CreateInputField(horizRow, "SaveInput", "...");
+            UIFactory.SetLayoutElement(this.SaveFilePath.UIRoot, minHeight: 25, flexibleWidth: 9999);
 
             // Main Input / apply
 
-            ApplyButton = UIFactory.CreateButton(UIRoot, "ApplyButton", "Apply", new Color(0.2f, 0.27f, 0.2f));
-            UIFactory.SetLayoutElement(ApplyButton.Component.gameObject, minHeight: 25, minWidth: 100, flexibleWidth: 0);
-            ApplyButton.OnClick += OnApplyClicked;
+            this.ApplyButton = UIFactory.CreateButton(this.UIRoot, "ApplyButton", "Apply", new Color(0.2f, 0.27f, 0.2f));
+            UIFactory.SetLayoutElement(this.ApplyButton.Component.gameObject, minHeight: 25, minWidth: 100, flexibleWidth: 0);
+            this.ApplyButton.OnClick += this.OnApplyClicked;
 
-            inputField = UIFactory.CreateInputField(UIRoot, "InputField", "empty");
-            inputField.UIRoot.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-            UIFactory.SetLayoutElement(inputField.UIRoot, minHeight: 25, flexibleHeight: 500, flexibleWidth: 9999);
-            inputField.Component.lineType = InputField.LineType.MultiLineNewline;
-            inputField.OnValueChanged += OnInputChanged;
+            this.inputField = UIFactory.CreateInputField(this.UIRoot, "InputField", "empty");
+            this.inputField.UIRoot.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            UIFactory.SetLayoutElement(this.inputField.UIRoot, minHeight: 25, flexibleHeight: 500, flexibleWidth: 9999);
+            this.inputField.Component.lineType = InputField.LineType.MultiLineNewline;
+            this.inputField.OnValueChanged += this.OnInputChanged;
 
-            return UIRoot;
+            return this.UIRoot;
         }
 
     }

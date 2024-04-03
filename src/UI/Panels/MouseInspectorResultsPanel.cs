@@ -30,8 +30,8 @@ namespace UnityExplorer.UI.Panels
 
         public void ShowResults()
         {
-            dataHandler.RefreshData();
-            buttonScrollPool.Refresh(true, true);
+            this.dataHandler.RefreshData();
+            this.buttonScrollPool.Refresh(true, true);
         }
 
         private List<GameObject> GetEntries() => UiInspector.LastHitObjects;
@@ -65,12 +65,12 @@ namespace UnityExplorer.UI.Panels
 
         protected override void ConstructPanelContent()
         {
-            dataHandler = new ButtonListHandler<GameObject, ButtonCell>(buttonScrollPool, GetEntries, SetCell, ShouldDisplayCell, OnCellClicked);
+            this.dataHandler = new ButtonListHandler<GameObject, ButtonCell>(this.buttonScrollPool, this.GetEntries, this.SetCell, this.ShouldDisplayCell, this.OnCellClicked);
 
-            buttonScrollPool = UIFactory.CreateScrollPool<ButtonCell>(this.ContentRoot, "ResultsList", out GameObject scrollObj,
+            this.buttonScrollPool = UIFactory.CreateScrollPool<ButtonCell>(this.ContentRoot, "ResultsList", out GameObject scrollObj,
                 out GameObject scrollContent);
 
-            buttonScrollPool.Initialize(dataHandler);
+            this.buttonScrollPool.Initialize(this.dataHandler);
             UIFactory.SetLayoutElement(scrollObj, flexibleHeight: 9999);
         }
     }

@@ -23,7 +23,7 @@ namespace UnityExplorer.CacheObject.IValues
 
         public virtual bool CanWrite => this.CurrentOwner.CanWrite;
 
-        public CacheObjectBase CurrentOwner => owner;
+        public CacheObjectBase CurrentOwner => this.owner;
         private CacheObjectBase owner;
 
         public bool PendingValueWanted;
@@ -33,7 +33,7 @@ namespace UnityExplorer.CacheObject.IValues
             if (this.owner != null)
             {
                 ExplorerCore.LogWarning("Setting an IValue's owner but there is already one set. Maybe it wasn't cleaned up?");
-                ReleaseFromOwner();
+                this.ReleaseFromOwner();
             }
 
             this.owner = owner;

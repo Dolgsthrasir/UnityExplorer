@@ -15,8 +15,7 @@ namespace UnityExplorer.Config
 
         public override void LoadConfig()
         {
-            if (!TryLoadConfig())
-                SaveConfig();
+            if (!this.TryLoadConfig()) this.SaveConfig();
         }
 
         public override void RegisterConfigElement<T>(ConfigElement<T> element)
@@ -33,7 +32,7 @@ namespace UnityExplorer.Config
         public override T GetConfigValue<T>(ConfigElement<T> element) => element.Value;
 
         // Always just auto-save.
-        public override void OnAnyConfigChanged() => SaveConfig();
+        public override void OnAnyConfigChanged() => this.SaveConfig();
 
         public bool TryLoadConfig()
         {

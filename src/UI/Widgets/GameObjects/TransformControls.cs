@@ -8,7 +8,7 @@ namespace UnityExplorer.UI.Widgets
     public class TransformControls
     {
         public GameObjectControls Owner { get; }
-        GameObject Target => Owner.Target;
+        GameObject Target => this.Owner.Target;
 
         public AxisControl CurrentSlidingAxisControl { get; set; }
 
@@ -20,20 +20,20 @@ namespace UnityExplorer.UI.Widgets
         public TransformControls(GameObjectControls owner)
         {
             this.Owner = owner;
-            Create();
+            this.Create();
         }
 
         public void UpdateTransformControlValues(bool force)
         {
-            PositionControl.Update(force);
-            LocalPositionControl.Update(force);
-            RotationControl.Update(force);
-            ScaleControl.Update(force);
+            this.PositionControl.Update(force);
+            this.LocalPositionControl.Update(force);
+            this.RotationControl.Update(force);
+            this.ScaleControl.Update(force);
         }
 
         public void UpdateVectorSlider()
         {
-            AxisControl control = CurrentSlidingAxisControl;
+            AxisControl control = this.CurrentSlidingAxisControl;
 
             if (control == null)
                 return;
@@ -45,12 +45,12 @@ namespace UnityExplorer.UI.Widgets
                 return;
             }
 
-            AxisControlOperation(control.slider.value, control.parent, control.axis);
+            this.AxisControlOperation(control.slider.value, control.parent, control.axis);
         }
 
         public void AxisControlOperation(float value, Vector3Control parent, int axis)
         {
-            Transform transform = Target.transform;
+            Transform transform = this.Target.transform;
 
             Vector3 vector = parent.Type switch
             {
@@ -85,19 +85,19 @@ namespace UnityExplorer.UI.Widgets
                     transform.localScale = vector; break;
             }
 
-            UpdateTransformControlValues(false);
+            this.UpdateTransformControlValues(false);
         }
 
         public void Create()
         {
-            GameObject transformGroup = UIFactory.CreateVerticalGroup(Owner.Parent.Content, "TransformControls", false, false, true, true, 2,
+            GameObject transformGroup = UIFactory.CreateVerticalGroup(this.Owner.Parent.Content, "TransformControls", false, false, true, true, 2,
                 new Vector4(2, 2, 0, 0), new Color(0.1f, 0.1f, 0.1f));
             UIFactory.SetLayoutElement(transformGroup, minHeight: 100, flexibleWidth: 9999);
 
-            PositionControl = Vector3Control.Create(this, transformGroup, "Position:", TransformType.Position);
-            LocalPositionControl = Vector3Control.Create(this, transformGroup, "Local Position:", TransformType.LocalPosition);
-            RotationControl = Vector3Control.Create(this, transformGroup, "Rotation:", TransformType.Rotation);
-            ScaleControl = Vector3Control.Create(this, transformGroup, "Scale:", TransformType.Scale);
+            this.PositionControl = Vector3Control.Create(this, transformGroup, "Position:", TransformType.Position);
+            this.LocalPositionControl = Vector3Control.Create(this, transformGroup, "Local Position:", TransformType.LocalPosition);
+            this.RotationControl = Vector3Control.Create(this, transformGroup, "Rotation:", TransformType.Rotation);
+            this.ScaleControl = Vector3Control.Create(this, transformGroup, "Scale:", TransformType.Scale);
         }
     }
 }

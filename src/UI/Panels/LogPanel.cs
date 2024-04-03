@@ -36,7 +36,7 @@ namespace UnityExplorer.UI.Panels
 
         public LogPanel(UIBase owner) : base(owner)
         {
-            SetupIO();
+            this.SetupIO();
         }
 
         private static bool DoneScrollPoolInit;
@@ -133,7 +133,7 @@ namespace UnityExplorer.UI.Panels
             cell.Input.Text = log.message;
             cell.Input.Component.textComponent.color = logColors[log.type];
 
-            Color color = index % 2 == 0 ? logEvenColor : logOddColor;
+            Color color = index % 2 == 0 ? this.logEvenColor : this.logOddColor;
             RuntimeHelper.SetColorBlock(cell.Input.Component, color);
         }
 
@@ -184,35 +184,35 @@ namespace UnityExplorer.UI.Panels
 
         public float DefaultHeight => 25;
 
-        public bool Enabled => UIRoot.activeInHierarchy;
-        public void Enable() => UIRoot.SetActive(true);
-        public void Disable() => UIRoot.SetActive(false);
+        public bool Enabled => this.UIRoot.activeInHierarchy;
+        public void Enable() => this.UIRoot.SetActive(true);
+        public void Disable() => this.UIRoot.SetActive(false);
 
 
         public GameObject CreateContent(GameObject parent)
         {
-            UIRoot = UIFactory.CreateUIObject("LogCell", parent, new Vector2(25, 25));
-            Rect = UIRoot.GetComponent<RectTransform>();
-            UIFactory.SetLayoutGroup<HorizontalLayoutGroup>(UIRoot, false, false, true, true, 3);
-            UIFactory.SetLayoutElement(UIRoot, minHeight: 25, minWidth: 50, flexibleWidth: 9999);
+            this.UIRoot = UIFactory.CreateUIObject("LogCell", parent, new Vector2(25, 25));
+            this.Rect = this.UIRoot.GetComponent<RectTransform>();
+            UIFactory.SetLayoutGroup<HorizontalLayoutGroup>(this.UIRoot, false, false, true, true, 3);
+            UIFactory.SetLayoutElement(this.UIRoot, minHeight: 25, minWidth: 50, flexibleWidth: 9999);
 
-            IndexLabel = UIFactory.CreateLabel(UIRoot, "IndexLabel", "i:", TextAnchor.MiddleCenter, Color.grey, false, 12);
-            UIFactory.SetLayoutElement(IndexLabel.gameObject, minHeight: 25, minWidth: 30, flexibleWidth: 40);
+            this.IndexLabel = UIFactory.CreateLabel(this.UIRoot, "IndexLabel", "i:", TextAnchor.MiddleCenter, Color.grey, false, 12);
+            UIFactory.SetLayoutElement(this.IndexLabel.gameObject, minHeight: 25, minWidth: 30, flexibleWidth: 40);
 
-            Input = UIFactory.CreateInputField(UIRoot, "Input", "");
+            this.Input = UIFactory.CreateInputField(this.UIRoot, "Input", "");
             //Input.Component.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-            UIFactory.SetLayoutElement(Input.UIRoot, minHeight: 25, flexibleWidth: 9999);
-            RuntimeHelper.SetColorBlock(Input.Component, new Color(0.1f, 0.1f, 0.1f), new Color(0.13f, 0.13f, 0.13f),
+            UIFactory.SetLayoutElement(this.Input.UIRoot, minHeight: 25, flexibleWidth: 9999);
+            RuntimeHelper.SetColorBlock(this.Input.Component, new Color(0.1f, 0.1f, 0.1f), new Color(0.13f, 0.13f, 0.13f),
                 new Color(0.07f, 0.07f, 0.07f));
-            Input.Component.GetComponent<Image>().color = new Color(0.2f, 0.2f, 0.2f);
+            this.Input.Component.GetComponent<Image>().color = new Color(0.2f, 0.2f, 0.2f);
 
-            Input.Component.readOnly = true;
-            Input.Component.textComponent.supportRichText = true;
-            Input.Component.lineType = InputField.LineType.MultiLineNewline;
-            Input.Component.textComponent.font = UniversalUI.ConsoleFont;
-            Input.PlaceholderText.font = UniversalUI.ConsoleFont;
+            this.Input.Component.readOnly = true;
+            this.Input.Component.textComponent.supportRichText = true;
+            this.Input.Component.lineType = InputField.LineType.MultiLineNewline;
+            this.Input.Component.textComponent.font = UniversalUI.ConsoleFont;
+            this.Input.PlaceholderText.font = UniversalUI.ConsoleFont;
 
-            return UIRoot;
+            return this.UIRoot;
         }
     }
 

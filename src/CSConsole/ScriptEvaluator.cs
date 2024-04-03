@@ -20,16 +20,16 @@ namespace UnityExplorer.CSConsole
 
         public ScriptEvaluator(TextWriter tw) : base(BuildContext(tw))
         {
-            _textWriter = tw;
+            this._textWriter = tw;
 
-            ImportAppdomainAssemblies();
-            AppDomain.CurrentDomain.AssemblyLoad += OnAssemblyLoad;
+            this.ImportAppdomainAssemblies();
+            AppDomain.CurrentDomain.AssemblyLoad += this.OnAssemblyLoad;
         }
 
         public void Dispose()
         {
-            AppDomain.CurrentDomain.AssemblyLoad -= OnAssemblyLoad;
-            _textWriter.Dispose();
+            AppDomain.CurrentDomain.AssemblyLoad -= this.OnAssemblyLoad;
+            this._textWriter.Dispose();
         }
 
         private void OnAssemblyLoad(object sender, AssemblyLoadEventArgs args)
@@ -39,7 +39,7 @@ namespace UnityExplorer.CSConsole
             if (StdLib.Contains(name))
                 return;
 
-            Reference(args.LoadedAssembly);
+            this.Reference(args.LoadedAssembly);
         }
 
         private void Reference(Assembly asm)
@@ -58,7 +58,7 @@ namespace UnityExplorer.CSConsole
                     return;
             }
 
-            ReferenceAssembly(asm);
+            this.ReferenceAssembly(asm);
         }
 
         private static CompilerContext BuildContext(TextWriter tw)
@@ -88,7 +88,7 @@ namespace UnityExplorer.CSConsole
 
                 try
                 {
-                    Reference(assembly);
+                    this.Reference(assembly);
                 }
                 catch // (Exception ex)
                 {

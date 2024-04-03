@@ -44,8 +44,8 @@ namespace UnityExplorer.UI.Panels
 
         public AutoCompleteModal(UIBase owner) : base(owner)
         {
-            UIManager.UiBase.Panels.OnPanelsReordered += UIPanel_OnPanelsReordered;
-            UIManager.UiBase.Panels.OnClickedOutsidePanels += AutoCompleter_OnClickedOutsidePanels;
+            UIManager.UiBase.Panels.OnPanelsReordered += this.UIPanel_OnPanelsReordered;
+            UIManager.UiBase.Panels.OnClickedOutsidePanels += this.AutoCompleter_OnClickedOutsidePanels;
         }
 
         public static void TakeOwnership(ISuggestionProvider provider)
@@ -63,7 +63,7 @@ namespace UnityExplorer.UI.Panels
             {
                 Suggestions.Clear();
                 CurrentHandler = null;
-                UIRoot.SetActive(false);
+                this.UIRoot.SetActive(false);
             }
         }
 
@@ -162,15 +162,15 @@ namespace UnityExplorer.UI.Panels
 
         public override void Update()
         {
-            if (!UIRoot || !UIRoot.activeSelf)
+            if (!this.UIRoot || !this.UIRoot.activeSelf)
                 return;
 
             if (Suggestions.Any() && CurrentHandler != null)
             {
                 if (!CurrentHandler.InputField.UIRoot.activeInHierarchy)
-                    ReleaseOwnership(CurrentHandler);
+                    this.ReleaseOwnership(CurrentHandler);
                 else
-                    UpdatePosition();
+                    this.UpdatePosition();
             }
         }
 
@@ -195,7 +195,7 @@ namespace UnityExplorer.UI.Panels
         {
             if (CurrentHandler == null)
             {
-                UIRoot.SetActive(false);
+                this.UIRoot.SetActive(false);
                 return;
             }
 
@@ -208,14 +208,14 @@ namespace UnityExplorer.UI.Panels
             Suggestion suggestion = Suggestions[index];
             cell.Button.ButtonText.text = suggestion.DisplayText;
 
-            if (CurrentHandler.AllowNavigation && index == SelectedIndex && setFirstCell)
+            if (CurrentHandler.AllowNavigation && index == SelectedIndex && this.setFirstCell)
             {
-                RuntimeHelper.SetColorBlock(cell.Button.Component, selectedSuggestionColor);
+                RuntimeHelper.SetColorBlock(cell.Button.Component, this.selectedSuggestionColor);
             }
             else
-                RuntimeHelper.SetColorBlock(cell.Button.Component, inactiveSuggestionColor);
+                RuntimeHelper.SetColorBlock(cell.Button.Component, this.inactiveSuggestionColor);
 
-            setFirstCell = true;
+            this.setFirstCell = true;
         }
 
         // Updating panel position
@@ -234,7 +234,7 @@ namespace UnityExplorer.UI.Panels
             //    || (input.Component.caretPosition == lastCaretPosition && input.UIRoot.transform.position == lastInputPosition))
             //    return;
 
-            if (input.Component.caretPosition == lastCaretPosition && input.UIRoot.transform.position == lastInputPosition)
+            if (input.Component.caretPosition == this.lastCaretPosition && input.UIRoot.transform.position == this.lastInputPosition)
                 return;
             
             if (CurrentHandler.AnchorToCaretPosition)
@@ -251,15 +251,15 @@ namespace UnityExplorer.UI.Panels
                 caretPos = input.UIRoot.transform.TransformPoint(caretPos);
                 caretPos += new Vector3(input.Transform.rect.width * 0.5f, -(input.Transform.rect.height * 0.5f), 0);
 
-                uiRoot.transform.position = new Vector3(caretPos.x + 10, caretPos.y - 30, 0);
+                this.uiRoot.transform.position = new Vector3(caretPos.x + 10, caretPos.y - 30, 0);
             }
             else
             {
-                uiRoot.transform.position = input.Transform.position + new Vector3(-(input.Transform.rect.width / 2) + 10, -20, 0);
+                this.uiRoot.transform.position = input.Transform.position + new Vector3(-(input.Transform.rect.width / 2) + 10, -20, 0);
             }
 
-            lastInputPosition = input.UIRoot.transform.position;
-            lastCaretPosition = input.Component.caretPosition;
+            this.lastInputPosition = input.UIRoot.transform.position;
+            this.lastCaretPosition = input.Component.caretPosition;
 
             this.Dragger.OnEndResize();
         }
@@ -272,9 +272,9 @@ namespace UnityExplorer.UI.Panels
                 return;
 
             if (CurrentHandler != null)
-                ReleaseOwnership(CurrentHandler);
+                this.ReleaseOwnership(CurrentHandler);
             else
-                UIRoot.SetActive(false);
+                this.UIRoot.SetActive(false);
         }
 
         private void UIPanel_OnPanelsReordered()
@@ -285,21 +285,21 @@ namespace UnityExplorer.UI.Panels
             if (this.UIRoot.transform.GetSiblingIndex() != UIManager.UiBase.Panels.PanelHolder.transform.childCount - 1)
             {
                 if (CurrentHandler != null)
-                    ReleaseOwnership(CurrentHandler);
+                    this.ReleaseOwnership(CurrentHandler);
                 else
-                    UIRoot.SetActive(false);
+                    this.UIRoot.SetActive(false);
             }
         }
 
         public override void OnFinishResize()
         {
-            float xDiff = Rect.anchorMin.x - MIN_X;
-            float yDiff = Rect.anchorMax.y - MAX_Y;
+            float xDiff = this.Rect.anchorMin.x - MIN_X;
+            float yDiff = this.Rect.anchorMax.y - MAX_Y;
 
             if (xDiff != 0 || yDiff != 0)
             {
-                Rect.anchorMin = new(MIN_X, Rect.anchorMin.y - yDiff);
-                Rect.anchorMax = new(Rect.anchorMax.x - xDiff, MAX_Y);
+                this.Rect.anchorMin = new(MIN_X, this.Rect.anchorMin.y - yDiff);
+                this.Rect.anchorMax = new(this.Rect.anchorMax.x - xDiff, MAX_Y);
             }
 
             base.OnFinishResize();
@@ -312,7 +312,7 @@ namespace UnityExplorer.UI.Panels
             // hide the titlebar
             this.TitleBar.gameObject.SetActive(false);
 
-            buttonListDataHandler = new ButtonListHandler<Suggestion, ButtonCell>(scrollPool, GetEntries, SetCell, ShouldDisplay, OnCellClicked);
+            buttonListDataHandler = new ButtonListHandler<Suggestion, ButtonCell>(scrollPool, this.GetEntries, this.SetCell, this.ShouldDisplay, this.OnCellClicked);
 
             scrollPool = UIFactory.CreateScrollPool<ButtonCell>(this.ContentRoot, "AutoCompleter", out GameObject scrollObj,
                 out GameObject scrollContent);
@@ -325,7 +325,7 @@ namespace UnityExplorer.UI.Panels
             UIFactory.CreateLabel(navigationTipRow, "HelpText", "Up/Down to select, Enter to use, Esc to close",
                 TextAnchor.MiddleLeft, Color.grey, false, 13);
 
-            UIRoot.SetActive(false);
+            this.UIRoot.SetActive(false);
         }
     }
 }

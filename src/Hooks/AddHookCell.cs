@@ -6,7 +6,7 @@ namespace UnityExplorer.Hooks
 {
     public class AddHookCell : ICell
     {
-        public bool Enabled => UIRoot.activeSelf;
+        public bool Enabled => this.UIRoot.activeSelf;
 
         public RectTransform Rect { get; set; }
         public GameObject UIRoot { get; set; }
@@ -20,7 +20,7 @@ namespace UnityExplorer.Hooks
 
         private void OnHookClicked()
         {
-            HookCreator.AddHookClicked(CurrentDisplayedIndex);
+            HookCreator.AddHookClicked(this.CurrentDisplayedIndex);
         }
 
         public void Enable()
@@ -35,20 +35,20 @@ namespace UnityExplorer.Hooks
 
         public GameObject CreateContent(GameObject parent)
         {
-            UIRoot = UIFactory.CreateUIObject(this.GetType().Name, parent, new Vector2(100, 30));
-            Rect = UIRoot.GetComponent<RectTransform>();
-            UIFactory.SetLayoutGroup<HorizontalLayoutGroup>(UIRoot, false, false, true, true, 5, childAlignment: TextAnchor.UpperLeft);
-            UIFactory.SetLayoutElement(UIRoot, minWidth: 100, flexibleWidth: 9999, minHeight: 30, flexibleHeight: 600);
-            UIRoot.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            this.UIRoot = UIFactory.CreateUIObject(this.GetType().Name, parent, new Vector2(100, 30));
+            this.Rect = this.UIRoot.GetComponent<RectTransform>();
+            UIFactory.SetLayoutGroup<HorizontalLayoutGroup>(this.UIRoot, false, false, true, true, 5, childAlignment: TextAnchor.UpperLeft);
+            UIFactory.SetLayoutElement(this.UIRoot, minWidth: 100, flexibleWidth: 9999, minHeight: 30, flexibleHeight: 600);
+            this.UIRoot.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
-            HookButton = UIFactory.CreateButton(UIRoot, "HookButton", "Hook", new Color(0.2f, 0.25f, 0.2f));
-            UIFactory.SetLayoutElement(HookButton.Component.gameObject, minHeight: 25, minWidth: 100);
-            HookButton.OnClick += OnHookClicked;
+            this.HookButton = UIFactory.CreateButton(this.UIRoot, "HookButton", "Hook", new Color(0.2f, 0.25f, 0.2f));
+            UIFactory.SetLayoutElement(this.HookButton.Component.gameObject, minHeight: 25, minWidth: 100);
+            this.HookButton.OnClick += this.OnHookClicked;
 
-            MethodNameLabel = UIFactory.CreateLabel(UIRoot, "MethodName", "NOT SET", TextAnchor.MiddleLeft);
-            UIFactory.SetLayoutElement(MethodNameLabel.gameObject, minHeight: 25, flexibleWidth: 9999);
+            this.MethodNameLabel = UIFactory.CreateLabel(this.UIRoot, "MethodName", "NOT SET", TextAnchor.MiddleLeft);
+            UIFactory.SetLayoutElement(this.MethodNameLabel.gameObject, minHeight: 25, flexibleWidth: 9999);
 
-            return UIRoot;
+            return this.UIRoot;
         }
     }
 }

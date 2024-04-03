@@ -9,15 +9,15 @@ namespace UnityExplorer.UI.Widgets.AutoComplete
     {
         public bool Enabled
         {
-            get => enabled;
+            get => this.enabled;
             set
             {
-                enabled = value;
-                if (!enabled)
+                this.enabled = value;
+                if (!this.enabled)
                 { 
                     AutoCompleteModal.Instance.ReleaseOwnership(this);
-                    if (getSuggestionsCoroutine != null)
-                        RuntimeHelper.StopCoroutine(getSuggestionsCoroutine);
+                    if (this.getSuggestionsCoroutine != null)
+                        RuntimeHelper.StopCoroutine(this.getSuggestionsCoroutine);
                 }
             }
         }
@@ -73,123 +73,119 @@ namespace UnityExplorer.UI.Widgets.AutoComplete
 
         public TypeCompleter(Type baseType, InputFieldRef inputField, bool allowAbstract, bool allowEnum, bool allowGeneric)
         {
-            BaseType = baseType;
-            InputField = inputField;
+            this.BaseType = baseType;
+            this.InputField = inputField;
 
             this.allowAbstract = allowAbstract;
             this.allowEnum = allowEnum;
             this.allowGeneric = allowGeneric;
 
-            inputField.OnValueChanged += OnInputFieldChanged;
+            inputField.OnValueChanged += this.OnInputFieldChanged;
 
-            CacheTypes();
+            this.CacheTypes();
         }
 
         public void OnSuggestionClicked(Suggestion suggestion)
         {
-            chosenSuggestion = suggestion.UnderlyingValue;
-            InputField.Text = suggestion.UnderlyingValue;
-            SuggestionClicked?.Invoke(suggestion);
+            this.chosenSuggestion = suggestion.UnderlyingValue;
+            this.InputField.Text = suggestion.UnderlyingValue;
+            this.SuggestionClicked?.Invoke(suggestion);
 
-            suggestions.Clear();
+            this.suggestions.Clear();
             //AutoCompleteModal.Instance.SetSuggestions(suggestions, true);
             AutoCompleteModal.Instance.ReleaseOwnership(this);
         }
 
         public void CacheTypes()
         {
-            allowedTypes = null;
-            cacheTypesStopwatch.Reset();
-            cacheTypesStopwatch.Start();
-            ReflectionUtility.GetImplementationsOf(BaseType, OnTypesCached, allowAbstract, allowGeneric, allowEnum);
+            this.allowedTypes = null;
+            this.cacheTypesStopwatch.Reset();
+            this.cacheTypesStopwatch.Start();
+            ReflectionUtility.GetImplementationsOf(this.BaseType, this.OnTypesCached, this.allowAbstract, this.allowGeneric, this.allowEnum);
         }
 
         void OnTypesCached(HashSet<Type> set)
         {
-            allowedTypes = set;
+            this.allowedTypes = set;
 
             // ExplorerCore.Log($"Cached {allowedTypes.Count} TypeCompleter types in {cacheTypesStopwatch.ElapsedMilliseconds * 0.001f} seconds.");
 
-            if (pendingInput != null)
+            if (this.pendingInput != null)
             {
-                GetSuggestions(pendingInput);
-                pendingInput = null;
+                this.GetSuggestions(this.pendingInput);
+                this.pendingInput = null;
             }
         }
 
         void OnInputFieldChanged(string input)
         {
-            if (!Enabled)
+            if (!this.Enabled)
                 return;
 
-            if (input != chosenSuggestion)
-                chosenSuggestion = null;
+            if (input != this.chosenSuggestion) this.chosenSuggestion = null;
 
-            if (string.IsNullOrEmpty(input) || input == chosenSuggestion)
+            if (string.IsNullOrEmpty(input) || input == this.chosenSuggestion)
             {
-                if (getSuggestionsCoroutine != null)
-                    RuntimeHelper.StopCoroutine(getSuggestionsCoroutine);
+                if (this.getSuggestionsCoroutine != null)
+                    RuntimeHelper.StopCoroutine(this.getSuggestionsCoroutine);
                 AutoCompleteModal.Instance.ReleaseOwnership(this);
             }
             else
             {
-                GetSuggestions(input);
+                this.GetSuggestions(input);
             }
         }
 
         void GetSuggestions(string input)
         {
-            if (allowedTypes == null)
+            if (this.allowedTypes == null)
             {
-                if (pendingInput != null)
+                if (this.pendingInput != null)
                 {
                     AutoCompleteModal.TakeOwnership(this);
-                    AutoCompleteModal.Instance.SetSuggestions(loadingSuggestions, true);
+                    AutoCompleteModal.Instance.SetSuggestions(this.loadingSuggestions, true);
                 }
 
-                pendingInput = input;
+                this.pendingInput = input;
                 return;
             }
 
-            if (getSuggestionsCoroutine != null)
-                RuntimeHelper.StopCoroutine(getSuggestionsCoroutine);
+            if (this.getSuggestionsCoroutine != null)
+                RuntimeHelper.StopCoroutine(this.getSuggestionsCoroutine);
 
-            getSuggestionsCoroutine = RuntimeHelper.StartCoroutine(GetSuggestionsAsync(input));
+            this.getSuggestionsCoroutine = RuntimeHelper.StartCoroutine(this.GetSuggestionsAsync(input));
         }
 
         IEnumerator GetSuggestionsAsync(string input)
         {
-            suggestions.Clear();
-            suggestedTypes.Clear();
+            this.suggestions.Clear();
+            this.suggestedTypes.Clear();
 
             AutoCompleteModal.TakeOwnership(this);
-            AutoCompleteModal.Instance.SetSuggestions(suggestions, true);
+            AutoCompleteModal.Instance.SetSuggestions(this.suggestions, true);
 
             // shorthand types all inherit from System.Object
-            if (shorthandToType.TryGetValue(input, out Type shorthand) && allowedTypes.Contains(shorthand))
-                AddSuggestion(shorthand);
+            if (shorthandToType.TryGetValue(input, out Type shorthand) && this.allowedTypes.Contains(shorthand)) this.AddSuggestion(shorthand);
 
             foreach (KeyValuePair<string, Type> entry in shorthandToType)
             {
-                if (allowedTypes.Contains(entry.Value) && entry.Key.StartsWith(input, StringComparison.InvariantCultureIgnoreCase))
-                    AddSuggestion(entry.Value);
+                if (this.allowedTypes.Contains(entry.Value) && entry.Key.StartsWith(input, StringComparison.InvariantCultureIgnoreCase)) this.AddSuggestion(entry.Value);
             }
 
             // Check for exact match first
-            if (ReflectionUtility.GetTypeByName(input) is Type t && allowedTypes.Contains(t))
-                AddSuggestion(t);
+            if (ReflectionUtility.GetTypeByName(input) is Type t && this.allowedTypes.Contains(t)) this.AddSuggestion(t);
 
-            if (!suggestions.Any())
-                AutoCompleteModal.Instance.SetSuggestions(loadingSuggestions, false);
+            if (!this.suggestions.Any())
+                AutoCompleteModal.Instance.SetSuggestions(this.loadingSuggestions, false);
             else
-                AutoCompleteModal.Instance.SetSuggestions(suggestions, false);
+                AutoCompleteModal.Instance.SetSuggestions(this.suggestions, false);
 
             Stopwatch sw = new();
             sw.Start();
 
             // ExplorerCore.Log($"Checking {allowedTypes.Count} types...");
 
-            foreach (Type entry in allowedTypes)
+            foreach (Type entry in this.allowedTypes)
             {
                 if (AutoCompleteModal.CurrentHandler == null)
                     yield break;
@@ -197,18 +193,17 @@ namespace UnityExplorer.UI.Widgets.AutoComplete
                 if (sw.ElapsedMilliseconds > 10)
                 {
                     yield return null;
-                    if (suggestions.Any())
-                        AutoCompleteModal.Instance.SetSuggestions(suggestions, false);
+                    if (this.suggestions.Any())
+                        AutoCompleteModal.Instance.SetSuggestions(this.suggestions, false);
 
                     sw.Reset();
                     sw.Start();
                 }
 
-                if (entry.FullName.ContainsIgnoreCase(input))
-                    AddSuggestion(entry);
+                if (entry.FullName.ContainsIgnoreCase(input)) this.AddSuggestion(entry);
             }
 
-            AutoCompleteModal.Instance.SetSuggestions(suggestions, false);
+            AutoCompleteModal.Instance.SetSuggestions(this.suggestions, false);
 
             // ExplorerCore.Log($"Fetched {suggestions.Count} TypeCompleter suggestions in {sw.ElapsedMilliseconds * 0.001f} seconds.");
         }
@@ -217,14 +212,14 @@ namespace UnityExplorer.UI.Widgets.AutoComplete
 
         void AddSuggestion(Type type)
         {
-            if (suggestedTypes.Contains(type.FullName))
+            if (this.suggestedTypes.Contains(type.FullName))
                 return;
-            suggestedTypes.Add(type.FullName);
+            this.suggestedTypes.Add(type.FullName);
 
             if (!sharedTypeToLabel.ContainsKey(type.FullName))
                 sharedTypeToLabel.Add(type.FullName, SignatureHighlighter.Parse(type, true));
 
-            suggestions.Add(new Suggestion(sharedTypeToLabel[type.FullName], type.FullName));
+            this.suggestions.Add(new Suggestion(sharedTypeToLabel[type.FullName], type.FullName));
         }
     }
 }

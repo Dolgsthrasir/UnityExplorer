@@ -14,13 +14,13 @@ namespace UnityExplorer.CacheObject.IValues
 
             public StructInfo(bool isSupported, FieldInfo[] fields)
             {
-                IsSupported = isSupported;
-                Fields = fields;
+                this.IsSupported = isSupported;
+                this.Fields = fields;
             }
 
             public void SetValue(object instance, string input, int fieldIndex)
             {
-                FieldInfo field = Fields[fieldIndex];
+                FieldInfo field = this.Fields[fieldIndex];
 
                 object val;
                 if (field.FieldType == typeof(string))
@@ -40,7 +40,7 @@ namespace UnityExplorer.CacheObject.IValues
 
             public string GetValue(object instance, int fieldIndex)
             {
-                FieldInfo field = Fields[fieldIndex];
+                FieldInfo field = this.Fields[fieldIndex];
                 object value = field.GetValue(instance);
                 return ParseUtility.ToStringForInput(value, field.FieldType);
             }
@@ -97,27 +97,27 @@ namespace UnityExplorer.CacheObject.IValues
         {
             base.OnBorrowed(owner);
 
-            applyButton.Component.gameObject.SetActive(owner.CanWrite);
+            this.applyButton.Component.gameObject.SetActive(owner.CanWrite);
         }
 
         // Setting value from owner to this
 
         public override void SetValue(object value)
         {
-            RefInstance = value;
+            this.RefInstance = value;
 
-            Type type = RefInstance.GetType();
+            Type type = this.RefInstance.GetType();
 
-            if (type != lastStructType)
+            if (type != this.lastStructType)
             {
-                CurrentInfo = typeSupportCache[type.AssemblyQualifiedName];
-                SetupUIForType();
-                lastStructType = type;
+                this.CurrentInfo = typeSupportCache[type.AssemblyQualifiedName];
+                this.SetupUIForType();
+                this.lastStructType = type;
             }
 
-            for (int i = 0; i < CurrentInfo.Fields.Length; i++)
+            for (int i = 0; i < this.CurrentInfo.Fields.Length; i++)
             {
-                inputFields[i].Text = CurrentInfo.GetValue(RefInstance, i);
+                this.inputFields[i].Text = this.CurrentInfo.GetValue(this.RefInstance, i);
             }
         }
 
@@ -125,12 +125,12 @@ namespace UnityExplorer.CacheObject.IValues
         {
             try
             {
-                for (int i = 0; i < CurrentInfo.Fields.Length; i++)
+                for (int i = 0; i < this.CurrentInfo.Fields.Length; i++)
                 {
-                    CurrentInfo.SetValue(RefInstance, inputFields[i].Text, i);
+                    this.CurrentInfo.SetValue(this.RefInstance, this.inputFields[i].Text, i);
                 }
 
-                CurrentOwner.SetUserValue(RefInstance);
+                this.CurrentOwner.SetUserValue(this.RefInstance);
             }
             catch (Exception ex)
             {
@@ -142,41 +142,40 @@ namespace UnityExplorer.CacheObject.IValues
 
         private void SetupUIForType()
         {
-            for (int i = 0; i < CurrentInfo.Fields.Length || i <= inputFields.Count; i++)
+            for (int i = 0; i < this.CurrentInfo.Fields.Length || i <= this.inputFields.Count; i++)
             {
-                if (i >= CurrentInfo.Fields.Length)
+                if (i >= this.CurrentInfo.Fields.Length)
                 {
-                    if (i >= inputFields.Count)
+                    if (i >= this.inputFields.Count)
                         break;
 
-                    fieldRows[i].SetActive(false);
+                    this.fieldRows[i].SetActive(false);
                     continue;
                 }
 
-                if (i >= inputFields.Count)
-                    AddEditorRow();
+                if (i >= this.inputFields.Count) this.AddEditorRow();
 
-                fieldRows[i].SetActive(true);
+                this.fieldRows[i].SetActive(true);
 
-                string label = SignatureHighlighter.Parse(CurrentInfo.Fields[i].FieldType, false);
-                label += $" <color={SignatureHighlighter.FIELD_INSTANCE}>{CurrentInfo.Fields[i].Name}</color>:";
-                labels[i].text = label;
+                string label = SignatureHighlighter.Parse(this.CurrentInfo.Fields[i].FieldType, false);
+                label += $" <color={SignatureHighlighter.FIELD_INSTANCE}>{this.CurrentInfo.Fields[i].Name}</color>:";
+                this.labels[i].text = label;
             }
         }
 
         private void AddEditorRow()
         {
-            GameObject row = UIFactory.CreateUIObject("HoriGroup", UIRoot);
+            GameObject row = UIFactory.CreateUIObject("HoriGroup", this.UIRoot);
             //row.AddComponent<ContentSizeFitter>().horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
             UIFactory.SetLayoutElement(row, minHeight: 25, flexibleWidth: 9999);
             UIFactory.SetLayoutGroup<HorizontalLayoutGroup>(row, false, false, true, true, 8, childAlignment: TextAnchor.MiddleLeft);
 
-            fieldRows.Add(row);
+            this.fieldRows.Add(row);
 
             Text label = UIFactory.CreateLabel(row, "Label", "notset", TextAnchor.MiddleLeft);
             UIFactory.SetLayoutElement(label.gameObject, minHeight: 25, minWidth: 50, flexibleWidth: 0);
             label.horizontalOverflow = HorizontalWrapMode.Wrap;
-            labels.Add(label);
+            this.labels.Add(label);
 
             InputFieldRef input = UIFactory.CreateInputField(row, "InputField", "...");
             UIFactory.SetLayoutElement(input.UIRoot, minHeight: 25, minWidth: 200);
@@ -184,22 +183,22 @@ namespace UnityExplorer.CacheObject.IValues
             fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
             fitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
             input.Component.lineType = InputField.LineType.MultiLineNewline;
-            inputFields.Add(input);
+            this.inputFields.Add(input);
         }
 
         // UI Construction
 
         public override GameObject CreateContent(GameObject parent)
         {
-            UIRoot = UIFactory.CreateVerticalGroup(parent, "InteractiveValueStruct", false, false, true, true, 3, new Vector4(4, 4, 4, 4),
+            this.UIRoot = UIFactory.CreateVerticalGroup(parent, "InteractiveValueStruct", false, false, true, true, 3, new Vector4(4, 4, 4, 4),
                 new Color(0.06f, 0.06f, 0.06f), TextAnchor.MiddleLeft);
-            UIFactory.SetLayoutElement(UIRoot, minHeight: 25, flexibleWidth: 9999);
+            UIFactory.SetLayoutElement(this.UIRoot, minHeight: 25, flexibleWidth: 9999);
 
-            applyButton = UIFactory.CreateButton(UIRoot, "ApplyButton", "Apply", new Color(0.2f, 0.27f, 0.2f));
-            UIFactory.SetLayoutElement(applyButton.Component.gameObject, minHeight: 25, minWidth: 175);
-            applyButton.OnClick += OnApplyClicked;
+            this.applyButton = UIFactory.CreateButton(this.UIRoot, "ApplyButton", "Apply", new Color(0.2f, 0.27f, 0.2f));
+            UIFactory.SetLayoutElement(this.applyButton.Component.gameObject, minHeight: 25, minWidth: 175);
+            this.applyButton.OnClick += this.OnApplyClicked;
 
-            return UIRoot;
+            return this.UIRoot;
         }
     }
 }

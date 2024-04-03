@@ -62,8 +62,8 @@ namespace UnityExplorer.UI.Panels
         {
             base.SetDefaultSizeAndPosition();
 
-            this.Rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, MinWidth);
-            this.Rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, MinHeight);
+            this.Rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, this.MinWidth);
+            this.Rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, this.MinHeight);
         }
 
         protected override void ConstructPanelContent()
@@ -73,7 +73,7 @@ namespace UnityExplorer.UI.Panels
             hookCreator = new();
             genericArgsHandler = new();
 
-            UIFactory.SetLayoutGroup<VerticalLayoutGroup>(ContentRoot, true, false);
+            UIFactory.SetLayoutGroup<VerticalLayoutGroup>(this.ContentRoot, true, false);
 
             // GameObject baseHoriGroup = UIFactory.CreateHorizontalGroup(ContentRoot, "HoriGroup", true, true, true, true);
             // UIFactory.SetLayoutElement(baseHoriGroup, flexibleWidth: 9999, flexibleHeight: 9999);
@@ -81,21 +81,21 @@ namespace UnityExplorer.UI.Panels
             // // Left Group
 
             //GameObject leftGroup = UIFactory.CreateVerticalGroup(ContentRoot, "LeftGroup", true, true, true, true);
-            UIFactory.SetLayoutElement(ContentRoot.gameObject, minWidth: 300, flexibleWidth: 9999, flexibleHeight: 9999);
+            UIFactory.SetLayoutElement(this.ContentRoot.gameObject, minWidth: 300, flexibleWidth: 9999, flexibleHeight: 9999);
 
-            hookList.ConstructUI(ContentRoot);
+            hookList.ConstructUI(this.ContentRoot);
 
             // // Right Group
 
             //GameObject rightGroup = UIFactory.CreateVerticalGroup(ContentRoot, "RightGroup", true, true, true, true);
-            UIFactory.SetLayoutElement(ContentRoot, minWidth: 300, flexibleWidth: 9999, flexibleHeight: 9999);
+            UIFactory.SetLayoutElement(this.ContentRoot, minWidth: 300, flexibleWidth: 9999, flexibleHeight: 9999);
 
-            hookCreator.ConstructAddHooksView(ContentRoot);
+            hookCreator.ConstructAddHooksView(this.ContentRoot);
 
-            hookCreator.ConstructEditor(ContentRoot);
+            hookCreator.ConstructEditor(this.ContentRoot);
             HookCreator.EditorRoot.SetActive(false);
 
-            genericArgsHandler.ConstructUI(ContentRoot);
+            genericArgsHandler.ConstructUI(this.ContentRoot);
             genericArgsHandler.UIRoot.SetActive(false);
         }
     }

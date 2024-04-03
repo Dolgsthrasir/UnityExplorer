@@ -7,7 +7,7 @@ namespace UnityExplorer.UI.Widgets
     public class GameObjectControls
     {
         public GameObjectInspector Parent { get; }
-        public GameObject Target => Parent.Target;
+        public GameObject Target => this.Parent.Target;
 
         public GameObjectInfoPanel GameObjectInfo { get; }
 
@@ -23,12 +23,12 @@ namespace UnityExplorer.UI.Widgets
 
         public void UpdateGameObjectInfo(bool firstUpdate, bool force)
         {
-            GameObjectInfo.UpdateGameObjectInfo(firstUpdate, force);
+            this.GameObjectInfo.UpdateGameObjectInfo(firstUpdate, force);
         }
 
         public void UpdateVectorSlider()
         {
-            TransformControl.UpdateVectorSlider();
+            this.TransformControl.UpdateVectorSlider();
         }
     }
 }

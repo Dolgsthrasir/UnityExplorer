@@ -23,6 +23,14 @@ namespace UnityExplorer.Hooks
 
             HooksScrollPool.Refresh(true, false);
         }
+        
+        public static void EnableOrDisableOnStartupHookClicked(int index)
+        {
+            HookInstance hook = (HookInstance)currentHooks[index];
+            hook.Startup();
+
+            HooksScrollPool.Refresh(true, false);
+        }
 
         public static void DeleteHookClicked(int index, bool deleteFile)
         {
@@ -92,8 +100,11 @@ namespace UnityExplorer.Hooks
             cell.MethodNameLabel.text = SignatureHighlighter.ParseMethod(hook.TargetMethod);
 
             cell.ToggleActiveButton.ButtonText.text = hook.Enabled ? "On" : "Off";
+            cell.ToogleActiveOnStartupButton.ButtonText.text = hook.StartUp ? "Y" : "N";
             RuntimeHelper.SetColorBlockAuto(cell.ToggleActiveButton.Component,
                 hook.Enabled ? new Color(0.15f, 0.2f, 0.15f) : new Color(0.2f, 0.2f, 0.15f));
+            RuntimeHelper.SetColorBlockAuto(cell.ToogleActiveOnStartupButton.Component,
+                hook.StartUp ? new Color(0.15f, 0.2f, 0.15f) : new Color(0.2f, 0.2f, 0.15f));
         }
 
         // UI

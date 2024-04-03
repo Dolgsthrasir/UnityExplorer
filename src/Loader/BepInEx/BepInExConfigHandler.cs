@@ -17,7 +17,7 @@ namespace UnityExplorer.Loader.BIE
 
         public override void RegisterConfigElement<T>(ConfigElement<T> config)
         {
-            ConfigEntry<T> entry = Config.Bind(CTG_NAME, config.Name, config.Value, config.Description);
+            ConfigEntry<T> entry = this.Config.Bind(CTG_NAME, config.Name, config.Value, config.Description);
 
             entry.SettingChanged += (object o, EventArgs e) =>
             {
@@ -27,7 +27,7 @@ namespace UnityExplorer.Loader.BIE
 
         public override T GetConfigValue<T>(ConfigElement<T> element)
         {
-            if (Config.TryGetEntry(CTG_NAME, element.Name, out ConfigEntry<T> configEntry))
+            if (this.Config.TryGetEntry(CTG_NAME, element.Name, out ConfigEntry<T> configEntry))
                 return configEntry.Value;
             else
                 throw new Exception("Could not get config entry '" + element.Name + "'");
@@ -35,7 +35,7 @@ namespace UnityExplorer.Loader.BIE
 
         public override void SetConfigValue<T>(ConfigElement<T> element, T value)
         {
-            if (Config.TryGetEntry(CTG_NAME, element.Name, out ConfigEntry<T> configEntry))
+            if (this.Config.TryGetEntry(CTG_NAME, element.Name, out ConfigEntry<T> configEntry))
                 configEntry.Value = value;
             else
                 ExplorerCore.Log("Could not get config entry '" + element.Name + "'");
@@ -47,7 +47,7 @@ namespace UnityExplorer.Loader.BIE
             {
                 string key = entry.Key;
                 ConfigDefinition def = new(CTG_NAME, key);
-                if (Config.ContainsKey(def) && Config[def] is ConfigEntryBase configEntry)
+                if (this.Config.ContainsKey(def) && this.Config[def] is ConfigEntryBase configEntry)
                 {
                     IConfigElement config = entry.Value;
                     config.BoxedValue = configEntry.BoxedValue;
@@ -57,7 +57,7 @@ namespace UnityExplorer.Loader.BIE
 
         public override void SaveConfig()
         {
-            Config.Save();
+            this.Config.Save();
         }
     }
 }

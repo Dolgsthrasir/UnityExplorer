@@ -5,12 +5,12 @@ namespace UnityExplorer.CacheObject
     public class CacheProperty : CacheMember
     {
         public PropertyInfo PropertyInfo { get; internal set; }
-        public override Type DeclaringType => PropertyInfo.DeclaringType;
-        public override bool CanWrite => PropertyInfo.CanWrite;
-        public override bool IsStatic => m_isStatic ?? (bool)(m_isStatic = PropertyInfo.GetAccessors(true)[0].IsStatic);
+        public override Type DeclaringType => this.PropertyInfo.DeclaringType;
+        public override bool CanWrite => this.PropertyInfo.CanWrite;
+        public override bool IsStatic => this.m_isStatic ?? (bool)(this.m_isStatic = this.PropertyInfo.GetAccessors(true)[0].IsStatic);
         private bool? m_isStatic;
 
-        public override bool ShouldAutoEvaluate => !HasArguments;
+        public override bool ShouldAutoEvaluate => !this.HasArguments;
 
         public CacheProperty(PropertyInfo pi)
         {
@@ -21,7 +21,7 @@ namespace UnityExplorer.CacheObject
         {
             base.SetInspectorOwner(inspector, member);
 
-            Arguments = PropertyInfo.GetIndexParameters();
+            this.Arguments = this.PropertyInfo.GetIndexParameters();
         }
 
         protected override object TryEvaluate()
@@ -29,33 +29,33 @@ namespace UnityExplorer.CacheObject
             try
             {
                 object ret;
-                if (HasArguments)
-                    ret = PropertyInfo.GetValue(DeclaringInstance, this.Evaluator.TryParseArguments());
+                if (this.HasArguments)
+                    ret = this.PropertyInfo.GetValue(this.DeclaringInstance, this.Evaluator.TryParseArguments());
                 else
-                    ret = PropertyInfo.GetValue(DeclaringInstance, null);
-                LastException = null;
+                    ret = this.PropertyInfo.GetValue(this.DeclaringInstance, null);
+                this.LastException = null;
                 return ret;
             }
             catch (Exception ex)
             {
-                LastException = ex;
+                this.LastException = ex;
                 return null;
             }
         }
 
         protected override void TrySetValue(object value)
         {
-            if (!CanWrite)
+            if (!this.CanWrite)
                 return;
 
             try
             {
-                bool _static = PropertyInfo.GetAccessors(true)[0].IsStatic;
+                bool _static = this.PropertyInfo.GetAccessors(true)[0].IsStatic;
 
-                if (HasArguments)
-                    PropertyInfo.SetValue(DeclaringInstance, value, Evaluator.TryParseArguments());
+                if (this.HasArguments)
+                    this.PropertyInfo.SetValue(this.DeclaringInstance, value, this.Evaluator.TryParseArguments());
                 else
-                    PropertyInfo.SetValue(DeclaringInstance, value, null);
+                    this.PropertyInfo.SetValue(this.DeclaringInstance, value, null);
             }
             catch (Exception ex)
             {

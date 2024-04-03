@@ -29,7 +29,7 @@ namespace UnityExplorer.UI.Panels
         public bool CanWrite => true;
 
         // ICellPoolDataSource
-        public int ItemCount => configEntries.Count;
+        public int ItemCount => this.configEntries.Count;
 
         public OptionsPanel(UIBase owner) : base(owner)
         {
@@ -39,10 +39,10 @@ namespace UnityExplorer.UI.Panels
                 {
                     Owner = this
                 };
-                configEntries.Add(cache);
+                this.configEntries.Add(cache);
             }
 
-            foreach (CacheConfigEntry config in configEntries)
+            foreach (CacheConfigEntry config in this.configEntries)
                 config.UpdateValueFromSource();
         }
 
@@ -61,7 +61,7 @@ namespace UnityExplorer.UI.Panels
         {
             base.SetDefaultSizeAndPosition();
 
-            Rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 600f);
+            this.Rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 600f);
         }
 
         protected override void ConstructPanelContent()

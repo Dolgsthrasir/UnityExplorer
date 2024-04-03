@@ -2,6 +2,7 @@
 using UnityEngine.EventSystems;
 using UnityExplorer.UI;
 using UnityExplorer.UI.Panels;
+using Object = UnityEngine.Object;
 
 namespace UnityExplorer.Inspectors.MouseInspectors
 {
@@ -32,7 +33,7 @@ namespace UnityExplorer.Inspectors.MouseInspectors
         {
             LastHitObjects.Clear();
             LastHitObjects.AddRange(currentHitObjects);
-            RuntimeHelper.StartCoroutine(SetPanelActiveCoro());
+            RuntimeHelper.StartCoroutine(this.SetPanelActiveCoro());
         }
 
         IEnumerator SetPanelActiveCoro()
@@ -126,7 +127,7 @@ namespace UnityExplorer.Inspectors.MouseInspectors
             foreach (GameObject obj in objectsAddedCastersTo)
             {
                 if (obj.GetComponent<GraphicRaycaster>() is GraphicRaycaster raycaster)
-                    GameObject.Destroy(raycaster);
+                    Object.Destroy(raycaster);
             }
 
             foreach (Graphic graphic in wasDisabledGraphics)
