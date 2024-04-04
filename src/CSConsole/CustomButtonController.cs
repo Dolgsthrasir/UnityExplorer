@@ -49,6 +49,8 @@ public static class CustomButtonController
         Panel.OnSendEther += SendEther;
         Panel.OnSendMarch += SendMarch;
         Panel.OnSendScrolls += SendScrolls;
+        Panel.OnGetResources += GetResources;
+        Panel.OnGetBeschleuniger += GetBeschleuniger;
     }
 
     private static void OnInputChanged(string value)
@@ -89,8 +91,6 @@ public static class CustomButtonController
         foreach (string use in DefaultUsing)
             AddUsing(use);
 
-        if (logSuccess)
-            ExplorerCore.Log($"C# Console reset"); //. Using directives:\r\n{Evaluator.GetUsing()}");
     }
 
     public static void AddUsing(string assemblyName)
@@ -143,6 +143,87 @@ argsTable.Add(""to_uids"", new string[] { """ + GetText() + @""" });
 argsTable.Add(""amount"", 2);
 var hubPort = new HubPort(""Mail:sendMail"");
 hubPort.SendRequest(argsTable, null, false);";
+        Evaluate(text);
+    }
+    
+    public static void GetResources()
+    {
+        var text = @"var types = new ItemBag.ItemType[] {ItemBag.ItemType.gold, ItemBag.ItemType.food, ItemBag.ItemType.silver, ItemBag.ItemType.ore, ItemBag.ItemType.wood};
+foreach(var t in types)
+{
+    string name = """";
+    switch (t)
+    {
+        case ItemBag.ItemType.ore:
+            name = ""Stone"";
+            break;
+        case ItemBag.ItemType.wood:
+            name = ""Obsidian"";
+            break;
+        default:
+            name = t.ToString();
+            break;
+    }
+
+
+    List<DB.ConsumableItemData> resource = ItemBag.Instance.GetItemsByCategory(""resources"", t);
+    long amount = 0;
+    foreach(var f in resource)
+    {
+        var quantity = f.quantity;
+        var info = f.itemInfo;
+        var val = (long)info.Value;
+        amount += (quantity * val);
+        
+    }
+	Log($""{name}: {amount.ToString(""N0"")}"");
+}
+";
+        Evaluate(text);
+    }
+    
+    public static void GetBeschleuniger()
+    {
+        var text = @"var types = new ItemBag.ItemType[] {ItemBag.ItemType.healing_speedup, ItemBag.ItemType.speedup, ItemBag.ItemType.training_speedup, ItemBag.ItemType.building_speedup, ItemBag.ItemType.research_speedup};
+foreach(var t in types)
+{
+    string name = """";
+    switch (t)
+    {
+        case ItemBag.ItemType.speedup:
+            name = ""Allgemein"";
+            break;
+        case ItemBag.ItemType.training_speedup:
+            name = ""Training"";
+            break;
+        case ItemBag.ItemType.building_speedup:
+            name = ""Ausbau"";
+            break;
+        case ItemBag.ItemType.research_speedup:
+            name = ""Forschung"";
+            break;
+        case ItemBag.ItemType.healing_speedup:
+            name = ""Heilung"";
+            break;
+        default:
+            name = t.ToString();
+            break;
+    }
+
+
+    List<DB.ConsumableItemData> resource = ItemBag.Instance.GetItemsByCategory(""resources"", t);
+    long seconds = 0;
+    foreach(var f in resource)
+    {
+        var quantity = f.quantity;
+        var info = f.itemInfo;
+        var val = (long)info.Value;
+        seconds += (quantity * val);
+        
+    }
+	Log($""{name}: minutes {seconds / 60} - hours {seconds / 60.0d / 60.0d} - days {seconds / 60.0d / 60.0d / 24.0d}"");
+}
+";
         Evaluate(text);
     }
 

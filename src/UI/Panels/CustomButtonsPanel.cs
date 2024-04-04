@@ -16,7 +16,9 @@ public class CustomButtonsPanel : UEPanel
     public override Vector2 DefaultAnchorMin => new(0.4f, 0.175f);
     public override Vector2 DefaultAnchorMax => new(0.85f, 0.925f);
     public Text InputText { get; private set; }
-
+    
+    public Action OnGetBeschleuniger;
+    public Action OnGetResources;
     public Action<string> OnInputChanged;
     public Action OnSendScrolls;
     public Action OnSendMarch;
@@ -40,12 +42,12 @@ public class CustomButtonsPanel : UEPanel
         UIFactory.SetLayoutElement(inputArea, flexibleWidth: 9999, flexibleHeight: 0, minHeight:20);
         UIFactory.SetLayoutGroup<HorizontalLayoutGroup>(inputArea, false, true, true, true);
         
-        // Tools Row
+        // sendMailRow
 
-        GameObject toolsRow = UIFactory.CreateVerticalGroup(this.ContentRoot, "ToggleRow", false, false, true, true,
+        GameObject sendMailRow = UIFactory.CreateVerticalGroup(this.ContentRoot, "SendMailRow", false, false, true, true,
             5, new Vector4(8, 8, 10, 5),
             default, TextAnchor.MiddleLeft);
-        UIFactory.SetLayoutElement(toolsRow, minHeight: 25, flexibleHeight: 0, flexibleWidth: 9999);
+        UIFactory.SetLayoutElement(sendMailRow, minHeight: 25, flexibleHeight: 0, flexibleWidth: 9999);
 
         
         // input field
@@ -67,24 +69,37 @@ public class CustomButtonsPanel : UEPanel
         this.Input.PlaceholderText.font = UniversalUI.ConsoleFont;
 
         // Buttons
-
+        
         ButtonRef sendEtherButton =
-            UIFactory.CreateButton(toolsRow, "SendEther", "Sende Äther", new Color(0.33f, 0.5f, 0.33f));
+            UIFactory.CreateButton(sendMailRow, "SendEther", "Sende Äther", new Color(0.33f, 0.5f, 0.33f));
         UIFactory.SetLayoutElement(sendEtherButton.Component.gameObject, minHeight: 28, minWidth: 130, flexibleHeight: 0);
         sendEtherButton.ButtonText.fontSize = 15;
         sendEtherButton.OnClick += () => { this.OnSendEther?.Invoke(); };
 
         ButtonRef sendScrollsButton =
-            UIFactory.CreateButton(toolsRow, "SendScrolls", "Sende Schriftrollen", new Color(0.33f, 0.33f, 0.33f));
+            UIFactory.CreateButton(sendMailRow, "SendScrolls", "Sende Schriftrollen", new Color(0.33f, 0.33f, 0.33f));
         UIFactory.SetLayoutElement(sendScrollsButton.Component.gameObject, minHeight: 28, minWidth: 130, flexibleHeight: 0);
         sendScrollsButton.ButtonText.fontSize = 15;
         sendScrollsButton.OnClick += () => { this.OnSendScrolls?.Invoke(); };
         
         ButtonRef sendMarchButton =
-            UIFactory.CreateButton(toolsRow, "SendMarch", "Sende Marsch", new Color(0.33f, 0.33f, 0.33f));
+            UIFactory.CreateButton(sendMailRow, "SendMarch", "Sende Marsch", new Color(0.33f, 0.33f, 0.33f));
         UIFactory.SetLayoutElement(sendMarchButton.Component.gameObject, minHeight: 28, minWidth: 130, flexibleHeight: 0);
         sendMarchButton.ButtonText.fontSize = 15;
         sendMarchButton.OnClick += () => { this.OnSendMarch?.Invoke(); };
+        
+        ButtonRef countResources =
+            UIFactory.CreateButton(sendMailRow, "Count Resources", "Resourcen", new Color(0.33f, 0.33f, 0.33f));
+        UIFactory.SetLayoutElement(countResources.Component.gameObject, minHeight: 28, minWidth: 130, flexibleHeight: 0);
+        countResources.ButtonText.fontSize = 15;
+        countResources.OnClick += () => { this.OnGetResources?.Invoke(); };
+        
+        ButtonRef countBeschleuniger =
+            UIFactory.CreateButton(sendMailRow, "Count Beschleuniger", "Beschleuniger", new Color(0.33f, 0.33f, 0.33f));
+        UIFactory.SetLayoutElement(countBeschleuniger.Component.gameObject, minHeight: 28, minWidth: 130, flexibleHeight: 0);
+        countBeschleuniger.ButtonText.fontSize = 15;
+        countBeschleuniger.OnClick += () => { this.OnGetBeschleuniger?.Invoke(); };
+        
     }
 
     private void InvokeOnValueChanged(string value)
