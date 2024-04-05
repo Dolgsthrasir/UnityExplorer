@@ -51,6 +51,7 @@ public static class CustomButtonController
         Panel.OnSendScrolls += SendScrolls;
         Panel.OnGetResources += GetResources;
         Panel.OnGetBeschleuniger += GetBeschleuniger;
+        Panel.OnGetUser += GetUser;
     }
 
     private static void OnInputChanged(string value)
@@ -223,6 +224,18 @@ foreach(var t in types)
     }
 	Log($""{name}: minutes {seconds / 60} - hours {seconds / 60.0d / 60.0d} - days {seconds / 60.0d / 60.0d / 24.0d}"");
 }
+";
+        Evaluate(text);
+    }
+    
+    public static void GetUser()
+    {
+        var text = @"Hashtable argsTable = new Hashtable
+{
+    {""target_uid"", " + GetText() + @"}
+};
+var hubPort = new HubPort(""Player:loadUserBasicInfo"");
+hubPort.SendRequest(argsTable, null, false);
 ";
         Evaluate(text);
     }

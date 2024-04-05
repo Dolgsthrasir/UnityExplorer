@@ -18,6 +18,7 @@ public class CustomButtonsPanel : UEPanel
     public Text InputText { get; private set; }
     
     public Action OnGetBeschleuniger;
+    public Action OnGetUser;
     public Action OnGetResources;
     public Action<string> OnInputChanged;
     public Action OnSendScrolls;
@@ -99,6 +100,12 @@ public class CustomButtonsPanel : UEPanel
         UIFactory.SetLayoutElement(countBeschleuniger.Component.gameObject, minHeight: 28, minWidth: 130, flexibleHeight: 0);
         countBeschleuniger.ButtonText.fontSize = 15;
         countBeschleuniger.OnClick += () => { this.OnGetBeschleuniger?.Invoke(); };
+        
+        ButtonRef getUser =
+            UIFactory.CreateButton(sendMailRow, "Get User", "Get User", new Color(0.33f, 0.33f, 0.33f));
+        UIFactory.SetLayoutElement(getUser.Component.gameObject, minHeight: 28, minWidth: 130, flexibleHeight: 0);
+        getUser.ButtonText.fontSize = 15;
+        getUser.OnClick += () => { this.OnGetUser?.Invoke(); };
         
     }
 
