@@ -51,6 +51,7 @@ public static class CustomButtonController
         Panel.OnSendScrolls += SendScrolls;
         Panel.OnGetResources += GetResources;
         Panel.OnGetBeschleuniger += GetBeschleuniger;
+        Panel.OnGetShareRewards += GetShareRewards;
         Panel.OnGetUser += GetUser;
     }
 
@@ -235,6 +236,16 @@ foreach(var t in types)
     {""target_uid"", " + GetText() + @"}
 };
 var hubPort = new HubPort(""Player:loadUserBasicInfo"");
+hubPort.SendRequest(argsTable, null, false);
+";
+        Evaluate(text);
+    }
+    
+    public static void GetShareRewards()
+    {
+        var text = @"Hashtable argsTable = new Hashtable();
+argsTable.Add(""config_id"", 215000006);
+var hubPort = new HubPort(""PostCard:postCardReward"");
 hubPort.SendRequest(argsTable, null, false);
 ";
         Evaluate(text);

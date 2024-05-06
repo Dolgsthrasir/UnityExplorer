@@ -19,6 +19,7 @@ public class CustomButtonsPanel : UEPanel
     
     public Action OnGetBeschleuniger;
     public Action OnGetUser;
+    public Action OnGetShareRewards;
     public Action OnGetResources;
     public Action<string> OnInputChanged;
     public Action OnSendScrolls;
@@ -106,6 +107,12 @@ public class CustomButtonsPanel : UEPanel
         UIFactory.SetLayoutElement(getUser.Component.gameObject, minHeight: 28, minWidth: 130, flexibleHeight: 0);
         getUser.ButtonText.fontSize = 15;
         getUser.OnClick += () => { this.OnGetUser?.Invoke(); };
+        
+        ButtonRef getShareRewards =
+            UIFactory.CreateButton(sendMailRow, "Get Share Rewards", "Share", new Color(0.33f, 0.33f, 0.33f));
+        UIFactory.SetLayoutElement(getShareRewards.Component.gameObject, minHeight: 28, minWidth: 130, flexibleHeight: 0);
+        getShareRewards.ButtonText.fontSize = 15;
+        getShareRewards.OnClick += () => { this.OnGetShareRewards?.Invoke(); };
         
     }
 
