@@ -53,11 +53,17 @@ public static class CustomButtonController
         Panel.OnGetBeschleuniger += GetBeschleuniger;
         Panel.OnGetShareRewards += GetShareRewards;
         Panel.OnGetUser += GetUser;
+        Panel.OnGetUserByName += GetUserByName;
+        Panel.ActivateScan += ActivateScan;
+        Panel.ActivateKdG += ActivateKdG;
+        Panel.ActivateShowdown += ActivateShowdown;
     }
+
+
 
     private static void OnInputChanged(string value)
     {
-        ExplorerCore.Log($"new input: {value}");
+        // ExplorerCore.Log($"new input: {value}");
         // prevent escape wiping input
         if (InputManager.GetKeyDown(KeyCode.Escape))
         {
@@ -213,7 +219,7 @@ foreach(var t in types)
     }
 
 
-    List<DB.ConsumableItemData> resource = ItemBag.Instance.GetItemsByCategory(""resources"", t);
+    List<DB.ConsumableItemData> resource = ItemBag.Instance.GetItemsByCategory(""accelerate"", t);
     long seconds = 0;
     foreach(var f in resource)
     {
@@ -237,6 +243,180 @@ foreach(var t in types)
 };
 var hubPort = new HubPort(""Player:loadUserBasicInfo"");
 hubPort.SendRequest(argsTable, null, false);
+";
+        Evaluate(text);
+    }
+    
+    private static void ActivateShowdown()
+    {
+        var text = @"
+if(CustomHelper.Features.Feature.Contains(""AM:accept""))
+{
+    CustomHelper.Features.Feature.Remove(""AM:accept""); 
+    CustomHelper.Features.Feature.Remove(""Legend2:templeSummon"");
+    Log(""Showdown deactivated"");
+}
+else
+{
+    CustomHelper.Features.Feature.Add(""AM:accept""); 
+    CustomHelper.Features.Feature.Add(""Legend2:templeSummon"");
+    Log(""Showdown activated"");
+}
+";
+        Evaluate(text);
+    }
+
+    private static void ActivateKdG()
+    {
+        var text = @"
+if(CustomHelper.Features.Feature.Contains(""StAvaWater:getActivityInfo""))
+{
+    CustomHelper.Features.Feature.Remove(""StAvaWater:getActivityInfo"");
+    CustomHelper.Features.Feature.Remove(""Alliance:getAllianceDetailInfo"");
+    CustomHelper.Features.Feature.Remove(""Player:loadUserBasicInfo"");
+    Log(""KdG deactivated"");
+}
+else
+{
+    CustomHelper.Features.Feature.Add(""StAvaWater:getActivityInfo"");
+    CustomHelper.Features.Feature.Add(""Alliance:getAllianceDetailInfo"");
+    CustomHelper.Features.Feature.Add(""Player:loadUserBasicInfo"");
+    Log(""KdG activated"");
+}";
+        Evaluate(text);
+    }
+
+    private static void ActivateScan()
+    {
+        var inputText = GetText();
+        var kingdom = inputText.Length != 5 ? 10090 : int.Parse(inputText);
+        
+        var textCoro = @"public class MyCoro
+{
+    public static IEnumerator Main()
+    {
+        PVPMap map = UnityEngine.Resources.FindObjectsOfTypeAll(typeof(PVPMap))[0] as PVPMap;
+        CustomHelper.Requested.Uids.Clear();
+        map.GotoLocation(new Coordinate("+kingdom+@",10,10), false);
+
+        int currentX = 10;
+        int currentY = 0;
+        int minX = 10;
+        int minY = 10;
+        int steps = 50;
+        int maxX = 1270;
+        int maxY = 2555;
+
+        while(currentY + steps < maxY)
+        {
+            while(currentX + steps < maxX)
+            {
+                currentX += steps;
+                map.GotoLocation(new Coordinate("+kingdom+@",currentX,currentY), false);
+                yield return new WaitForSeconds(0.01f);
+            }
+            currentX = minX;
+            currentY += steps;
+            map.GotoLocation(new Coordinate("+kingdom+@",currentX,currentY), false);
+            yield return new WaitForSeconds(0.01f);
+        }
+    }
+}";
+        
+        Evaluate(textCoro);
+        
+        var text = @"
+CustomHelper.Features.Feature.Add(""Map:enterKingdomBlock"");
+CustomHelper.Features.Feature.Add(""Player:loadUserBasicInfo"");
+Start(MyCoro.Main());";
+        Evaluate(text);
+    }
+
+    public static void GetUserByName()
+    {
+        var parts = GetText().Split('|');
+        var kingdom = parts[1];
+        var user = parts[0];
+        int maxLevel = 100;
+        if (parts.Length > 2)
+        {
+            maxLevel = int.Parse(parts[2]);
+        }
+
+        var text = @"var name = """+user+@""";
+var kingdom = """+kingdom+@""";
+var maxLevel = "+maxLevel+@";
+
+Hashtable argsTable = new Hashtable();
+argsTable.Add(""name"", name); // Example of successfully retrieved UIDs
+var hubPort = new HubPort(""player:searchUser"");
+var users = new List<string>();
+var infoMapping = new Queue<LoaderInfo>();
+hubPort.SendRequest(argsTable, (success, response) =>
+        {
+            if (success)
+            {
+                System.Collections.ArrayList al = response as System.Collections.ArrayList;
+			foreach(var id in al)
+                {
+                    Hashtable t = id as Hashtable;
+                     string tName = t[""name""] as string; 
+                    bool isMatch = tName.IndexOf(name, StringComparison.OrdinalIgnoreCase) >= 0 &&(string.IsNullOrEmpty(kingdom) || t[""world_id""].Equals(kingdom));
+
+                    if (isMatch)
+                    {
+                              
+                        var uid = t[""uid""] as string;
+                        argsTable = new Hashtable
+                        {
+                            {""custom"", ""248fd869-fe82-49cb-aef3-2a4cd78b76f4""},
+                            {""target_uid"", uid}
+                        };
+
+                        var rm = RequestManager.inst;
+                        var info = rm.SendRequest(""Player:loadUserBasicInfo"", argsTable, null, false);
+                        infoMapping.Enqueue(info);
+
+                        info.OnResult += (action) => {
+
+                            var res = CustomHelper.RequestResult.GetAndRemove(infoMapping.Dequeue());
+                            string jsonResponse = res;
+
+                            var data = Newtonsoft.Json.Linq.JObject.Parse(jsonResponse);
+
+                            // Extract the values
+                            var userCity = data[""data""][""set""][""user_city""][0];
+                            var userInfo = data[""data""][""set""][""user_info""][0];
+                            string pre = string.Empty;
+                            if (data != null && 
+                                data[""data""] != null && 
+                                data[""data""][""set""] != null && 
+                                data[""data""][""set""][""alliance""] != null)
+                            {
+                                var alliance = data[""data""][""set""][""alliance""][0];
+                                string allianceAb = alliance != null ? (string)alliance[""acronym""] : string.Empty;
+                                pre = !string.IsNullOrEmpty(allianceAb) ? $""({allianceAb})"" : string.Empty;
+                            }
+                            
+                            string userName = (string)userInfo[""name""];
+                            int mapX = (int)userCity[""map_x""];
+                            int mapY = (int)userCity[""map_y""];
+                            int level = (int)userCity[""level""];
+                            int worldId = (int)userCity[""world_id""];
+                            if(maxLevel == -1 || level > maxLevel)
+                            {
+                                return;
+                            }
+
+                            Log($""{pre}{userName}, SH {level}, {mapX}:{mapY}, world_id: {worldId}"");
+                        };
+                    }
+                }
+                
+            }
+            else
+                Log(""Lambda request failed."");
+        }, false);
 ";
         Evaluate(text);
     }

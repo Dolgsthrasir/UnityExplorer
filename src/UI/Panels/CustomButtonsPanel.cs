@@ -19,6 +19,10 @@ public class CustomButtonsPanel : UEPanel
     
     public Action OnGetBeschleuniger;
     public Action OnGetUser;
+    public Action OnGetUserByName;
+    public Action ActivateScan;
+    public Action ActivateKdG;
+    public Action ActivateShowdown;
     public Action OnGetShareRewards;
     public Action OnGetResources;
     public Action<string> OnInputChanged;
@@ -45,11 +49,22 @@ public class CustomButtonsPanel : UEPanel
         UIFactory.SetLayoutGroup<HorizontalLayoutGroup>(inputArea, false, true, true, true);
         
         // sendMailRow
+        // hori group
 
-        GameObject sendMailRow = UIFactory.CreateVerticalGroup(this.ContentRoot, "SendMailRow", false, false, true, true,
+        GameObject horiGroup = UIFactory.CreateHorizontalGroup(this.ContentRoot, "hori", false, false, true, true, 5,
+            default, new Color(1, 1, 1, 0), TextAnchor.MiddleLeft);
+        
+        GameObject sendMailRow = UIFactory.CreateVerticalGroup(horiGroup, "SendMailRow", false, false, true, true,
             5, new Vector4(8, 8, 10, 5),
             default, TextAnchor.MiddleLeft);
         UIFactory.SetLayoutElement(sendMailRow, minHeight: 25, flexibleHeight: 0, flexibleWidth: 9999);
+        
+        // activateFeatureRow
+
+        GameObject activateFeatureRow = UIFactory.CreateVerticalGroup(horiGroup, "ActivateFeatureRow", false, false, true, true,
+            5, new Vector4(8, 8, 10, 5),
+            default, TextAnchor.MiddleLeft);
+        UIFactory.SetLayoutElement(activateFeatureRow, minHeight: 25, flexibleHeight: 0, flexibleWidth: 9999);
 
         
         // input field
@@ -108,12 +123,37 @@ public class CustomButtonsPanel : UEPanel
         getUser.ButtonText.fontSize = 15;
         getUser.OnClick += () => { this.OnGetUser?.Invoke(); };
         
+        ButtonRef getUserByName =
+            UIFactory.CreateButton(sendMailRow, "Get User By Name", "Get User By Name", new Color(0.33f, 0.33f, 0.33f));
+        UIFactory.SetLayoutElement(getUserByName.Component.gameObject, minHeight: 28, minWidth: 130, flexibleHeight: 0);
+        getUserByName.ButtonText.fontSize = 15;
+        getUserByName.OnClick += () => { this.OnGetUserByName?.Invoke(); };
+        
         ButtonRef getShareRewards =
             UIFactory.CreateButton(sendMailRow, "Get Share Rewards", "Share", new Color(0.33f, 0.33f, 0.33f));
         UIFactory.SetLayoutElement(getShareRewards.Component.gameObject, minHeight: 28, minWidth: 130, flexibleHeight: 0);
         getShareRewards.ButtonText.fontSize = 15;
         getShareRewards.OnClick += () => { this.OnGetShareRewards?.Invoke(); };
         
+        // features
+        
+        ButtonRef activateScan =
+            UIFactory.CreateButton(activateFeatureRow, "ActivateScan", "ActivateScan", new Color(0.33f, 0.33f, 0.33f));
+        UIFactory.SetLayoutElement(activateScan.Component.gameObject, minHeight: 28, minWidth: 130, flexibleHeight: 0);
+        activateScan.ButtonText.fontSize = 15;
+        activateScan.OnClick += () => { this.ActivateScan?.Invoke(); };
+        
+        ButtonRef activateKdG =
+            UIFactory.CreateButton(activateFeatureRow, "ActivateKdG", "ActivateKdG", new Color(0.33f, 0.33f, 0.33f));
+        UIFactory.SetLayoutElement(activateKdG.Component.gameObject, minHeight: 28, minWidth: 130, flexibleHeight: 0);
+        activateKdG.ButtonText.fontSize = 15;
+        activateKdG.OnClick += () => { this.ActivateKdG?.Invoke(); };
+        
+        ButtonRef activateShowdown =
+            UIFactory.CreateButton(activateFeatureRow, "ActivateShowdown", "ActivateShowdown", new Color(0.33f, 0.33f, 0.33f));
+        UIFactory.SetLayoutElement(activateShowdown.Component.gameObject, minHeight: 28, minWidth: 130, flexibleHeight: 0);
+        activateShowdown.ButtonText.fontSize = 15;
+        activateShowdown.OnClick += () => { this.ActivateShowdown?.Invoke(); };
     }
 
     private void InvokeOnValueChanged(string value)
