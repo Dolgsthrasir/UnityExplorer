@@ -9,6 +9,25 @@ namespace UnityExplorer.ObjectExplorer
 {
     public class ObjectSearch : UIModel
     {
+        public class SearchedObject
+        {
+            public SearchedObject(object obj, string desc = null)
+            {
+                this.Object = obj;
+                this.Description = string.IsNullOrEmpty(desc) ? string.Empty : desc;
+            }
+            public object Object;
+            public string Description;
+
+            public override string ToString()
+            {
+                if(string.IsNullOrEmpty(this.Description))
+                    return $"{this.Object}";
+                
+                return $"{this.Object} => {this.Description}";
+            }
+        }
+        
         public ObjectExplorerPanel Parent { get; }
 
         public ObjectSearch(ObjectExplorerPanel parent)
@@ -23,9 +42,9 @@ namespace UnityExplorer.ObjectExplorer
         private string lastCheckedTypeInput;
         private bool lastTypeCanHaveGameObject;
 
-        public ButtonListHandler<object, ButtonCell> dataHandler;
+        public ButtonListHandler<SearchedObject, ButtonCell> dataHandler;
         private ScrollPool<ButtonCell> resultsScrollPool;
-        private List<object> currentResults = new();
+        private List<SearchedObject> currentResults = new();
 
         //public TypeCompleter typeAutocompleter;
         public TypeCompleter unityObjectTypeCompleter;
@@ -40,7 +59,7 @@ namespace UnityExplorer.ObjectExplorer
         private InputFieldRef nameInputField;
         private Text resultsLabel;
 
-        public List<object> GetEntries() => this.currentResults;
+        public List<SearchedObject> GetEntries() => this.currentResults;
 
         public void DoSearch()
         {
@@ -54,6 +73,10 @@ namespace UnityExplorer.ObjectExplorer
             {
                 this.currentResults = SearchProvider.MethodSearch(this.desiredTypeInput);
             }
+            // else if (this.context == SearchContext.String)
+            // {
+                // this.currentResults = SearchProvider.StringSearch(this.desiredTypeInput);
+            // }
             else
                 this.currentResults = SearchProvider.UnityObjectSearch(this.nameInputField.Text, this.desiredTypeInput, this.childFilter, this.sceneFilter);
 
@@ -136,13 +159,24 @@ namespace UnityExplorer.ObjectExplorer
             if (!cachedCellTexts.ContainsKey(index))
             {
                 string text;
-                if (this.context == SearchContext.Class)
+                if (this.context == SearchContext.Class || this.context == SearchContext.Method)
                 {
-                    Type type = this.currentResults[index] as Type;
-                    text = $"{SignatureHighlighter.Parse(type, true)} <color=grey><i>({type.Assembly.GetName().Name})</i></color>";
+                    Type type = this.currentResults[index].Object as Type;
+                    if (string.IsNullOrEmpty(this.currentResults[index].Description))
+                    {
+                        text = $"{SignatureHighlighter.Parse(type, true)} <color=grey><i>({type.Assembly.GetName().Name})</i></color>";
+                    }
+                    else
+                    {
+                        text = $"{this.currentResults[index].Description} in {SignatureHighlighter.Parse(type, true)} <color=grey><i>({type.Assembly.GetName().Name})</i></color>";
+                    }
                 }
+                // if (this.context == SearchContext.String)
+                // {
+                    // text = $"{this.currentResults[index].Description}";
+                // }
                 else
-                    text = ToStringUtility.ToStringWithType(this.currentResults[index], this.currentResults[index]?.GetActualType());
+                    text = ToStringUtility.ToStringWithType(this.currentResults[index].Object, this.currentResults[index]?.Object.GetActualType());
 
                 cachedCellTexts.Add(index, text);
             }
@@ -152,10 +186,10 @@ namespace UnityExplorer.ObjectExplorer
 
         private void OnCellClicked(int dataIndex)
         {
-            if (this.context == SearchContext.Class)
-                InspectorManager.Inspect(this.currentResults[dataIndex] as Type);
+            if (this.context == SearchContext.Class || this.context == SearchContext.Method)
+                InspectorManager.Inspect(this.currentResults[dataIndex].Object as Type);
             else
-                InspectorManager.Inspect(this.currentResults[dataIndex]);
+                InspectorManager.Inspect(this.currentResults[dataIndex].Object);
         }
 
         private bool ShouldDisplayCell(object arg1, string arg2) => true;
@@ -256,7 +290,7 @@ namespace UnityExplorer.ObjectExplorer
 
             // RESULTS SCROLL POOL
 
-            this.dataHandler = new ButtonListHandler<object, ButtonCell>(this.resultsScrollPool, this.GetEntries, this.SetCell, this.ShouldDisplayCell, this.OnCellClicked);
+            this.dataHandler = new ButtonListHandler<SearchedObject, ButtonCell>(this.resultsScrollPool, this.GetEntries, this.SetCell, this.ShouldDisplayCell, this.OnCellClicked);
             this.resultsScrollPool = UIFactory.CreateScrollPool<ButtonCell>(this.uiRoot, "ResultsList", out GameObject scrollObj,
                 out GameObject scrollContent);
 

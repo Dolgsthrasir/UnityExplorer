@@ -1,4 +1,5 @@
-﻿using UnityEngine.SceneManagement;
+﻿using System.Reflection.Emit;
+using UnityEngine.SceneManagement;
 
 namespace UnityExplorer.ObjectExplorer
 {
@@ -7,7 +8,8 @@ namespace UnityExplorer.ObjectExplorer
         UnityObject,
         Singleton,
         Class,
-        Method
+        Method,
+        // String
     }
 
     public enum ChildFilter
@@ -39,9 +41,9 @@ namespace UnityExplorer.ObjectExplorer
             };
         }
 
-        internal static List<object> UnityObjectSearch(string input, string customTypeInput, ChildFilter childFilter, SceneFilter sceneFilter)
+        internal static List<ObjectSearch.SearchedObject> UnityObjectSearch(string input, string customTypeInput, ChildFilter childFilter, SceneFilter sceneFilter)
         {
-            List<object> results = new();
+            List<ObjectSearch.SearchedObject> results = new();
 
             Type searchType = null;
             if (!string.IsNullOrEmpty(customTypeInput))
@@ -113,15 +115,15 @@ namespace UnityExplorer.ObjectExplorer
                     }
                 }
 
-                results.Add(obj);
+                results.Add(new ObjectSearch.SearchedObject(obj));
             }
 
             return results;
         }
 
-        internal static List<object> ClassSearch(string input)
+        internal static List<ObjectSearch.SearchedObject> ClassSearch(string input)
         {
-            List<object> list = new();
+            List<ObjectSearch.SearchedObject> list = new();
 
             string nameFilter = "";
             if (!string.IsNullOrEmpty(input))
@@ -133,43 +135,213 @@ namespace UnityExplorer.ObjectExplorer
                 {
                     if (!string.IsNullOrEmpty(nameFilter) && !type.FullName.ContainsIgnoreCase(nameFilter))
                         continue;
-                    list.Add(type);
+                    list.Add(new ObjectSearch.SearchedObject(type));
                 }
             }
 
             return list;
         }
         
-        internal static List<object> MethodSearch(string methodName)
+        internal static List<ObjectSearch.SearchedObject> MethodSearch(string methodName)
         {
             List<MethodInfo> methods = new();
-            List<object> list = new();
+            List<ObjectSearch.SearchedObject> list = new();
 
-            string nameFilter = "";
+            List<string> nameFilter = new List<string>();
             if (!string.IsNullOrEmpty(methodName))
-                nameFilter = methodName;
+                nameFilter = methodName.Split(' ').ToList();
 
             foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
             {
                 foreach (Type type in asm.GetTypes())
                 {
-                    if (!string.IsNullOrEmpty(nameFilter))
+                    var foundMethodName = string.Empty;
+                    if (nameFilter.Count > 0)
                     {
+                        var firstFound = type.GetMethods(BindingFlags.Instance |
+                                                         BindingFlags.Static |
+                                                         BindingFlags.Public |
+                                                         BindingFlags.NonPublic)
+                            .FirstOrDefault(method => nameFilter.All(f => method.Name.ContainsIgnoreCase(f)));
+                    
                         if (!type.GetMethods(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
-                                .Any(method => method.Name.ContainsIgnoreCase(nameFilter)))
+                                .Any(method => nameFilter.All(f => method.Name.ContainsIgnoreCase(f))))
                         {
                             continue;
                         }
+                        
+                        foundMethodName = firstFound?.Name ?? string.Empty;
                     }
 
                     // Add methods with the specified name
                     // methods.AddRange(type.GetMethods().Where(method => method.Name.ContainsIgnoreCase(nameFilter)));
-                    list.Add(type);
+                    list.Add(new ObjectSearch.SearchedObject(type, foundMethodName));
                 }
             }
 
             return list;
         }
+        
+        internal static List<ObjectSearch.SearchedObject> StringSearch(string searchString)
+        {
+            // Initialize the lookup tables for single and multi-byte opcodes
+            var fields = typeof(OpCodes).GetFields(BindingFlags.Public | BindingFlags.Static);
+            foreach (var field in fields)
+            {
+                var opCode = (OpCode)field.GetValue(null);
+                if (opCode.Size == 1)
+                    SingleByteOpCodes[opCode.Value] = opCode;
+                else
+                    MultiByteOpCodes[opCode.Value & 0xff] = opCode;
+            }
+            
+            List<ObjectSearch.SearchedObject> list = new();
+            try
+            {
+                foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+                {
+                    foreach (var type in assembly.GetTypes())
+                    {
+                        foreach (var method in type.GetMethods(BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
+                        {
+                            var methodBody = method.GetMethodBody();
+                            if (methodBody != null)
+                            {
+                                var il = methodBody.GetILAsByteArray();
+                                var module = method.Module;
+
+                                int position = 0;
+                                while (position < il.Length)
+                                {
+                                    OpCode code;
+                                    ushort value = il[position];
+
+                                    // Handle multi-byte opcodes
+                                    if (value != OpCodes.Prefix1.Value)
+                                    {
+                                        code = SingleByteOpCodes[value];
+                                        position++;
+                                    }
+                                    else
+                                    {
+                                        value = BitConverter.ToUInt16(il, position);
+                                        code = MultiByteOpCodes[value];
+                                        position += 2;
+                                    }
+
+                                    // Look for Ldstr (which loads a string literal)
+                                    if (code == OpCodes.Ldstr)
+                                    {
+                                        int metadataToken = BitConverter.ToInt32(il, position);
+                                        position += 4;
+
+                                        try
+                                        {
+                                            string literal = module.ResolveString(metadataToken);
+
+                                            if (literal.Contains(searchString))
+                                            {
+                                                Console.WriteLine($"Found string literal '{searchString}' in method '{method.Name}' of type '{type.FullName}'");
+                                            }
+                                        }
+                                        catch (ArgumentException ex)
+                                        {
+                                            // Handle invalid tokens (this shouldn't happen if we're correctly identifying Ldstr)
+                                            Console.WriteLine($"Error resolving string: {ex.Message}");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        // Handle other opcodes
+                                        position += GetOperandSize(code);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                //     foreach (var type in assembly.GetTypes())
+                //     {
+                //         if (type.ContainsGenericParameters)
+                //             continue;
+                //         
+                //         // Search static fields (constants and field initializers)
+                //         foreach (var field in type.GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
+                //         {
+                //             if (field.FieldType == typeof(string))
+                //             {
+                //                 var fieldValue = field.GetValue(null) as string; // Static fields, so no instance needed
+                //                 if (fieldValue != null && fieldValue.Contains(searchString))
+                //                 {
+                //                     Console.WriteLine($"Found '{searchString}' in static field '{field.Name}' of type '{type.FullName}'");
+                //                     list.Add(new ObjectSearch.SearchedObject(type, fieldValue));
+                //                 }
+                //             }
+                //         }
+                //
+                //         // Search static properties
+                //         foreach (var prop in type.GetProperties(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
+                //         {
+                //             if (prop.PropertyType.ContainsGenericParameters)
+                //                 continue;
+                //
+                //             if (prop.PropertyType == typeof(string) && prop.CanRead)
+                //             {
+                //                 var propValue = (string)prop.GetValue(null, null); // Static properties, no instance needed
+                //                 if (propValue != null && propValue.Contains(searchString))
+                //                 {
+                //                     Console.WriteLine($"Found '{searchString}' in static property '{prop.Name}' of type '{type.FullName}'");
+                //                     list.Add(new ObjectSearch.SearchedObject(type, propValue));
+                //                 }
+                //             }
+                //         }
+                //     }
+                // }
+            }
+            catch (Exception e)
+            {
+                list.Add(new ObjectSearch.SearchedObject(e, e.Message + e.StackTrace));
+            }
+            
+            return list;
+        }
+        
+        // Helper function to determine the operand size for different opcodes
+        private static int GetOperandSize(OpCode opCode)
+        {
+            switch (opCode.OperandType)
+            {
+                case OperandType.InlineBrTarget:
+                case OperandType.InlineField:
+                case OperandType.InlineMethod:
+                case OperandType.InlineSig:
+                case OperandType.InlineTok:
+                case OperandType.InlineType:
+                case OperandType.InlineString:
+                case OperandType.InlineI:
+                case OperandType.InlineSwitch:
+                case OperandType.InlineR:
+                    return 4;
+
+                case OperandType.ShortInlineBrTarget:
+                case OperandType.ShortInlineI:
+                case OperandType.ShortInlineR:
+                case OperandType.ShortInlineVar:
+                    return 1;
+
+                case OperandType.InlineI8:
+                    return 8;
+
+                default:
+                    return 0;
+            }
+        }
+        
+
+        // Opcode lookup tables for single and multi-byte opcodes
+        private static readonly OpCode[] SingleByteOpCodes = new OpCode[256];
+        private static readonly OpCode[] MultiByteOpCodes = new OpCode[256];
 
         internal static string[] instanceNames = new string[]
         {
@@ -185,7 +357,7 @@ namespace UnityExplorer.ObjectExplorer
             "<instance>k__BackingField",
         };
 
-        internal static List<object> InstanceSearch(string input)
+        internal static List<ObjectSearch.SearchedObject> InstanceSearch(string input)
         {
             List<object> instances = new();
 
@@ -211,7 +383,7 @@ namespace UnityExplorer.ObjectExplorer
                 }
             }
 
-            return instances;
+            return instances.Select(i => new ObjectSearch.SearchedObject(i)).ToList();
         }
 
     }
