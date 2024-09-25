@@ -23,6 +23,8 @@ public class CustomButtonsPanel : UEPanel
     public Action ActivateScan;
     public Action ActivateKdG;
     public Action ActivateShowdown;
+    public Action HuntDwarfs;
+    public Action LogAll;
     public Action OnGetShareRewards;
     public Action OnGetResources;
     public Action<string> OnInputChanged;
@@ -154,6 +156,18 @@ public class CustomButtonsPanel : UEPanel
         UIFactory.SetLayoutElement(activateShowdown.Component.gameObject, minHeight: 28, minWidth: 130, flexibleHeight: 0);
         activateShowdown.ButtonText.fontSize = 15;
         activateShowdown.OnClick += () => { this.ActivateShowdown?.Invoke(); };
+        
+        ButtonRef huntDwarfs =
+            UIFactory.CreateButton(activateFeatureRow, "HuntDwarfs", "HuntDwarfs", new Color(0.33f, 0.33f, 0.33f));
+        UIFactory.SetLayoutElement(huntDwarfs.Component.gameObject, minHeight: 28, minWidth: 130, flexibleHeight: 0);
+        huntDwarfs.ButtonText.fontSize = 15;
+        huntDwarfs.OnClick += () => { this.HuntDwarfs?.Invoke(); };
+        
+        ButtonRef logAll =
+            UIFactory.CreateButton(activateFeatureRow, "LogAll", "LogAll", new Color(0.33f, 0.33f, 0.33f));
+        UIFactory.SetLayoutElement(logAll.Component.gameObject, minHeight: 28, minWidth: 130, flexibleHeight: 0);
+        logAll.ButtonText.fontSize = 15;
+        logAll.OnClick += () => { this.LogAll?.Invoke(); };
     }
 
     private void InvokeOnValueChanged(string value)

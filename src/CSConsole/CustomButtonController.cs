@@ -57,6 +57,8 @@ public static class CustomButtonController
         Panel.ActivateScan += ActivateScan;
         Panel.ActivateKdG += ActivateKdG;
         Panel.ActivateShowdown += ActivateShowdown;
+        Panel.HuntDwarfs += HuntDwarfs;
+        Panel.LogAll += LogAll;
     }
 
 
@@ -427,6 +429,77 @@ hubPort.SendRequest(argsTable, (success, response) =>
 argsTable.Add(""config_id"", 215000006);
 var hubPort = new HubPort(""PostCard:postCardReward"");
 hubPort.SendRequest(argsTable, null, false);
+";
+        Evaluate(text);
+    }
+    
+    public static void LogAll()
+    {
+        var text = @"if(CustomHelper.Features.Feature.Contains(""LogAll""))
+{
+    foreach(var feature in CustomHelper.Features.Feature)
+    {
+        Log($""Removing feature {feature}"");
+    }
+    CustomHelper.Features.Feature.Clear();
+    Log(""All logs deactivated"");
+}
+else
+{
+    CustomHelper.Features.Feature.Add(""LogAll"");
+    Log(""All logs activated"");
+}
+";
+        Evaluate(text);
+    }
+    
+    public static void HuntDwarfs()
+    {
+        var inputText = GetText();
+        if (!int.TryParse(inputText, out var amount))
+        {
+            amount = 5;
+        }
+        
+        var text = @"int count = 5;
+for(int i = 0; i < count; i++)
+{
+    Hashtable argsTable = new Hashtable();
+    argsTable.Add(""act_id"", 234300001);
+    argsTable.Add(""custom"", ""248fd869-fe82-49cb-aef3-2a4cd78b76f4"");
+
+    var rm = RequestManager.inst;
+    var info = rm.SendRequest(""TreasureActivity2:genNpc"", argsTable, null, false);
+
+    info.OnResult += (action) => 
+    {
+        try 
+        {
+            var res = CustomHelper.RequestResult.GetAndRemove(info);
+            string jsonResponse = res;
+
+            var data = Newtonsoft.Json.Linq.JObject.Parse(jsonResponse);
+        
+            // Extract the values
+            var userCity = data[""data""][""set""][""user_kingdom_map""][0];
+            int mapX = (int)userCity[""map_x""];
+            int mapY = (int)userCity[""map_y""];
+            int slotId = (int)userCity[""slot_id""];
+
+            argsTable = new Hashtable();
+            argsTable.Add(""x"", mapX);
+            argsTable.Add(""slot_id"", 2);
+            argsTable.Add(""act_id"", 234300001);
+            argsTable.Add(""y"", mapY);
+            var hubPort = new HubPort(""TreasureActivity2:startVisitNpc"");
+            hubPort.SendRequest(argsTable, null, false);
+        }
+        catch(Exception e)
+        {
+            Log(e.Message);
+        }
+    };
+}
 ";
         Evaluate(text);
     }
