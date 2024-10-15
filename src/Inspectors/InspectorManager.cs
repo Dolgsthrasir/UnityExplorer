@@ -26,7 +26,7 @@ namespace UnityExplorer
 
             if (TryFocusActiveInspector(obj))
                 return;
-
+            
             if (obj is GameObject)
                 CreateInspector<GameObjectInspector>(obj);
             else

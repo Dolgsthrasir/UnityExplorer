@@ -1,5 +1,9 @@
 ﻿using System.Diagnostics;
+using System.Text;
+using System.Text.RegularExpressions;
+using Mono.CSharp;
 using UnityExplorer.Config;
+using UnityExplorer.CSConsole;
 using UniverseLib.UI;
 using UniverseLib.UI.Models;
 using UniverseLib.UI.Widgets.ScrollView;
@@ -37,7 +41,20 @@ namespace UnityExplorer.UI.Panels
         public LogPanel(UIBase owner) : base(owner)
         {
             this.SetupIO();
+            GenerateTextWriter();
+            Evaluator = new ScriptEvaluator(evaluatorStringWriter)
+            {
+                InteractiveBaseClass = typeof(ScriptInteraction)
+            };
         }
+        
+        private static void GenerateTextWriter()
+        {
+            evaluatorOutput = new StringBuilder();
+            evaluatorStringWriter = new StringWriter(evaluatorOutput);
+        }
+
+        public static ScriptEvaluator Evaluator { get; set; }
 
         private static bool DoneScrollPoolInit;
 
@@ -57,19 +74,19 @@ namespace UnityExplorer.UI.Panels
 
         private void SetupIO()
         {
-            string fileName = $"UnityExplorer {DateTime.Now:u}.txt";
+            var fileName = $"UnityExplorer {DateTime.Now:u}.txt";
             fileName = IOUtility.EnsureValidFilename(fileName);
-            string path = Path.Combine(ExplorerCore.ExplorerFolder, "Logs");
+            var path = Path.Combine(ExplorerCore.ExplorerFolder, "Logs");
             CurrentStreamPath = IOUtility.EnsureValidFilePath(Path.Combine(path, fileName));
 
             // clean old log(s)
-            string[] files = Directory.GetFiles(path);
+            var files = Directory.GetFiles(path);
             if (files.Length >= 10)
             {
-                List<string> sorted = files.ToList();
+                var sorted = files.ToList();
                 // sort by 'datetime.ToString("u")' will put the oldest ones first
                 sorted.Sort();
-                for (int i = 0; i < files.Length - 9; i++)
+                for (var i = 0; i < files.Length - 9; i++)
                     File.Delete(files[i]);
             }
 
@@ -114,6 +131,8 @@ namespace UnityExplorer.UI.Panels
 
         private readonly Color logEvenColor = new(0.34f, 0.34f, 0.34f);
         private readonly Color logOddColor = new(0.28f, 0.28f, 0.28f);
+        private static StringBuilder evaluatorOutput;
+        private static TextWriter evaluatorStringWriter;
 
         public void OnCellBorrowed(ConsoleLogCell cell) { }
 
@@ -128,13 +147,73 @@ namespace UnityExplorer.UI.Panels
             // Logs are displayed in reverse order (newest at top)
             index = Logs.Count - index - 1;
 
-            LogInfo log = Logs[index];
+            var log = Logs[index];
             cell.IndexLabel.text = $"{index}:";
             cell.Input.Text = log.message;
             cell.Input.Component.textComponent.color = logColors[log.type];
+            cell.GotoButton.Enabled = cell.ButtonEnabled;
+            if (cell.GotoButton.Enabled)
+            {
+                cell.GotoButton.GameObject.SetActive(true);
+                cell.ButtonAction = Evaluate;
+            }
 
-            Color color = index % 2 == 0 ? this.logEvenColor : this.logOddColor;
+            var color = index % 2 == 0 ? this.logEvenColor : this.logOddColor;
             RuntimeHelper.SetColorBlock(cell.Input.Component, color);
+        }
+
+        private static void Evaluate(string input, bool supressLog = false)
+        {
+            if (evaluatorStringWriter == null || evaluatorOutput == null)
+            {
+                GenerateTextWriter();
+                Evaluator._textWriter = evaluatorStringWriter;
+            }
+
+            try
+            {
+                // Compile the code. If it returned a CompiledMethod, it is REPL.
+                CompiledMethod repl = Evaluator.Compile(input);
+
+                if (repl != null)
+                {
+                    // Valid REPL, we have a delegate to the evaluation.
+                    try
+                    {
+                        object ret = null;
+                        repl.Invoke(ref ret);
+                    }
+                    catch (Exception ex)
+                    {
+                        ExplorerCore.LogWarning($"Exception invoking REPL: {ex}");
+                    }
+                }
+                else
+                {
+                    // The compiled code was not REPL, so it was a using directive or it defined classes.
+
+                    string output = Evaluator._textWriter.ToString();
+                    string[] outputSplit = output.Split('\n');
+                    if (outputSplit.Length >= 2)
+                        output = outputSplit[outputSplit.Length - 2];
+                    evaluatorOutput.Clear();
+
+                    if (ScriptEvaluator._reportPrinter.ErrorsCount > 0)
+                        throw new FormatException($"Unable to compile the code. Evaluator's last output was:\r\n{output}");
+                    else if (!supressLog)
+                        ExplorerCore.Log($"Code compiled without errors.");
+                }
+            }
+            catch (FormatException fex)
+            {
+                if (!supressLog)
+                    ExplorerCore.LogWarning(fex.Message);
+            }
+            catch (Exception ex)
+            {
+                if (!supressLog)
+                    ExplorerCore.LogWarning(ex);
+            }
         }
 
         // UI Construction
@@ -143,27 +222,27 @@ namespace UnityExplorer.UI.Panels
         {
             // Log scroll pool
 
-            logScrollPool = UIFactory.CreateScrollPool<ConsoleLogCell>(this.ContentRoot, "Logs", out GameObject scrollObj,
-                out GameObject scrollContent, new Color(0.03f, 0.03f, 0.03f));
+            logScrollPool = UIFactory.CreateScrollPool<ConsoleLogCell>(this.ContentRoot, "Logs", out var scrollObj,
+                out var scrollContent, new Color(0.03f, 0.03f, 0.03f));
             UIFactory.SetLayoutElement(scrollObj, flexibleWidth: 9999, flexibleHeight: 9999);
 
             // Buttons and toggles
 
-            GameObject optionsRow = UIFactory.CreateUIObject("OptionsRow", this.ContentRoot);
+            var optionsRow = UIFactory.CreateUIObject("OptionsRow", this.ContentRoot);
             UIFactory.SetLayoutElement(optionsRow, minHeight: 25, flexibleWidth: 9999);
             UIFactory.SetLayoutGroup<HorizontalLayoutGroup>(optionsRow, false, false, true, true, 5, 2, 2, 2, 2);
 
-            ButtonRef clearButton = UIFactory.CreateButton(optionsRow, "ClearButton", "Clear", new Color(0.2f, 0.2f, 0.2f));
+            var clearButton = UIFactory.CreateButton(optionsRow, "ClearButton", "Clear", new Color(0.2f, 0.2f, 0.2f));
             UIFactory.SetLayoutElement(clearButton.Component.gameObject, minHeight: 23, flexibleHeight: 0, minWidth: 60);
             clearButton.OnClick += ClearLogs;
             clearButton.Component.transform.SetSiblingIndex(1);
 
-            ButtonRef fileButton = UIFactory.CreateButton(optionsRow, "FileButton", "Open Log File", new Color(0.2f, 0.2f, 0.2f));
+            var fileButton = UIFactory.CreateButton(optionsRow, "FileButton", "Open Log File", new Color(0.2f, 0.2f, 0.2f));
             UIFactory.SetLayoutElement(fileButton.Component.gameObject, minHeight: 23, flexibleHeight: 0, minWidth: 100);
             fileButton.OnClick += OpenLogFile;
             fileButton.Component.transform.SetSiblingIndex(2);
 
-            GameObject unityToggle = UIFactory.CreateToggle(optionsRow, "UnityLogToggle", out Toggle toggle, out Text toggleText);
+            var unityToggle = UIFactory.CreateToggle(optionsRow, "UnityLogToggle", out var toggle, out var toggleText);
             UIFactory.SetLayoutElement(unityToggle, minHeight: 25, minWidth: 150);
             toggleText.text = "Log Unity Debug?";
             toggle.isOn = ConfigManager.Log_Unity_Debug.Value;
@@ -178,7 +257,7 @@ namespace UnityExplorer.UI.Panels
     {
         public Text IndexLabel;
         public InputFieldRef Input;
-
+        public ButtonRef GotoButton;
         public RectTransform Rect { get; set; }
         public GameObject UIRoot { get; set; }
 
@@ -187,7 +266,24 @@ namespace UnityExplorer.UI.Panels
         public bool Enabled => this.UIRoot.activeInHierarchy;
         public void Enable() => this.UIRoot.SetActive(true);
         public void Disable() => this.UIRoot.SetActive(false);
+        
+        public bool ButtonEnabled
+        {
+            get { 
+                var input = this.Input.Text;
 
+                // Define the regex pattern to capture x, y, and world
+                var pattern = @"(\d+):(\d+):(\d+)";
+                var regex = new Regex(pattern);
+
+                // Match the pattern in the input string
+                var match = regex.Match(input);
+
+                return match.Success;
+             }
+        }
+
+        public Action<string, bool> ButtonAction { get; set; }
 
         public GameObject CreateContent(GameObject parent)
         {
@@ -206,6 +302,15 @@ namespace UnityExplorer.UI.Panels
                 new Color(0.07f, 0.07f, 0.07f));
             this.Input.Component.GetComponent<Image>().color = new Color(0.2f, 0.2f, 0.2f);
 
+            this.GotoButton = UIFactory.CreateButton(this.UIRoot, "GoToCoords", "GoTo", new Color(0.2f, 0.27f, 0.2f));
+            UIFactory.SetLayoutElement(this.GotoButton.Component.gameObject, minHeight: 25, minWidth: 20);
+            RuntimeHelper.SetColorBlock(this.GotoButton.Component, new Color(0.1f, 0.1f, 0.1f), new Color(0.13f, 0.13f, 0.13f),
+                new Color(0.07f, 0.07f, 0.07f));
+            this.GotoButton.Component.GetComponent<Image>().color = new Color(0.2f, 0.2f, 0.2f);
+            this.GotoButton.OnClick += this.GotoClicked;
+            this.GotoButton.Enabled = false;
+            this.GotoButton.GameObject.SetActive(false);
+
             this.Input.Component.readOnly = true;
             this.Input.Component.textComponent.supportRichText = true;
             this.Input.Component.lineType = InputField.LineType.MultiLineNewline;
@@ -213,6 +318,34 @@ namespace UnityExplorer.UI.Panels
             this.Input.PlaceholderText.font = UniversalUI.ConsoleFont;
 
             return this.UIRoot;
+        }
+
+        private void GotoClicked()
+        {
+            var input = this.Input.Text;
+
+            // Define the regex pattern to capture x, y, and world
+            var pattern = @"(\d+):(\d+):(\d+)";
+            var regex = new Regex(pattern);
+
+            // Match the pattern in the input string
+            var match = regex.Match(input);
+
+            if (match.Success)
+            {
+                // Extract the values
+                var x = match.Groups[1].Value;
+                var y = match.Groups[2].Value;
+                var world = match.Groups[3].Value;
+                
+                this.ButtonAction.Invoke($@"
+PVPMap map = UnityEngine.Resources.FindObjectsOfTypeAll(typeof(PVPMap))[0] as PVPMap;
+map.GotoLocation(new Coordinate({world},{x},{y}), false);", false);
+            }
+            else
+            {
+                Console.WriteLine("No coordinates found.");
+            }
         }
     }
 

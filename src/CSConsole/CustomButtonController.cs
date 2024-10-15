@@ -58,6 +58,10 @@ public static class CustomButtonController
         Panel.ActivateKdG += ActivateKdG;
         Panel.ActivateShowdown += ActivateShowdown;
         Panel.HuntDwarfs += HuntDwarfs;
+        Panel.KickFromRallys += KickFromRallys;
+        Panel.GetUserBalloons += GetUserBalloons;
+        Panel.GetAllianceBalloons += GetAllianceBalloons;
+        Panel.SearchKriecher += SearchKriecher;
         Panel.LogAll += LogAll;
     }
 
@@ -502,6 +506,246 @@ for(int i = 0; i < count; i++)
 }
 ";
         Evaluate(text);
+    }
+    
+    public static void KickFromRallys()
+    {
+        var inputText = GetText();
+        
+        var text = @"Hashtable argsTable = new Hashtable();
+argsTable.Add(""m"", 0);
+argsTable.Add(""k"", 0);
+argsTable.Add(""r"", 4);
+ argsTable.Add(""custom"", ""248fd869-fe82-49cb-aef3-2a4cd78b76f4"");
+
+var rm = RequestManager.inst;
+var info = rm.SendRequest(""Alliance:loadWarList"", argsTable, null, false);
+
+info.OnResult += (action) => {
+
+Log(""Test"");
+var kickuid = DB.DBManager.inst.DB_UserProfileDB._profiles[""uid""];
+	Log(kickuid);
+var res = CustomHelper.RequestResult.GetAndRemove(info);
+var data = Newtonsoft.Json.Linq.JObject.Parse(res);
+        
+            // Extract the values
+foreach(var rally in data[""data""][""set""][""rally""])
+{
+		var slotsInfo = rally[""slots_info""];
+		foreach (var key in slotsInfo)
+            {
+				if(key.Path.ToString().Contains(kickuid.ToString()))
+                {
+                    var rallyId = rally[""rally_id""].ToString();
+				var leader = rally[""uid""].ToString();
+                            var kickArgs = new Hashtable
+                            {
+                                {""cancel_uid"", kickuid},
+                                {""uid"", leader},
+                                {""rally_id"", rallyId}
+                            };
+                
+                            var acceptHub = new HubPort(""rally:repatriate"");
+                            acceptHub.SendRequest(kickArgs, null, false);
+                            Log($""kicked: {kickuid} from rally {rallyId} by {leader}"");
+                }
+
+            }
+}
+
+};
+";
+        Evaluate(text);
+    }
+    
+    public static void GetUserBalloons()
+    {
+        var inputText = GetText();
+        
+        var text = @"for(var ballonNumber = 1; ballonNumber <= 4; ballonNumber++)
+            {
+                Hashtable userArgsTable = new Hashtable
+                {
+                    {""cell_id"", ballonNumber},
+                    {""owner_uid"", "+inputText+@"}
+                };
+
+                var hubPort = new HubPort(""Freight:getFreightPos"");
+                //Log(Newtonsoft.Json.JsonConvert.SerializeObject(userArgsTable));
+
+                // Assign the delegate to handle the OnResult
+                Action<bool, object> handleUserBalloonInfo = (successInner, response) =>
+                {
+                    if(successInner)
+                    {
+                        Hashtable al = response as Hashtable;
+                        //Log(Newtonsoft.Json.JsonConvert.SerializeObject(response));
+
+                        if (al == null) return;
+
+                        var name = "+inputText+@";
+                        var mapX = al[""x""];
+                        var mapY = al[""y""];
+                        var worldId = al[""world_id""];
+
+                        Log($""{name} - {mapX}:{mapY}:{worldId}"");
+                    }
+                    
+                };
+
+                // Assign the OnResult event to the explicit delegate
+                hubPort.SendRequest(userArgsTable, handleUserBalloonInfo, false);
+            }
+";
+        Evaluate(text);
+    }
+    
+    public static void GetAllianceBalloons()
+    {
+        var inputText = GetText();
+        
+        var text = @"
+var rm = RequestManager.inst;
+Hashtable argsTable = new Hashtable();
+argsTable.Add(""alliance_id"", "+inputText+@");
+argsTable.Add(""custom"", ""248fd869-fe82-49cb-aef3-2a4cd78b76f4"");
+
+// Define explicit delegate for OnResult handler
+Action<bool, object> handleUserBalloonInfo = null; 
+
+// Send request and assign the main handler
+//hubPort.SendRequest(argsTable, handleGetAllianceUsers, false);
+var loadAllianceMemberInfo = rm.SendRequest(""Alliance:getAllianceMemberInfo"", argsTable, null, false);
+var capturedLoadAllianceMemberInfo = loadAllianceMemberInfo; // Capture info to avoid hoisting issues
+
+// Define the main handler to process the response from player:getonlineusers
+Action<object> handleGetAllianceUsers = (actionOuter) =>
+{
+
+        var loadUserBasicInfoRes = CustomHelper.RequestResult.GetAndRemove(capturedLoadAllianceMemberInfo);
+        var capturedLoadAllianceMemberInfoRes = Newtonsoft.Json.Linq.JObject.Parse(loadUserBasicInfoRes);
+        //Log(loadUserBasicInfoRes);
+        if (capturedLoadAllianceMemberInfoRes == null) return;
+
+        //Log(""Something returned"");
+
+        var memberList = capturedLoadAllianceMemberInfoRes[""data""][""set""][""user_info""];
+        Log($""Alliance users: {memberList.Count()}"");
+
+        foreach (var member in memberList)
+        {
+            var capturedMember = member; // Capture ID to avoid hoisting issues
+            /*if(capturedMember[""uid""].ToString() != ""120370304"")
+            {
+               continue;
+            }
+
+            Log(""Found user Dolgsthrasir"");*/
+
+            for(var ballonNumber = 1; ballonNumber <= 4; ballonNumber++)
+            {
+                Hashtable userArgsTable = new Hashtable
+                {
+                    {""cell_id"", ballonNumber},
+                    {""owner_uid"", capturedMember[""uid""].ToString()}
+                };
+
+                var hubPort = new HubPort(""Freight:getFreightPos"");
+                //Log(Newtonsoft.Json.JsonConvert.SerializeObject(userArgsTable));
+
+                // Assign the delegate to handle the OnResult
+                handleUserBalloonInfo = (successInner, response) =>
+                {
+                    if(successInner)
+                    {
+                        Hashtable al = response as Hashtable;
+                        //Log(Newtonsoft.Json.JsonConvert.SerializeObject(response));
+
+                        if (al == null) return;
+
+                        var name = capturedMember[""name""];
+                        var mapX = al[""x""];
+                        var mapY = al[""y""];
+                        var worldId = al[""world_id""];
+
+                        Log($""{name} - {mapX}:{mapY}:{worldId}"");
+                    }
+                    
+                };
+
+                // Assign the OnResult event to the explicit delegate
+                hubPort.SendRequest(userArgsTable, handleUserBalloonInfo, false);
+            }
+            
+        }
+        
+};
+
+
+loadAllianceMemberInfo.OnResult += (action) => handleGetAllianceUsers(action);
+";
+        Evaluate(text);
+    }
+    
+    public static void SearchKriecher()
+    {
+        var inputText = GetText();
+        var distance = string.IsNullOrEmpty(inputText) ? 100 : int.Parse(inputText);
+        var text = @"public class KriecherCoro
+{
+    public static IEnumerator Main()
+    {
+        int distance = int.Parse("""+inputText+@""");
+        if(distance <= 0)
+        {
+            distance = 100;
+        }
+        CustomHelper.Features.Feature.Add(""Map:enterKingdomBlock"");
+        CustomHelper.Features.Feature.Add(""Kriecher"");
+        PVPMap map = UnityEngine.Resources.FindObjectsOfTypeAll(typeof(PVPMap))[0] as PVPMap;
+        CustomHelper.Features.Feature.RemoveWhere(entry => entry.StartsWith(""5er Kriecher""));
+        CustomHelper.Features.Feature.RemoveWhere(entry => entry.StartsWith(""6er Kriecher""));
+        CustomHelper.Features.Feature.RemoveWhere(entry => entry.StartsWith(""7er Kriecher""));
+
+        int world_id = int.Parse(map.CurrentKXY.K.ToString());
+        int currentX = int.Parse(map.CurrentKXY.X.ToString());
+        int currentY = int.Parse(map.CurrentKXY.Y.ToString());
+        int originX = currentX;
+        int originY = currentY;
+        int minX = currentX - 100;
+        int minY = currentY - 100;
+        int steps = 50;
+        int maxX = currentX + 100;
+        int maxY = currentY + distance > 1250 ? 1250 : currentY + distance;
+
+        currentX = minX;
+        currentY = minY;
+        while(currentY + steps < maxY)
+        {
+            while(currentX + steps < maxX)
+            {
+                currentX += steps;
+                // map.Goto(new Vector3(steps,0,0), new Vector3(0,0,0));
+                map.GotoLocation(new Coordinate(world_id,currentX,currentY), false);
+                yield return new WaitForSeconds(0.01f);
+            }
+            currentX = minX;
+            currentY += steps;
+            // map.Goto(new Vector3(-2000,0,-steps), new Vector3(0,0,0));
+            map.GotoLocation(new Coordinate(world_id,currentX,currentY), false);
+            yield return new WaitForSeconds(0.01f);
+            //cam.SetCameraPositionByDir(new Vector3(currentX,z,currentY),false);
+        }
+
+        map.GotoLocation(new Coordinate(world_id,originX,originY), false);
+
+    }
+}
+";
+        Evaluate(text);
+        
+        Evaluate(@"Start(KriecherCoro.Main());");
     }
 
     public static void Evaluate(string input, bool supressLog = false)

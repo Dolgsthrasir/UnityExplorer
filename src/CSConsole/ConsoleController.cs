@@ -181,7 +181,7 @@ namespace UnityExplorer.CSConsole
                         string result = ret?.ToString();
                         if (!string.IsNullOrEmpty(result))
                             ExplorerCore.Log($"Invoked REPL, result: {ret}");
-                        else
+                        else if(!supressLog)
                             ExplorerCore.Log($"Invoked REPL (no return value)");
                     }
                     catch (Exception ex)

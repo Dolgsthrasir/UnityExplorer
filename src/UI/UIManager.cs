@@ -64,6 +64,83 @@ namespace UnityExplorer.UI
 
                 UniversalUI.SetUIActive(ExplorerCore.GUID, value);
                 UniversalUI.SetUIActive(MouseInspector.UIBaseGUID, value);
+                BlockInteractions(value);
+            }
+        }
+
+        private static void BlockInteractions(bool value)
+        {
+            // Use reflection to find the BlockManager type
+            var blockManagerType = System.AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(assembly => assembly.GetTypes())
+                .FirstOrDefault(t => t.Name == "BlockManager");
+
+            if (blockManagerType != null)
+            {
+                // Try finding a static instance field, like "Instance", if it exists
+                var instanceField = blockManagerType.GetField("Instance", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic);
+
+                object blockManagerInstance = null;
+
+                // If there's a static instance field (like in singleton pattern)
+                if (instanceField != null)
+                {
+                    blockManagerInstance = instanceField.GetValue(null);
+                }
+                else
+                {
+                    // If no static instance field, find an instance in the scene (if applicable)
+                    blockManagerInstance = GameObject.FindObjectOfType(blockManagerType);
+                }
+
+                if (blockManagerInstance != null)
+                {
+                    // Find the BlockType enum
+                    var blockTypeEnum = blockManagerType.Assembly.GetTypes()
+                        .FirstOrDefault(t => t.Name == "BlockType");
+
+                    if (blockTypeEnum != null)
+                    {
+                        var blockTypeValue = System.Enum.Parse(blockTypeEnum, "eMiniGameCameraMove");
+
+                        if (value)
+                        {
+                            // Call the Lock method on the instance
+                            var lockMethod = blockManagerType.GetMethod("Lock",
+                                System.Reflection.BindingFlags.Instance |
+                                System.Reflection.BindingFlags.Public |
+                                System.Reflection.BindingFlags.NonPublic);
+                            lockMethod.Invoke(blockManagerInstance, new object[]
+                            {
+                                blockTypeValue
+                            });
+                        }
+                        else
+                        {
+                            // Call the Lock method on the instance
+                            var unlockMethod = blockManagerType.GetMethod("Unlock",
+                                System.Reflection.BindingFlags.Instance |
+                                System.Reflection.BindingFlags.Public |
+                                System.Reflection.BindingFlags.NonPublic);
+                            unlockMethod.Invoke(blockManagerInstance, new object[]
+                            {
+                                blockTypeValue
+                            });
+                        }
+                    }
+                    else
+                    {
+                        Debug.Log("BlockType enum not found.");
+                    }
+                }
+                else
+                {
+                    Debug.Log("BlockManager instance not found.");
+                }
+            }
+            else
+            {
+                Debug.Log("BlockManager class not found.");
             }
         }
 

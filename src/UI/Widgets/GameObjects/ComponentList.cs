@@ -45,9 +45,13 @@ namespace UnityExplorer.UI.Widgets
             if (index < 0 || index >= entries.Count)
                 return;
 
+            ExplorerCore.LogWarning("Clicked");
             Component comp = entries[index];
             if (comp)
+            {
+                ExplorerCore.LogWarning(comp);
                 InspectorManager.Inspect(comp);
+            }
         }
 
         private void OnBehaviourToggled(bool value, int index)

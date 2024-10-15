@@ -24,6 +24,10 @@ public class CustomButtonsPanel : UEPanel
     public Action ActivateKdG;
     public Action ActivateShowdown;
     public Action HuntDwarfs;
+    public Action KickFromRallys;
+    public Action GetUserBalloons;
+    public Action GetAllianceBalloons;
+    public Action SearchKriecher;
     public Action LogAll;
     public Action OnGetShareRewards;
     public Action OnGetResources;
@@ -162,6 +166,30 @@ public class CustomButtonsPanel : UEPanel
         UIFactory.SetLayoutElement(huntDwarfs.Component.gameObject, minHeight: 28, minWidth: 130, flexibleHeight: 0);
         huntDwarfs.ButtonText.fontSize = 15;
         huntDwarfs.OnClick += () => { this.HuntDwarfs?.Invoke(); };
+        
+        ButtonRef kickFromRallys =
+            UIFactory.CreateButton(activateFeatureRow, "KickFromRallys", "KickFromRallys", new Color(0.33f, 0.33f, 0.33f));
+        UIFactory.SetLayoutElement(kickFromRallys.Component.gameObject, minHeight: 28, minWidth: 130, flexibleHeight: 0);
+        kickFromRallys.ButtonText.fontSize = 15;
+        kickFromRallys.OnClick += () => { this.KickFromRallys?.Invoke(); };
+        
+        ButtonRef getUserBalloons =
+            UIFactory.CreateButton(activateFeatureRow, "GetUserBalloons", "GetUserBalloons", new Color(0.33f, 0.33f, 0.33f));
+        UIFactory.SetLayoutElement(getUserBalloons.Component.gameObject, minHeight: 28, minWidth: 130, flexibleHeight: 0);
+        getUserBalloons.ButtonText.fontSize = 15;
+        getUserBalloons.OnClick += () => { this.GetUserBalloons?.Invoke(); };
+        
+        ButtonRef getAllianceBalloons =
+            UIFactory.CreateButton(activateFeatureRow, "GetAllianceBalloons", "GetAllianceBalloons", new Color(0.33f, 0.33f, 0.33f));
+        UIFactory.SetLayoutElement(getAllianceBalloons.Component.gameObject, minHeight: 28, minWidth: 130, flexibleHeight: 0);
+        getAllianceBalloons.ButtonText.fontSize = 15;
+        getAllianceBalloons.OnClick += () => { this.GetAllianceBalloons?.Invoke(); };
+        
+        ButtonRef searchKriecherButton =
+            UIFactory.CreateButton(activateFeatureRow, "SearchKriecher", "SearchKriecher", new Color(0.33f, 0.33f, 0.33f));
+        UIFactory.SetLayoutElement(searchKriecherButton.Component.gameObject, minHeight: 28, minWidth: 130, flexibleHeight: 0);
+        searchKriecherButton.ButtonText.fontSize = 15;
+        searchKriecherButton.OnClick += () => { this.SearchKriecher?.Invoke(); };
         
         ButtonRef logAll =
             UIFactory.CreateButton(activateFeatureRow, "LogAll", "LogAll", new Color(0.33f, 0.33f, 0.33f));
